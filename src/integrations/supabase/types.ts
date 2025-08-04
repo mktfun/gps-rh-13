@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      assuntos_atendimento: {
+        Row: {
+          created_at: string
+          id: string
+          mensagem_padrao: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mensagem_padrao: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mensagem_padrao?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action_type: string
@@ -88,18 +109,21 @@ export type Database = {
           created_at: string
           empresa_id: string | null
           id: string
+          protocolo: string | null
         }
         Insert: {
           corretora_id?: string | null
           created_at?: string
           empresa_id?: string | null
           id?: string
+          protocolo?: string | null
         }
         Update: {
           corretora_id?: string | null
           created_at?: string
           empresa_id?: string | null
           id?: string
+          protocolo?: string | null
         }
         Relationships: [
           {
