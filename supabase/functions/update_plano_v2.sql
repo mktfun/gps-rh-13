@@ -1,0 +1,86 @@
+
+CREATE OR REPLACE FUNCTION public.update_plano_v2(
+  p_plano_id uuid, 
+  p_seguradora text, 
+  p_valor_mensal numeric, 
+  p_cobertura_morte numeric, 
+  p_cobertura_morte_acidental numeric, 
+  p_cobertura_invalidez_acidente numeric, 
+  p_cobertura_auxilio_funeral numeric,
+  p_tipo_seguro tipo_seguro DEFAULT 'vida'
+)
+ RETURNS json
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+  v_user_id UUID;
+  v_updated_plano RECORD;
+BEGIN
+  -- Obter ID do usuário atual
+  v_user_id := auth.uid();
+  
+  IF v_user_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Usuário não autenticado'
+    );
+  END IF;
+
+  -- Verificar se o usuário é corretora e se o plano pertence a uma de suas empresas
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM dados_planos dp
+    JOIN cnpjs c ON dp.cnpj_id = c.id
+    JOIN empresas e ON c.empresa_id = e.id
+    JOIN profiles p ON p.id = v_user_id
+    WHERE dp.id = p_plano_id 
+      AND e.corretora_id = v_user_id
+      AND p.role = 'corretora'
+  ) THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Acesso negado: Plano não pertence à sua carteira ou usuário não é corretora'
+    );
+  END IF;
+
+  -- Atualizar o plano
+  UPDATE dados_planos SET
+    seguradora = p_seguradora,
+    valor_mensal = p_valor_mensal,
+    cobertura_morte = p_cobertura_morte,
+    cobertura_morte_acidental = p_cobertura_morte_acidental,
+    cobertura_invalidez_acidente = p_cobertura_invalidez_acidente,
+    cobertura_auxilio_funeral = p_cobertura_auxilio_funeral,
+    tipo_seguro = p_tipo_seguro,
+    updated_at = NOW()
+  WHERE id = p_plano_id;
+
+  -- Buscar o plano atualizado com os dados da empresa
+  SELECT 
+    dp.id,
+    dp.seguradora,
+    dp.valor_mensal,
+    dp.tipo_seguro,
+    c.razao_social,
+    e.nome as empresa_nome
+  INTO v_updated_plano
+  FROM dados_planos dp
+  JOIN cnpjs c ON dp.cnpj_id = c.id
+  JOIN empresas e ON c.empresa_id = e.id
+  WHERE dp.id = p_plano_id;
+
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Plano atualizado com sucesso',
+    'plano', json_build_object(
+      'id', v_updated_plano.id,
+      'seguradora', v_updated_plano.seguradora,
+      'valor_mensal', v_updated_plano.valor_mensal,
+      'tipo_seguro', v_updated_plano.tipo_seguro,
+      'empresa_nome', v_updated_plano.empresa_nome,
+      'cnpj_razao_social', v_updated_plano.razao_social
+    )
+  );
+END;
+$function$;

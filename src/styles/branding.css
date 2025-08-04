@@ -1,0 +1,53 @@
+
+/* Estilos dinâmicos baseados na cor primária da marca */
+
+/* Aplicar cor primária nos botões principais */
+.btn-primary {
+  background-color: var(--brand-primary, #3b82f6) !important;
+}
+
+/* Aplicar cor primária nos elementos ativos da navegação */
+[data-active="true"], 
+.bg-primary {
+  background-color: var(--brand-primary, #3b82f6) !important;
+}
+
+/* Aplicar cor primária nos links ativos */
+.text-primary {
+  color: var(--brand-primary, #3b82f6) !important;
+}
+
+/* Aplicar cor primária nos elementos de destaque */
+.border-primary {
+  border-color: var(--brand-primary, #3b82f6) !important;
+}
+
+/* Hover states */
+.hover\:bg-primary:hover {
+  background-color: var(--brand-primary, #3b82f6) !important;
+}
+
+.hover\:text-primary:hover {
+  color: var(--brand-primary, #3b82f6) !important;
+}
+
+/* Focus states */
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--brand-primary, #3b82f6) !important;
+}
+
+/* Elementos específicos que devem usar a cor da marca */
+.sidebar-active,
+.nav-active,
+.brand-accent {
+  background-color: var(--brand-primary, #3b82f6) !important;
+  color: white !important;
+}
+
+.brand-text {
+  color: var(--brand-primary, #3b82f6) !important;
+}
+
+.brand-border {
+  border-color: var(--brand-primary, #3b82f6) !important;
+}

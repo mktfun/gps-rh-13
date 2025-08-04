@@ -1,0 +1,42 @@
+
+/* Isolamento de layout para prevenir conflitos CSS */
+.layout-isolation {
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* Prevenção de overflow em componentes filhos */
+.content-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Forçar hierarquia de flexbox */
+.flex-hierarchy-parent {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.flex-hierarchy-child {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* Neutralizar estilos problemáticos */
+.layout-neutral {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Container de página seguro */
+.safe-page-container {
+  position: relative;
+  z-index: 1;
+  contain: layout;
+}

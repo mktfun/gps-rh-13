@@ -1,0 +1,231 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Corporate HR/Enterprise Color Palette */
+    --primary: 217 91% 40%; /* Azul corporativo profissional */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 142 72% 29%; /* Verde sucesso para ações positivas */
+    --secondary-foreground: 210 40% 98%;
+
+    --tertiary: 25 95% 53%; /* Laranja para alertas e chamadas de atenção */
+    --tertiary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 91% 40%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 217 91% 40%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 40%;
+
+    /* Corporate specific colors */
+    --corporate-blue: 217 91% 40%;
+    --corporate-blue-light: 217 91% 85%;
+    --corporate-green: 142 72% 29%;
+    --corporate-green-light: 142 72% 85%;
+    --corporate-orange: 25 95% 53%;
+    --corporate-orange-light: 25 95% 85%;
+    --corporate-gray-50: 210 20% 98%;
+    --corporate-gray-100: 210 20% 95%;
+    --corporate-gray-200: 210 16% 88%;
+    --corporate-gray-300: 210 14% 83%;
+    --corporate-gray-400: 210 14% 71%;
+    --corporate-gray-500: 210 11% 57%;
+    --corporate-gray-600: 210 12% 45%;
+    --corporate-gray-700: 210 10% 40%;
+    --corporate-gray-800: 210 11% 15%;
+    --corporate-gray-900: 210 12% 8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 142 72% 45%;
+    --secondary-foreground: 210 40% 98%;
+
+    --tertiary: 25 95% 60%;
+    --tertiary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217 91% 60%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217 91% 60%;
+
+    /* Corporate dark theme adjustments */
+    --corporate-blue: 217 91% 60%;
+    --corporate-blue-light: 217 91% 25%;
+    --corporate-green: 142 72% 45%;
+    --corporate-green-light: 142 72% 25%;
+    --corporate-orange: 25 95% 60%;
+    --corporate-orange-light: 25 95% 25%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+
+  /* Corporate typography styles */
+  .corporate-heading {
+    @apply text-corporate-gray-900 dark:text-corporate-gray-50 font-semibold;
+  }
+
+  .corporate-subheading {
+    @apply text-corporate-gray-700 dark:text-corporate-gray-300 font-medium;
+  }
+
+  .corporate-text {
+    @apply text-corporate-gray-600 dark:text-corporate-gray-400;
+  }
+
+  .corporate-text-muted {
+    @apply text-corporate-gray-500 dark:text-corporate-gray-500;
+  }
+}
+
+/* Corporate specific utility classes */
+@layer utilities {
+  .corporate-shadow {
+    box-shadow: 0 1px 3px 0 hsl(210 14% 83% / 0.1), 0 1px 2px -1px hsl(210 14% 83% / 0.1);
+  }
+
+  .corporate-shadow-lg {
+    box-shadow: 0 10px 15px -3px hsl(210 14% 83% / 0.1), 0 4px 6px -4px hsl(210 14% 83% / 0.1);
+  }
+
+  .corporate-gradient {
+    background: linear-gradient(135deg, hsl(var(--corporate-blue)) 0%, hsl(var(--corporate-green)) 100%);
+  }
+
+  .corporate-gradient-subtle {
+    background: linear-gradient(135deg, hsl(var(--corporate-blue-light)) 0%, hsl(var(--corporate-green-light)) 100%);
+  }
+
+  /* Modern dashboard animations */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  /* Hover effects */
+  .hover-scale {
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+}
