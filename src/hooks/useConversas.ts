@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -63,12 +62,9 @@ export const useConversas = () => {
       let query = supabase
         .from('conversas')
         .select(`
-          id,
-          corretora_id,
-          empresa_id,
-          created_at,
-          empresas!conversas_empresa_id_fkey(id, nome),
-          profiles!conversas_corretora_id_fkey(id, nome)
+          *,
+          empresa:empresas ( id, nome ),
+          corretora:profiles ( id, nome )
         `)
         .order('created_at', { ascending: false });
 
@@ -97,13 +93,13 @@ export const useConversas = () => {
         corretora_id: item.corretora_id,
         empresa_id: item.empresa_id,
         created_at: item.created_at,
-        empresa: item.empresas ? {
-          id: item.empresas.id,
-          nome: item.empresas.nome
+        empresa: item.empresa ? {
+          id: item.empresa.id,
+          nome: item.empresa.nome
         } : undefined,
-        corretora: item.profiles ? {
-          id: item.profiles.id,
-          nome: item.profiles.nome
+        corretora: item.corretora ? {
+          id: item.corretora.id,
+          nome: item.corretora.nome
         } : undefined
       }));
     },
