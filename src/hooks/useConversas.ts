@@ -83,9 +83,12 @@ export const useConversas = () => {
 
       if (error) throw error;
       
-      // Tipo safety: verificar se data tem as propriedades esperadas
-      if (data && typeof data === 'object' && 'id' in data && 'created_at' in data) {
-        return data as Conversa;
+      // Verificar se data tem as propriedades esperadas e fazer cast seguro
+      if (data && typeof data === 'object') {
+        const conversaData = data as any;
+        if ('id' in conversaData && 'created_at' in conversaData) {
+          return conversaData as Conversa;
+        }
       }
       
       throw new Error('Resposta inválida do servidor');
@@ -138,15 +141,15 @@ export const useConversas = () => {
 
     console.log(`✅ Mensagens encontradas: ${mensagens?.length || 0}`);
     
-    // Mapear para o formato esperado
+    // Mapear para o formato esperado com type guards
     return (mensagens || []).map(msg => ({
-      id: msg.id,
+      id: msg.id.toString(),
       conversa_id: msg.conversa_id,
       autor_id: msg.remetente_id,
       conteudo: msg.conteudo,
       tipo: 'texto' as const,
       created_at: msg.created_at,
-      profiles: msg.profiles
+      profiles: msg.profiles || undefined
     }));
   };
 
@@ -170,7 +173,7 @@ export const useConversas = () => {
           if (payload.new && typeof payload.new === 'object' && 'conversa_id' in payload.new && payload.new.conversa_id === conversaId) {
             const payloadData = payload.new as any;
             const novaMensagem: Mensagem = {
-              id: payloadData.id,
+              id: payloadData.id.toString(),
               conversa_id: payloadData.conversa_id,
               autor_id: payloadData.remetente_id,
               conteudo: payloadData.conteudo,
