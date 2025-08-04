@@ -67,8 +67,8 @@ export const useConversas = () => {
           corretora_id,
           empresa_id,
           created_at,
-          empresas!empresa_id(id, nome),
-          profiles!corretora_id(id, nome)
+          empresas!conversas_empresa_id_fkey(id, nome),
+          profiles!conversas_corretora_id_fkey(id, nome)
         `)
         .order('created_at', { ascending: false });
 
