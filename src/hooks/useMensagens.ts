@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Mensagem {
   id: number;
@@ -17,6 +17,7 @@ interface Mensagem {
 export const useMensagens = (conversaId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
   const {
     data: mensagens = [],
@@ -44,72 +45,108 @@ export const useMensagens = (conversaId: string | null) => {
       return data || [];
     },
     enabled: !!conversaId,
-    staleTime: 30 * 1000, // Cache por 30 segundos
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  // Configurar realtime para atualizações diretas no cache
+  // Configurar realtime e presence
   useEffect(() => {
-    if (!conversaId) return;
+    if (!conversaId || !user?.id) return;
 
-    console.log('🔄 Configurando realtime para conversa:', conversaId);
+    console.log('🔄 Configurando realtime e presence para conversa:', conversaId);
 
-    const channel = supabase
-      .channel(`mensagens-${conversaId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'mensagens',
-          filter: `conversa_id=eq.${conversaId}`
-        },
-        (payload) => {
-          console.log('📨 Nova mensagem em tempo real:', payload);
+    const channel = supabase.channel(`conversa-${conversaId}`);
+
+    // Configurar presence
+    channel.on('presence', { event: 'sync' }, () => {
+      console.log('👥 Sync presence state');
+      const userIds: string[] = [];
+      const state = channel.presenceState();
+      
+      for (const userId in state) {
+        // @ts-ignore
+        const presences = state[userId];
+        if (presences && presences.length > 0) {
+          userIds.push(userId);
+        }
+      }
+      
+      console.log('👥 Usuários online:', userIds);
+      setOnlineUsers(userIds);
+    });
+
+    channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      console.log('👋 Usuário entrou:', key, newPresences);
+    });
+
+    channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+      console.log('👋 Usuário saiu:', key, leftPresences);
+    });
+
+    // Configurar postgres changes
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'mensagens',
+        filter: `conversa_id=eq.${conversaId}`
+      },
+      (payload) => {
+        console.log('📨 Nova mensagem em tempo real:', payload);
+        
+        queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
+          const novaMensagem = payload.new as Mensagem;
+          const exists = old?.some(msg => msg.id === novaMensagem.id);
           
-          // Atualizar cache diretamente sem invalidar
-          queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
-            const novaMensagem = payload.new as Mensagem;
-            const exists = old?.some(msg => msg.id === novaMensagem.id);
-            
-            if (!exists) {
-              return [...(old || []), novaMensagem];
-            }
-            return old;
-          });
-
-          // Auto-marcar como lida se não for do usuário atual
-          if (payload.new.remetente_id !== user?.id) {
-            marcarComoLida.mutate({ mensagemId: payload.new.id });
+          if (!exists) {
+            return [...(old || []), novaMensagem];
           }
+          return old;
+        });
+
+        if (payload.new.remetente_id !== user?.id) {
+          marcarComoLida.mutate({ mensagemId: payload.new.id });
         }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'mensagens',
-          filter: `conversa_id=eq.${conversaId}`
-        },
-        (payload) => {
-          console.log('📝 Mensagem atualizada em tempo real:', payload);
-          
-          // Atualizar mensagem específica no cache
-          queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
-            return old?.map(msg => 
-              msg.id === payload.new.id 
-                ? { ...msg, ...payload.new }
-                : msg
-            ) || [];
-          });
-        }
-      )
-      .subscribe();
+      }
+    );
+
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'mensagens',
+        filter: `conversa_id=eq.${conversaId}`
+      },
+      (payload) => {
+        console.log('📝 Mensagem atualizada em tempo real:', payload);
+        
+        queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
+          return old?.map(msg => 
+            msg.id === payload.new.id 
+              ? { ...msg, ...payload.new }
+              : msg
+          ) || [];
+        });
+      }
+    );
+
+    // Subscribe e track presence
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Canal subscrito, enviando presence...');
+        await channel.track({
+          user_id: user.id,
+          online_at: new Date().toISOString()
+        });
+      }
+    });
 
     return () => {
-      console.log('🔌 Desconectando realtime para conversa:', conversaId);
+      console.log('🔌 Desconectando realtime e presence para conversa:', conversaId);
       supabase.removeChannel(channel);
+      setOnlineUsers([]);
     };
   }, [conversaId, queryClient, user?.id]);
 
@@ -121,7 +158,7 @@ export const useMensagens = (conversaId: string | null) => {
         .from('mensagens')
         .update({ lida: true })
         .eq('id', mensagemId)
-        .neq('remetente_id', user?.id); // Só marca como lida se não for do próprio usuário
+        .neq('remetente_id', user?.id);
 
       if (error) {
         console.error('❌ Erro ao marcar como lida:', error);
@@ -136,6 +173,7 @@ export const useMensagens = (conversaId: string | null) => {
     mensagens,
     isLoading,
     error,
-    marcarComoLida
+    marcarComoLida,
+    onlineUsers
   };
 };

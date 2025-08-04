@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,8 +23,11 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
-  const { mensagens, isLoading } = useMensagens(conversaId);
+  const { mensagens, isLoading, onlineUsers } = useMensagens(conversaId);
   const enviarMensagem = useEnviarMensagem(conversaId);
+
+  // Determinar se o outro usuário está online
+  const isOtherUserOnline = onlineUsers.length > 1;
 
   // Auto-scroll para mensagens novas
   useEffect(() => {
@@ -74,7 +76,16 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
         </Avatar>
         <div>
           <h3 className="font-medium text-sm">{empresaNome}</h3>
-          <p className="text-xs text-muted-foreground">Conversa ativa</p>
+          <div className="flex items-center space-x-1">
+            <div 
+              className={`w-2 h-2 rounded-full ${
+                isOtherUserOnline ? 'bg-green-500' : 'bg-gray-400'
+              }`} 
+            />
+            <p className="text-xs text-muted-foreground">
+              {isOtherUserOnline ? 'Online' : 'Offline'}
+            </p>
+          </div>
         </div>
       </div>
 
