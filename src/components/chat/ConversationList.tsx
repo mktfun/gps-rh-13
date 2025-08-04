@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Hash } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Conversa {
   conversa_id: string;
   empresa_nome: string;
   created_at: string;
+  protocolo?: string; // CAMPO NOVO AQUI
 }
 
 interface ConversationListProps {
@@ -57,9 +58,17 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               <p className="font-medium text-sm truncate">
                 {conversa.empresa_nome}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(conversa.created_at).toLocaleDateString('pt-BR')}
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                {conversa.protocolo && (
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Hash className="h-3 w-3 mr-1" />
+                    {conversa.protocolo}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {new Date(conversa.created_at).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
             </div>
           </div>
         </button>

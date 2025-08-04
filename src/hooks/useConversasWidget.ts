@@ -7,6 +7,7 @@ interface ConversaWidget {
   conversa_id: string;
   empresa_nome: string;
   created_at: string;
+  protocolo?: string; // CAMPO NOVO AQUI
 }
 
 export const useConversasWidget = () => {
@@ -31,11 +32,12 @@ export const useConversasWidget = () => {
 
       console.log('✅ Conversas encontradas:', conversas?.length || 0);
       
-      // Mapear para o formato esperado
+      // Mapear para o formato esperado, incluindo o protocolo
       return (conversas || []).map(conversa => ({
         conversa_id: conversa.conversa_id,
         empresa_nome: conversa.empresa_nome,
-        created_at: conversa.created_at
+        created_at: conversa.created_at,
+        protocolo: conversa.protocolo // CAMPO NOVO AQUI
       }));
     },
     enabled: !!user,
