@@ -1,8 +1,6 @@
 
-
 import React from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Clock, Check, CheckCheck } from 'lucide-react';
+import { Clock, Check, CheckCheck } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -30,15 +28,15 @@ const MessageStatusIcon = React.memo(({ mensagem, isFromMe }: {
     case 'enviando':
       return <Clock className="h-3 w-3 text-primary-foreground/50 animate-pulse" />;
     case 'erro':
-      return <span className="text-destructive text-xs">!</span>;
+      return <span className="text-destructive text-xs font-bold">!</span>;
     case 'enviado':
     default:
       // Se tem timestamp de leitura, mostrar check duplo azul
       if (mensagem.lida_em) {
         return <CheckCheck className="h-3 w-3 text-blue-500" />;
       }
-      // Se apenas entregue (sem leitura), mostrar check simples
-      return <Check className="h-3 w-3 text-primary-foreground/50" />;
+      // Se apenas entregue (sem leitura), mostrar check simples cinza
+      return <Check className="h-3 w-3 text-primary-foreground/60" />;
   }
 });
 
@@ -57,16 +55,16 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
   return (
     <div className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[70%] rounded-lg p-3 ${
+        className={`max-w-[75%] rounded-2xl px-4 py-3 ${
           isFromMe
             ? 'bg-primary text-primary-foreground'
             : 'bg-muted'
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap break-words">
+        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
           {mensagem.conteudo}
         </p>
-        <div className={`flex items-center justify-between mt-1 gap-2 ${
+        <div className={`flex items-center justify-between mt-2 gap-2 ${
           compact ? 'text-xs' : 'text-xs'
         }`}>
           <span className={`${
@@ -82,4 +80,3 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
 });
 
 MessageBubble.displayName = 'MessageBubble';
-
