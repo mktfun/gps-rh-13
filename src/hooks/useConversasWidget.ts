@@ -33,11 +33,11 @@ export const useConversasWidget = () => {
       console.log('✅ Conversas encontradas:', conversas?.length || 0);
       
       // Mapear para o formato esperado, incluindo o protocolo
-      return (conversas || []).map(conversa => ({
+      return (conversas || []).map((conversa: any) => ({
         conversa_id: conversa.conversa_id,
         empresa_nome: conversa.empresa_nome,
         created_at: conversa.created_at,
-        protocolo: conversa.protocolo // CAMPO NOVO AQUI
+        protocolo: conversa.protocolo || null // CAMPO NOVO AQUI - usando any para acessar protocolo
       }));
     },
     enabled: !!user,
