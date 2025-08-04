@@ -20,6 +20,29 @@ interface Conversa {
   };
 }
 
+// Tipos para as respostas das RPCs
+type RpcConversaCorretora = {
+  success: boolean;
+  conversa?: {
+    id: string;
+    empresa_id: string;
+    empresa_nome: string;
+    created_at: string;
+  };
+  error?: string;
+};
+
+type RpcConversaEmpresa = {
+  success: boolean;
+  conversa?: {
+    id: string;
+    corretora_id: string;
+    corretora_nome: string;
+    created_at: string;
+  };
+  error?: string;
+};
+
 export const useConversas = () => {
   const { user, role, empresaId } = useAuth();
   const queryClient = useQueryClient();
@@ -44,8 +67,8 @@ export const useConversas = () => {
           corretora_id,
           empresa_id,
           created_at,
-          empresa:empresas(id, nome),
-          corretora:profiles!conversas_corretora_id_fkey(id, nome)
+          empresas!empresa_id(id, nome),
+          profiles!corretora_id(id, nome)
         `)
         .order('created_at', { ascending: false });
 
@@ -67,7 +90,22 @@ export const useConversas = () => {
       }
 
       console.log('✅ Conversas encontradas:', data);
-      return data || [];
+      
+      // Transformar os dados para o formato esperado
+      return (data || []).map(item => ({
+        id: item.id,
+        corretora_id: item.corretora_id,
+        empresa_id: item.empresa_id,
+        created_at: item.created_at,
+        empresa: item.empresas ? {
+          id: item.empresas.id,
+          nome: item.empresas.nome
+        } : undefined,
+        corretora: item.profiles ? {
+          id: item.profiles.id,
+          nome: item.profiles.nome
+        } : undefined
+      }));
     },
     enabled: !!user?.id && !!role,
     staleTime: 1 * 60 * 1000, // 1 minuto de cache
@@ -88,12 +126,14 @@ export const useConversas = () => {
         throw error;
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Erro ao criar conversa');
+      const result = data as RpcConversaCorretora;
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao criar conversa');
       }
 
-      console.log('✅ Conversa criada/encontrada:', data.conversa);
-      return data.conversa;
+      console.log('✅ Conversa criada/encontrada:', result.conversa);
+      return result.conversa!;
     },
     onSuccess: (conversa) => {
       queryClient.invalidateQueries({ queryKey: ['conversas'] });
@@ -117,12 +157,14 @@ export const useConversas = () => {
         throw error;
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Erro ao criar conversa');
+      const result = data as RpcConversaEmpresa;
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao criar conversa');
       }
 
-      console.log('✅ Conversa criada/encontrada:', data.conversa);
-      return data.conversa;
+      console.log('✅ Conversa criada/encontrada:', result.conversa);
+      return result.conversa!;
     },
     onSuccess: (conversa) => {
       queryClient.invalidateQueries({ queryKey: ['conversas'] });
