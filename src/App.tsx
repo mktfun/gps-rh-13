@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedCorretoraRoute from "@/components/ProtectedCorretoraRoute";
@@ -40,12 +40,16 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/empresas" element={<ProtectedCorretoraRoute><Empresas /></ProtectedCorretoraRoute>} />
-              <Route path="/empresas/:id" element={<ProtectedCorretoraRoute><EmpresaDetalhes /></ProtectedCorretoraRoute>} />
-              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-              <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute />}>
+                <Route index element={<Index />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+                <Route path="chat" element={<ChatPage />} />
+              </Route>
+              <Route path="/corretora" element={<ProtectedCorretoraRoute />}>
+                <Route path="empresas" element={<Empresas />} />
+                <Route path="empresas/:id" element={<EmpresaDetalhes />} />
+              </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             

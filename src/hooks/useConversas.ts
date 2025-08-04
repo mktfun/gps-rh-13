@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,155 +6,69 @@ import { toast } from 'sonner';
 
 interface Conversa {
   id: string;
-  corretora_id: string;
-  empresa_id: string;
+  titulo?: string;
+  corretora_id?: string;
+  empresa_id?: string;
   created_at: string;
-  // Dados relacionados
-  empresa?: {
+  empresas?: {
     id: string;
     nome: string;
   };
-  corretora?: {
+  profiles?: {
     id: string;
-    nome: string;
+    nome?: string;
   };
 }
 
-// Tipos para as respostas das RPCs
-type RpcConversaCorretora = {
-  success: boolean;
-  conversa?: {
-    id: string;
-    empresa_id: string;
-    empresa_nome: string;
-    created_at: string;
+interface Mensagem {
+  id: string;
+  conversa_id: string;
+  autor_id: string;
+  conteudo: string;
+  tipo: 'texto' | 'arquivo';
+  created_at: string;
+  profiles?: {
+    nome?: string;
   };
-  error?: string;
-};
-
-type RpcConversaEmpresa = {
-  success: boolean;
-  conversa?: {
-    id: string;
-    corretora_id: string;
-    corretora_nome: string;
-    created_at: string;
-  };
-  error?: string;
-};
+}
 
 export const useConversas = () => {
-  const { user, role, empresaId } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const {
-    data: conversas = [],
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ['conversas', user?.id, role],
-    queryFn: async (): Promise<Conversa[]> => {
-      console.log('🔍 Buscando conversas para:', { userId: user?.id, role });
-
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['conversas'],
+    queryFn: async () => {
+      if (!user) {
+        console.log('Usuário não autenticado.');
+        return [];
       }
 
-      // Buscar conversas básicas primeiro
-      let conversasQuery = supabase
+      console.log('🔍 Buscando conversas do usuário:', user.id);
+
+      const { data: conversas, error } = await supabase
         .from('conversas')
-        .select('*')
+        .select(`
+          *,
+          empresas (
+            id,
+            nome
+          )
+        `)
+        .or(`corretora_id.eq.${user.id}, empresa_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      // Filtrar baseado no role
-      if (role === 'corretora') {
-        conversasQuery = conversasQuery.eq('corretora_id', user.id);
-      } else if (role === 'empresa' && empresaId) {
-        conversasQuery = conversasQuery.eq('empresa_id', empresaId);
-      } else {
-        // Se não for corretora nem empresa com empresaId, retornar vazio
-        return [];
+      if (error) {
+        console.error('❌ Erro ao buscar conversas:', error);
+        throw error;
       }
 
-      const { data: conversasData, error: conversasError } = await conversasQuery;
-
-      if (conversasError) {
-        console.error('❌ Erro ao buscar conversas:', conversasError);
-        throw conversasError;
-      }
-
-      if (!conversasData || conversasData.length === 0) {
-        console.log('✅ Nenhuma conversa encontrada');
-        return [];
-      }
-
-      // Buscar dados das empresas
-      const empresaIds = [...new Set(conversasData.map(c => c.empresa_id))];
-      const { data: empresasData } = await supabase
-        .from('empresas')
-        .select('id, nome')
-        .in('id', empresaIds);
-
-      // Buscar dados dos profiles (corretoras)
-      const corretoraIds = [...new Set(conversasData.map(c => c.corretora_id))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, nome')
-        .in('id', corretoraIds);
-
-      // Combinar os dados
-      const conversasCompletas = conversasData.map(conversa => ({
-        id: conversa.id,
-        corretora_id: conversa.corretora_id,
-        empresa_id: conversa.empresa_id,
-        created_at: conversa.created_at,
-        empresa: empresasData?.find(e => e.id === conversa.empresa_id) || undefined,
-        corretora: profilesData?.find(p => p.id === conversa.corretora_id) || undefined
-      }));
-
-      console.log('✅ Conversas encontradas:', conversasCompletas);
-      return conversasCompletas;
+      console.log('✅ Conversas encontradas:', conversas?.length || 0);
+      return conversas || [];
     },
-    enabled: !!user?.id && !!role,
-    staleTime: 5 * 60 * 1000, // Cache agressivo de 5 minutos
-    refetchOnWindowFocus: false, // Não refetch ao focar janela
   });
 
-  // Configurar realtime para invalidações pontuais
-  useEffect(() => {
-    if (!user?.id) return;
-
-    console.log('🔄 Configurando realtime para conversas');
-
-    const channel = supabase
-      .channel(`conversas-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'conversas'
-        },
-        (payload) => {
-          console.log('📨 Conversa alterada em tempo real:', payload);
-          // Invalidar apenas se a conversa pertence ao usuário atual
-          const conversa = payload.new || payload.old;
-          if (conversa && (conversa.corretora_id === user.id || 
-              (role === 'empresa' && conversa.empresa_id === empresaId))) {
-            queryClient.invalidateQueries({ queryKey: ['conversas', user.id, role] });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log('🔌 Desconectando realtime para conversas');
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, role, empresaId, queryClient]);
-
-  // Mutação para corretoras criarem conversas
-  const criarConversaCorretora = useMutation({
+  const createConversaCorretora = useMutation({
     mutationFn: async ({ empresaId }: { empresaId: string }) => {
       console.log('📝 Criando conversa entre corretora e empresa:', empresaId);
 
@@ -167,66 +80,109 @@ export const useConversas = () => {
         p_empresa_id: empresaId
       });
 
-      if (error) {
-        console.error('❌ Erro ao criar conversa:', error);
-        throw error;
-      }
-
-      const result = data as RpcConversaCorretora;
-
-      if (!result.success) {
-        throw new Error(result.error || 'Erro ao criar conversa');
-      }
-
-      console.log('✅ Conversa criada/encontrada:', result.conversa);
-      return result.conversa!;
+      if (error) throw error;
+      return data;
     },
-    onSuccess: (conversa) => {
+    onSuccess: (data) => {
+      console.log('✅ Conversa criada/encontrada:', data);
+      
+      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['conversas'] });
-      toast.success(`Conversa com ${conversa.empresa_nome} iniciada`);
+      
+      // Adicionar ao cache se retornou dados válidos
+      if (data && typeof data === 'object' && 'id' in data) {
+        const conversaData = data as Conversa;
+        queryClient.setQueryData(['conversas'], (oldData: Conversa[] = []) => {
+          const exists = oldData.find(c => c.id === conversaData.id);
+          if (!exists) {
+            return [...oldData, conversaData];
+          }
+          return oldData;
+        });
+      }
+
+      toast.success('Conversa iniciada com sucesso!');
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error('❌ Erro ao criar conversa:', error);
-      toast.error(error.message || 'Erro ao iniciar conversa');
-    }
+      toast.error('Erro ao iniciar conversa');
+    },
   });
 
-  // Mutação para empresas criarem conversas
-  const criarConversaEmpresa = useMutation({
-    mutationFn: async () => {
-      console.log('📝 Criando conversa entre empresa e sua corretora');
+  const getMensagens = async (conversaId: string): Promise<Mensagem[]> => {
+    console.log(`🔍 Buscando mensagens da conversa: ${conversaId}`);
 
-      const { data, error } = await supabase.rpc('find_or_create_conversation_empresa');
+    const { data: mensagens, error } = await supabase
+      .from('mensagens')
+      .select(`
+        *,
+        profiles (
+          nome
+        )
+      `)
+      .eq('conversa_id', conversaId)
+      .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('❌ Erro ao criar conversa:', error);
-        throw error;
-      }
-
-      const result = data as RpcConversaEmpresa;
-
-      if (!result.success) {
-        throw new Error(result.error || 'Erro ao criar conversa');
-      }
-
-      console.log('✅ Conversa criada/encontrada:', result.conversa);
-      return result.conversa!;
-    },
-    onSuccess: (conversa) => {
-      queryClient.invalidateQueries({ queryKey: ['conversas'] });
-      toast.success(`Conversa com ${conversa.corretora_nome} iniciada`);
-    },
-    onError: (error: Error) => {
-      console.error('❌ Erro ao criar conversa:', error);
-      toast.error(error.message || 'Erro ao iniciar conversa');
+    if (error) {
+      console.error('❌ Erro ao buscar mensagens:', error);
+      throw error;
     }
-  });
+
+    console.log(`✅ Mensagens encontradas: ${mensagens?.length || 0}`);
+    return mensagens || [];
+  };
+
+  const useRealtimeMensagens = (conversaId: string) => {
+    const [mensagens, setMensagens] = React.useState<Mensagem[]>([]);
+
+    useEffect(() => {
+      if (!conversaId) return;
+
+      const channel = supabase
+        .channel(`conversa_${conversaId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'mensagens',
+          filter: `conversa_id=eq.${conversaId}`
+        },
+        (payload) => {
+          console.log('Realtime payload:', payload);
+          
+          // Verificar se payload.new existe e possui a estrutura esperada
+          if (payload.new && payload.new.conversa_id === conversaId) {
+            const novaMensagem = {
+              id: payload.new.id,
+              conversa_id: payload.new.conversa_id,
+              autor_id: payload.new.autor_id,
+              conteudo: payload.new.conteudo,
+              tipo: payload.new.tipo,
+              created_at: payload.new.created_at,
+              profiles: {
+                nome: user?.user_metadata?.name as string | undefined
+              }
+            };
+            setMensagens(prevMensagens => [...prevMensagens, novaMensagem]);
+          } else {
+            console.warn('Payload sem nova mensagem ou estrutura inesperada:', payload);
+          }
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [conversaId, user]);
+
+    return mensagens;
+  };
 
   return {
-    conversas,
+    conversas: data || [],
     isLoading,
     error,
-    criarConversaCorretora,
-    criarConversaEmpresa
+    createConversaCorretora,
+    getMensagens,
+    useRealtimeMensagens
   };
 };
