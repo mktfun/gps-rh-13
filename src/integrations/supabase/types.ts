@@ -937,6 +937,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      iniciar_conversa_com_protocolo: {
+        Args: { p_empresa_id: string; p_assunto_id: string }
+        Returns: string
+      }
       marcar_mensagens_como_lidas: {
         Args: { p_conversa_id: string }
         Returns: undefined

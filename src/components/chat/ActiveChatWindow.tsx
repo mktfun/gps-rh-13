@@ -1,10 +1,13 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useMensagens } from '@/hooks/useMensagens';
 import { useEnviarMensagem } from '@/hooks/useEnviarMensagem';
+import { useConversaComProtocolo } from '@/hooks/useConversaComProtocolo';
 import { useAuth } from '@/hooks/useAuth';
 import { MessageBubble } from './MessageBubble';
 
@@ -24,6 +27,7 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
   
   const { user } = useAuth();
   const { mensagens, isLoading, onlineUsers, marcarComoLidas } = useMensagens(conversaId);
+  const { conversa } = useConversaComProtocolo(conversaId);
   const enviarMensagem = useEnviarMensagem(conversaId);
 
   // Determinar se o outro usuário está online
@@ -67,7 +71,7 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Cabeçalho */}
+      {/* Cabeçalho com protocolo */}
       <div className="flex items-center p-4 border-b bg-muted/30">
         <Button
           variant="ghost"
@@ -82,8 +86,16 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
             {empresaNome.substring(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <h3 className="font-medium text-sm">{empresaNome}</h3>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <h3 className="font-medium text-sm">{empresaNome}</h3>
+            {conversa?.protocolo && (
+              <Badge variant="outline" className="text-xs">
+                <Hash className="h-3 w-3 mr-1" />
+                {conversa.protocolo}
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center space-x-1">
             <div 
               className={`w-2 h-2 rounded-full ${

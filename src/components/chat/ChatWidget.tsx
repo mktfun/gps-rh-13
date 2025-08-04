@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { useConversasWidget } from '@/hooks/useConversasWidget';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { ConversationList } from './ConversationList';
 import { ActiveChatWindow } from './ActiveChatWindow';
+import { NovaConversaComProtocoloModal } from './NovaConversaComProtocoloModal';
 
 interface ChatWidgetProps {
   onOpenChat?: () => void;
@@ -16,6 +17,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedConversaId, setSelectedConversaId] = useState<string | null>(null);
   const [selectedEmpresaNome, setSelectedEmpresaNome] = useState<string>('');
+  const [showNovaConversaModal, setShowNovaConversaModal] = useState(false);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -35,6 +37,17 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
   const handleBackToList = () => {
     setSelectedConversaId(null);
     setSelectedEmpresaNome('');
+  };
+
+  const handleNovaConversa = () => {
+    setShowNovaConversaModal(true);
+  };
+
+  const handleConversaCriada = (conversaId: string) => {
+    // Selecionar automaticamente a nova conversa criada
+    setSelectedConversaId(conversaId);
+    // O nome da empresa será obtido pelo componente ActiveChatWindow
+    setSelectedEmpresaNome('Nova Conversa');
   };
 
   // Loading state
@@ -69,38 +82,67 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
 
   // Expanded state
   return (
-    <div className="fixed bottom-0 right-6 z-50 transition-all duration-300">
-      <Card className="w-96 h-[450px] animate-scale-in shadow-xl">
-        <div 
-          className="h-12 bg-primary text-primary-foreground px-4 flex items-center justify-between cursor-pointer rounded-t-lg"
-          onClick={toggleExpanded}
-        >
-          <span className="font-medium">Conversas</span>
-          <div className="flex items-center space-x-2">
-            {onOpenChat && (
-              <Button size="sm" variant="secondary" onClick={onOpenChat}>
-                Abrir Chat
-              </Button>
-            )}
-            <ChevronDown className="h-4 w-4" />
+    <>
+      <div className="fixed bottom-0 right-6 z-50 transition-all duration-300">
+        <Card className="w-96 h-[450px] animate-scale-in shadow-xl">
+          <div 
+            className="h-12 bg-primary text-primary-foreground px-4 flex items-center justify-between cursor-pointer rounded-t-lg"
+            onClick={toggleExpanded}
+          >
+            <span className="font-medium">Conversas</span>
+            <div className="flex items-center space-x-2">
+              {!selectedConversaId && (
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNovaConversa();
+                  }}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Nova
+                </Button>
+              )}
+              {onOpenChat && (
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenChat();
+                  }}
+                >
+                  Abrir Chat
+                </Button>
+              )}
+              <ChevronDown className="h-4 w-4" />
+            </div>
           </div>
-        </div>
-        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden h-[calc(450px-48px)]">
-          {selectedConversaId ? (
-            <ActiveChatWindow
-              conversaId={selectedConversaId}
-              empresaNome={selectedEmpresaNome}
-              onBack={handleBackToList}
-            />
-          ) : (
-            <ConversationList
-              conversas={conversas}
-              isLoading={isLoading}
-              onSelectConversa={handleSelectConversa}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          <CardContent className="p-0 flex-1 flex flex-col overflow-hidden h-[calc(450px-48px)]">
+            {selectedConversaId ? (
+              <ActiveChatWindow
+                conversaId={selectedConversaId}
+                empresaNome={selectedEmpresaNome}
+                onBack={handleBackToList}
+              />
+            ) : (
+              <ConversationList
+                conversas={conversas}
+                isLoading={isLoading}
+                onSelectConversa={handleSelectConversa}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modal de Nova Conversa */}
+      <NovaConversaComProtocoloModal
+        open={showNovaConversaModal}
+        onClose={() => setShowNovaConversaModal(false)}
+        onConversaCriada={handleConversaCriada}
+      />
+    </>
   );
 };
