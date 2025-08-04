@@ -1,196 +1,52 @@
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, ChevronUp, ChevronDown, X, Plus } from 'lucide-react';
+import React from 'react';
+import { useConversas } from '@/hooks/useConversas';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
-import { useConversas } from '@/hooks/useConversas';
+import { MessageCircle, Loader2 } from 'lucide-react';
 import { ConversasList } from './ConversasList';
-import { ChatModule } from './ChatModule';
-import { NovaConversaModal } from './NovaConversaModal';
 
-export const ChatWidget: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
-  const [nomeDestinatario, setNomeDestinatario] = useState<string>('');
-  const [showNovaConversaModal, setShowNovaConversaModal] = useState(false);
+interface ChatWidgetProps {
+  onOpenChat?: () => void;
+}
 
-  const { role } = useAuth();
-  const { conversas, criarConversaEmpresa } = useConversas();
+export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
+  const { conversas, isLoading } = useConversas();
 
-  // Calculate unread messages count (simplified - you can enhance this later)
-  const unreadCount = 0; // This would be calculated from mensagens in a real implementation
-
-  const handleSelecionarConversa = (conversaId: string, nome: string) => {
-    setConversaSelecionada(conversaId);
-    setNomeDestinatario(nome);
-  };
-
-  const handleClose = () => {
-    setIsExpanded(false);
-    setConversaSelecionada(null);
-    setNomeDestinatario('');
-  };
-
-  const handleNovaConversa = async () => {
-    if (role === 'corretora') {
-      // Abrir modal para selecionar empresa
-      setShowNovaConversaModal(true);
-    } else if (role === 'empresa') {
-      // Criar conversa automaticamente
-      try {
-        const conversa = await criarConversaEmpresa.mutateAsync();
-        
-        // Selecionar a conversa criada automaticamente
-        handleSelecionarConversa(conversa.id, conversa.corretora_nome);
-        
-        // Expandir o widget se não estiver expandido
-        if (!isExpanded) {
-          setIsExpanded(true);
-        }
-      } catch (error) {
-        console.error('Erro ao criar conversa:', error);
-      }
-    }
-  };
-
-  const handleConversaCriada = (conversaId: string, nomeDestinatario: string) => {
-    // Selecionar a conversa recém-criada
-    handleSelecionarConversa(conversaId, nomeDestinatario);
-    
-    // Expandir o widget se não estiver expandido
-    if (!isExpanded) {
-      setIsExpanded(true);
-    }
-  };
+  if (isLoading) {
+    return (
+      <Card className="w-80 h-96">
+        <CardContent className="p-4 flex items-center justify-center h-full">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Carregando...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <>
-      <div className="fixed bottom-6 right-6 z-50">
-        <motion.div
-          initial={false}
-          animate={{
-            width: isExpanded ? 384 : 320, // w-96 : w-80
-            height: isExpanded ? 500 : 64, // h-[500px] : h-16
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 30,
-            duration: 0.3
-          }}
-        >
-          <Card className="h-full shadow-xl border-border bg-card">
-            {/* Header */}
-            <CardHeader 
-              className={`flex flex-row items-center justify-between p-4 cursor-pointer border-b ${!isExpanded ? 'border-b-0' : ''}`}
-              onClick={!isExpanded ? () => setIsExpanded(true) : undefined}
-            >
-              <div className="flex items-center space-x-2">
-                <MessageCircle className="h-5 w-5 text-primary" />
-                <h3 className="font-medium text-sm">Conversas</h3>
-                {unreadCount > 0 && (
-                  <Badge variant="secondary" className="h-5 w-5 p-0 text-xs flex items-center justify-center bg-primary text-primary-foreground">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center space-x-1">
-                {/* Botão de Nova Conversa - só aparece quando expandido */}
-                {isExpanded && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleNovaConversa}
-                    disabled={criarConversaEmpresa.isPending}
-                    className="h-8 w-8 p-0"
-                    title="Nova conversa"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={isExpanded ? handleClose : () => setIsExpanded(true)}
-                  className="h-8 w-8 p-0"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronUp className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-
-            {/* Content */}
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2, delay: 0.1 }}
-                  className="flex-1 flex flex-col h-[calc(100%-80px)]"
-                >
-                  <CardContent className="flex-1 p-0 flex">
-                    {conversaSelecionada ? (
-                      // Chat View
-                      <div className="flex-1 flex flex-col">
-                        <div className="p-2 border-b flex items-center justify-between">
-                          <h4 className="font-medium text-sm truncate">
-                            {nomeDestinatario}
-                          </h4>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setConversaSelecionada(null);
-                              setNomeDestinatario('');
-                            }}
-                            className="h-6 w-6 p-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="flex-1">
-                          <ChatModule
-                            conversaId={conversaSelecionada}
-                            destinatarioNome={nomeDestinatario}
-                            compact={true}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      // Conversations List
-                      <div className="flex-1">
-                        <ConversasList
-                          onSelecionarConversa={handleSelecionarConversa}
-                          conversaSelecionada={conversaSelecionada || undefined}
-                          compact={true}
-                          onNovaConversa={handleNovaConversa}
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Modal para nova conversa (corretoras) */}
-      <NovaConversaModal
-        open={showNovaConversaModal}
-        onClose={() => setShowNovaConversaModal(false)}
-        onConversaCriada={handleConversaCriada}
-      />
-    </>
+    <Card className="w-80 h-96">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <MessageCircle className="h-5 w-5" />
+            <h3 className="font-medium">Chat</h3>
+          </div>
+          {onOpenChat && (
+            <Button size="sm" variant="outline" onClick={onOpenChat}>
+              Abrir Chat
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 flex-1">
+        <ConversasList
+          onSelecionarConversa={() => {}}
+          compact={true}
+        />
+      </CardContent>
+    </Card>
   );
 };

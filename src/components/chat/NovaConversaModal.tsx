@@ -23,7 +23,7 @@ export const NovaConversaModal: React.FC<NovaConversaModalProps> = ({
   const [empresaSelecionada, setEmpresaSelecionada] = useState<string | null>(null);
 
   const { empresas, isLoading: loadingEmpresas } = useEmpresas();
-  const { criarConversaCorretora } = useConversas();
+  const { createConversaCorretora } = useConversas();
 
   // Filtrar empresas baseado na busca
   const empresasFiltradas = useMemo(() => {
@@ -43,7 +43,7 @@ export const NovaConversaModal: React.FC<NovaConversaModalProps> = ({
       const empresaInfo = empresas.find(e => e.id === empresaSelecionada);
       if (!empresaInfo) return;
 
-      const conversa = await criarConversaCorretora.mutateAsync({
+      const conversa = await createConversaCorretora.mutateAsync({
         empresaId: empresaSelecionada
       });
 
@@ -140,9 +140,9 @@ export const NovaConversaModal: React.FC<NovaConversaModalProps> = ({
             </Button>
             <Button
               onClick={handleIniciarConversa}
-              disabled={!empresaSelecionada || criarConversaCorretora.isPending}
+              disabled={!empresaSelecionada || createConversaCorretora.isPending}
             >
-              {criarConversaCorretora.isPending && (
+              {createConversaCorretora.isPending && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
               Iniciar Conversa

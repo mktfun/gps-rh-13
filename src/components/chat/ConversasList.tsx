@@ -22,8 +22,11 @@ export const ConversasList: React.FC<ConversasListProps> = ({
   compact = false,
   onNovaConversa
 }) => {
-  const { conversas, isLoading, criarConversaEmpresa } = useConversas();
-  const { role } = useAuth();
+  const { conversas, isLoading, createConversaCorretora } = useConversas();
+  const { user } = useAuth();
+  
+  // Determinar role do usuário baseado na estrutura do user
+  const role = user?.user_metadata?.role || 'empresa';
 
   if (isLoading) {
     return (
@@ -54,9 +57,9 @@ export const ConversasList: React.FC<ConversasListProps> = ({
                 size="sm"
                 variant="outline"
                 onClick={onNovaConversa}
-                disabled={criarConversaEmpresa.isPending}
+                disabled={createConversaCorretora.isPending}
               >
-                {criarConversaEmpresa.isPending ? (
+                {createConversaCorretora.isPending ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
                   <Plus className="h-4 w-4 mr-1" />
@@ -79,9 +82,9 @@ export const ConversasList: React.FC<ConversasListProps> = ({
               <Button
                 size="sm"
                 onClick={onNovaConversa}
-                disabled={criarConversaEmpresa.isPending}
+                disabled={createConversaCorretora.isPending}
               >
-                {criarConversaEmpresa.isPending ? (
+                {createConversaCorretora.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Plus className="h-4 w-4 mr-2" />
@@ -98,10 +101,10 @@ export const ConversasList: React.FC<ConversasListProps> = ({
               
               if (role === 'corretora') {
                 // Corretora vê o nome da empresa
-                nomeDestinatario = conversa.empresa?.nome || `Empresa ${conversa.empresa_id.substring(0, 8)}`;
+                nomeDestinatario = conversa.empresas?.nome || `Empresa ${conversa.empresa_id?.substring(0, 8) || ''}`;
               } else {
                 // Empresa vê o nome da corretora
-                nomeDestinatario = conversa.corretora?.nome || `Corretora ${conversa.corretora_id.substring(0, 8)}`;
+                nomeDestinatario = conversa.profiles?.nome || `Corretora ${conversa.corretora_id?.substring(0, 8) || ''}`;
               }
 
               const isSelected = conversaSelecionada === conversa.id;

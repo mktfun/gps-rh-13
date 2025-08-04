@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RootLayout from "@/components/layout/RootLayout";
 import PublicLayout from "@/components/layout/PublicLayout";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { lazy, Suspense } from "react";
 import { DashboardLoadingState } from "@/components/ui/loading-state";
 
@@ -60,7 +61,11 @@ function App() {
 
                 {/* --- ROTAS PROTEGIDAS (ESTRUTURA CORRETA) --- */}
                 <Route element={<ProtectedRoute />}>
-                  <Route element={<RootLayout />}>
+                  <Route element={
+                    <ErrorBoundary>
+                      <RootLayout />
+                    </ErrorBoundary>
+                  }>
 
                     {/* Grupo de Rotas da Corretora - APENAS AS ESSENCIAIS */}
                     <Route path="/corretora">

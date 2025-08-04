@@ -39,7 +39,7 @@ export const useConversas = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['conversas'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Conversa[]> => {
       if (!user) {
         console.log('Usuário não autenticado.');
         return [];
@@ -56,7 +56,7 @@ export const useConversas = () => {
             nome
           )
         `)
-        .or(`corretora_id.eq.${user.id}, empresa_id.eq.${user.id}`)
+        .or(`corretora_id.eq.${user.id},empresa_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -67,6 +67,7 @@ export const useConversas = () => {
       console.log('✅ Conversas encontradas:', conversas?.length || 0);
       return conversas || [];
     },
+    enabled: !!user,
   });
 
   const createConversaCorretora = useMutation({
@@ -86,8 +87,8 @@ export const useConversas = () => {
       // Verificar se data tem as propriedades esperadas e fazer cast seguro
       if (data && typeof data === 'object') {
         const conversaData = data as any;
-        if ('id' in conversaData && 'created_at' in conversaData) {
-          return conversaData as Conversa;
+        if ('conversa' in conversaData && conversaData.conversa && 'id' in conversaData.conversa) {
+          return conversaData.conversa as Conversa;
         }
       }
       
@@ -126,10 +127,7 @@ export const useConversas = () => {
         conversa_id,
         remetente_id,
         conteudo,
-        created_at,
-        profiles (
-          nome
-        )
+        created_at
       `)
       .eq('conversa_id', conversaId)
       .order('created_at', { ascending: true });
@@ -141,7 +139,7 @@ export const useConversas = () => {
 
     console.log(`✅ Mensagens encontradas: ${mensagens?.length || 0}`);
     
-    // Mapear para o formato esperado com type guards
+    // Mapear para o formato esperado
     return (mensagens || []).map(msg => ({
       id: msg.id.toString(),
       conversa_id: msg.conversa_id,
@@ -149,7 +147,7 @@ export const useConversas = () => {
       conteudo: msg.conteudo,
       tipo: 'texto' as const,
       created_at: msg.created_at,
-      profiles: msg.profiles || undefined
+      profiles: undefined
     }));
   };
 
