@@ -7,6 +7,8 @@ import { Loader2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { ConversationList } from './ConversationList';
 import { ActiveChatWindow } from './ActiveChatWindow';
 import { NovaConversaComProtocoloModal } from './NovaConversaComProtocoloModal';
+import { NovaConversaModal } from './NovaConversaModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ChatWidgetProps {
   onOpenChat?: () => void;
@@ -14,10 +16,12 @@ interface ChatWidgetProps {
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
   const { conversas, isLoading } = useConversasWidget();
+  const { role } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedConversaId, setSelectedConversaId] = useState<string | null>(null);
   const [selectedEmpresaNome, setSelectedEmpresaNome] = useState<string>('');
   const [showNovaConversaModal, setShowNovaConversaModal] = useState(false);
+  const [showNovaConversaCorretoraModal, setShowNovaConversaCorretoraModal] = useState(false);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -39,8 +43,12 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
     setSelectedEmpresaNome('');
   };
 
-  const handleNovaConversa = () => {
+  const handleNovaConversaEmpresa = () => {
     setShowNovaConversaModal(true);
+  };
+
+  const handleNovaConversaCorretora = () => {
+    setShowNovaConversaCorretoraModal(true);
   };
 
   const handleConversaCriada = (conversaId: string) => {
@@ -91,13 +99,26 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
           >
             <span className="font-medium">Conversas</span>
             <div className="flex items-center space-x-2">
-              {!selectedConversaId && (
+              {!selectedConversaId && role === 'empresa' && (
                 <Button 
                   size="sm" 
                   variant="secondary" 
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleNovaConversa();
+                    handleNovaConversaEmpresa();
+                  }}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Nova
+                </Button>
+              )}
+              {!selectedConversaId && role === 'corretora' && (
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNovaConversaCorretora();
                   }}
                 >
                   <Plus className="h-3 w-3 mr-1" />
@@ -137,12 +158,23 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
         </Card>
       </div>
 
-      {/* Modal de Nova Conversa */}
-      <NovaConversaComProtocoloModal
-        open={showNovaConversaModal}
-        onClose={() => setShowNovaConversaModal(false)}
-        onConversaCriada={handleConversaCriada}
-      />
+      {/* Modal de Nova Conversa para Empresa */}
+      {role === 'empresa' && (
+        <NovaConversaComProtocoloModal
+          open={showNovaConversaModal}
+          onClose={() => setShowNovaConversaModal(false)}
+          onConversaCriada={handleConversaCriada}
+        />
+      )}
+
+      {/* Modal de Nova Conversa para Corretora */}
+      {role === 'corretora' && (
+        <NovaConversaModal
+          open={showNovaConversaCorretoraModal}
+          onClose={() => setShowNovaConversaCorretoraModal(false)}
+          onConversaCriada={handleConversaCriada}
+        />
+      )}
     </>
   );
 };
