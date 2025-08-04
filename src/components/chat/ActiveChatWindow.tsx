@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,8 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
     if (conversaId) {
       marcarComoLidas.mutate();
     }
-  }, [conversaId, marcarComoLidas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversaId]);
 
   const handleEnviar = async () => {
     const conteudo = novoConteudo.trim();
@@ -159,4 +159,3 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
     </div>
   );
 };
-
