@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
-  const { mensagens, isLoading, onlineUsers } = useMensagens(conversaId);
+  const { mensagens, isLoading, onlineUsers, marcarComoLidas } = useMensagens(conversaId);
   const enviarMensagem = useEnviarMensagem(conversaId);
 
   // Determinar se o outro usuário está online
@@ -35,6 +36,13 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [mensagens]);
+
+  // Marcar mensagens como lidas quando o componente monta ou conversaId muda
+  useEffect(() => {
+    if (conversaId) {
+      marcarComoLidas.mutate();
+    }
+  }, [conversaId, marcarComoLidas]);
 
   const handleEnviar = async () => {
     const conteudo = novoConteudo.trim();
@@ -151,3 +159,4 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
     </div>
   );
 };
+

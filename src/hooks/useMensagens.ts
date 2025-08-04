@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,6 +11,7 @@ interface Mensagem {
   remetente_id: string;
   conteudo: string;
   lida: boolean;
+  lida_em: string | null;
   created_at: string;
   status?: 'enviando' | 'enviado' | 'erro';
 }
@@ -106,7 +108,7 @@ export const useMensagens = (conversaId: string | null) => {
         });
 
         if (payload.new.remetente_id !== user?.id) {
-          marcarComoLida.mutate({ mensagemId: payload.new.id });
+          marcarComoLidas.mutate();
         }
       }
     );
@@ -150,22 +152,22 @@ export const useMensagens = (conversaId: string | null) => {
     };
   }, [conversaId, queryClient, user?.id]);
 
-  const marcarComoLida = useMutation({
-    mutationFn: async ({ mensagemId }: { mensagemId: number }) => {
-      console.log('👁️ Marcando mensagem como lida:', mensagemId);
+  const marcarComoLidas = useMutation({
+    mutationFn: async () => {
+      if (!conversaId) return;
+      
+      console.log('👁️ Marcando mensagens como lidas para conversa:', conversaId);
 
-      const { error } = await supabase
-        .from('mensagens')
-        .update({ lida: true })
-        .eq('id', mensagemId)
-        .neq('remetente_id', user?.id);
+      const { error } = await supabase.rpc('marcar_mensagens_como_lidas', {
+        p_conversa_id: conversaId
+      });
 
       if (error) {
-        console.error('❌ Erro ao marcar como lida:', error);
+        console.error('❌ Erro ao marcar mensagens como lidas:', error);
         throw error;
       }
 
-      console.log('✅ Mensagem marcada como lida');
+      console.log('✅ Mensagens marcadas como lidas');
     }
   });
 
@@ -173,7 +175,8 @@ export const useMensagens = (conversaId: string | null) => {
     mensagens,
     isLoading,
     error,
-    marcarComoLida,
+    marcarComoLidas,
     onlineUsers
   };
 };
+

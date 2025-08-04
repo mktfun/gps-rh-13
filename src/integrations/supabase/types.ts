@@ -422,6 +422,7 @@ export type Database = {
           created_at: string
           id: number
           lida: boolean
+          lida_em: string | null
           remetente_id: string
         }
         Insert: {
@@ -430,6 +431,7 @@ export type Database = {
           created_at?: string
           id?: never
           lida?: boolean
+          lida_em?: string | null
           remetente_id: string
         }
         Update: {
@@ -438,6 +440,7 @@ export type Database = {
           created_at?: string
           id?: never
           lida?: boolean
+          lida_em?: string | null
           remetente_id?: string
         }
         Relationships: [
@@ -909,6 +912,10 @@ export type Database = {
       get_user_role: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      marcar_mensagens_como_lidas: {
+        Args: { p_conversa_id: string }
+        Returns: undefined
       }
       mark_all_notifications_as_read: {
         Args: Record<PropertyKey, never>

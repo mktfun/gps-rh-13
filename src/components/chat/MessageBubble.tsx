@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Clock, Check, CheckCheck } from 'lucide-react';
@@ -12,6 +13,7 @@ interface MessageBubbleProps {
     conteudo: string;
     created_at: string;
     lida: boolean;
+    lida_em: string | null;
     status?: 'enviando' | 'enviado' | 'erro';
   };
   isFromMe: boolean;
@@ -31,11 +33,12 @@ const MessageStatusIcon = React.memo(({ mensagem, isFromMe }: {
       return <span className="text-destructive text-xs">!</span>;
     case 'enviado':
     default:
-      return mensagem.lida ? (
-        <CheckCheck className="h-3 w-3 text-primary-foreground/70" />
-      ) : (
-        <Check className="h-3 w-3 text-primary-foreground/50" />
-      );
+      // Se tem timestamp de leitura, mostrar check duplo azul
+      if (mensagem.lida_em) {
+        return <CheckCheck className="h-3 w-3 text-blue-500" />;
+      }
+      // Se apenas entregue (sem leitura), mostrar check simples
+      return <Check className="h-3 w-3 text-primary-foreground/50" />;
   }
 });
 
@@ -79,3 +82,4 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
 });
 
 MessageBubble.displayName = 'MessageBubble';
+

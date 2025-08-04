@@ -1,4 +1,5 @@
 
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,6 +11,7 @@ interface MensagemOtimista {
   remetente_id: string;
   conteudo: string;
   lida: boolean;
+  lida_em: string | null;
   created_at: string;
   status: 'enviando' | 'enviado' | 'erro';
 }
@@ -58,6 +60,7 @@ export const useEnviarMensagem = (conversaId: string) => {
         remetente_id: user!.id,
         conteudo: conteudo.trim(),
         lida: false,
+        lida_em: null,
         created_at: new Date().toISOString(),
         status: 'enviando'
       };
@@ -100,3 +103,4 @@ export const useEnviarMensagem = (conversaId: string) => {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 };
+
