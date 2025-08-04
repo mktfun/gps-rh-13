@@ -1,14 +1,10 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 
-interface ProtectedCorretoraRouteProps {
-  children: React.ReactNode;
-}
-
-const ProtectedCorretoraRoute: React.FC<ProtectedCorretoraRouteProps> = ({ children }) => {
+const ProtectedCorretoraRoute: React.FC = () => {
   const { isAuthenticated, role, isLoading } = useAuth();
 
   if (isLoading) {
@@ -31,7 +27,7 @@ const ProtectedCorretoraRoute: React.FC<ProtectedCorretoraRouteProps> = ({ child
     }
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default ProtectedCorretoraRoute;

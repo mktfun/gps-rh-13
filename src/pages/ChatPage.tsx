@@ -10,7 +10,7 @@ import { MessageCircle } from 'lucide-react';
 
 export const ChatPage: React.FC = () => {
   const { role } = useAuth();
-  const { criarConversaEmpresa } = useConversas();
+  const { createConversaCorretora } = useConversas();
   const [conversaSelecionada, setConversaSelecionada] = useState<string | null>(null);
   const [nomeDestinatario, setNomeDestinatario] = useState<string>('');
   const [showNovaConversaModal, setShowNovaConversaModal] = useState(false);
@@ -25,15 +25,8 @@ export const ChatPage: React.FC = () => {
       // Abrir modal para selecionar empresa
       setShowNovaConversaModal(true);
     } else if (role === 'empresa') {
-      // Criar conversa automaticamente
-      try {
-        const conversa = await criarConversaEmpresa.mutateAsync();
-        
-        // Selecionar a conversa criada automaticamente
-        handleSelecionarConversa(conversa.id, conversa.corretora_nome);
-      } catch (error) {
-        console.error('Erro ao criar conversa:', error);
-      }
+      // Funcionalidade para empresa será implementada posteriormente
+      console.log('Funcionalidade de nova conversa para empresa em desenvolvimento');
     }
   };
 
