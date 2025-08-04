@@ -664,6 +664,14 @@ export type Database = {
           created_at: string
         }[]
       }
+      get_conversas_usuario: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          conversa_id: string
+          empresa_nome: string
+          created_at: string
+        }[]
+      }
       get_corretora_dashboard_metrics: {
         Args: Record<PropertyKey, never> | { p_corretora_id: string }
         Returns: Json
