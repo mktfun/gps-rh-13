@@ -1,5 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -157,6 +158,10 @@ export const useConversas = () => {
   const criarConversaCorretora = useMutation({
     mutationFn: async ({ empresaId }: { empresaId: string }) => {
       console.log('📝 Criando conversa entre corretora e empresa:', empresaId);
+
+      if (!empresaId) {
+        throw new Error('ID da empresa é obrigatório');
+      }
 
       const { data, error } = await supabase.rpc('find_or_create_conversation_corretora', {
         p_empresa_id: empresaId
