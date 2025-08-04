@@ -21,7 +21,7 @@ interface Conversa {
 }
 
 export const useConversas = () => {
-  const { user, role } = useAuth();
+  const { user, role, empresaId } = useAuth();
   const queryClient = useQueryClient();
 
   const {
@@ -43,9 +43,21 @@ export const useConversas = () => {
           id,
           corretora_id,
           empresa_id,
-          created_at
+          created_at,
+          empresa:empresas(id, nome),
+          corretora:profiles!conversas_corretora_id_fkey(id, nome)
         `)
         .order('created_at', { ascending: false });
+
+      // Filtrar baseado no role
+      if (role === 'corretora') {
+        query = query.eq('corretora_id', user.id);
+      } else if (role === 'empresa' && empresaId) {
+        query = query.eq('empresa_id', empresaId);
+      } else {
+        // Se não for corretora nem empresa com empresaId, retornar vazio
+        return [];
+      }
 
       const { data, error } = await query;
 
@@ -62,38 +74,63 @@ export const useConversas = () => {
     refetchOnWindowFocus: true,
   });
 
-  const criarConversa = useMutation({
+  // Mutação para corretoras criarem conversas
+  const criarConversaCorretora = useMutation({
     mutationFn: async ({ empresaId }: { empresaId: string }) => {
       console.log('📝 Criando conversa entre corretora e empresa:', empresaId);
 
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      const { data, error } = await supabase
-        .from('conversas')
-        .insert({
-          corretora_id: user.id,
-          empresa_id: empresaId
-        })
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('find_or_create_conversation_corretora', {
+        p_empresa_id: empresaId
+      });
 
       if (error) {
         console.error('❌ Erro ao criar conversa:', error);
         throw error;
       }
 
-      console.log('✅ Conversa criada:', data);
-      return data;
+      if (!data.success) {
+        throw new Error(data.error || 'Erro ao criar conversa');
+      }
+
+      console.log('✅ Conversa criada/encontrada:', data.conversa);
+      return data.conversa;
     },
-    onSuccess: (data) => {
+    onSuccess: (conversa) => {
       queryClient.invalidateQueries({ queryKey: ['conversas'] });
-      toast.success('Conversa iniciada com sucesso');
+      toast.success(`Conversa com ${conversa.empresa_nome} iniciada`);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('❌ Erro ao criar conversa:', error);
-      toast.error('Erro ao iniciar conversa');
+      toast.error(error.message || 'Erro ao iniciar conversa');
+    }
+  });
+
+  // Mutação para empresas criarem conversas
+  const criarConversaEmpresa = useMutation({
+    mutationFn: async () => {
+      console.log('📝 Criando conversa entre empresa e sua corretora');
+
+      const { data, error } = await supabase.rpc('find_or_create_conversation_empresa');
+
+      if (error) {
+        console.error('❌ Erro ao criar conversa:', error);
+        throw error;
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Erro ao criar conversa');
+      }
+
+      console.log('✅ Conversa criada/encontrada:', data.conversa);
+      return data.conversa;
+    },
+    onSuccess: (conversa) => {
+      queryClient.invalidateQueries({ queryKey: ['conversas'] });
+      toast.success(`Conversa com ${conversa.corretora_nome} iniciada`);
+    },
+    onError: (error: Error) => {
+      console.error('❌ Erro ao criar conversa:', error);
+      toast.error(error.message || 'Erro ao iniciar conversa');
     }
   });
 
@@ -101,6 +138,7 @@ export const useConversas = () => {
     conversas,
     isLoading,
     error,
-    criarConversa
+    criarConversaCorretora,
+    criarConversaEmpresa
   };
 };

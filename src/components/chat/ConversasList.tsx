@@ -4,7 +4,7 @@ import { useConversas } from '@/hooks/useConversas';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Plus, Users } from 'lucide-react';
+import { MessageCircle, Plus, Users, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -12,15 +12,17 @@ import { ptBR } from 'date-fns/locale';
 interface ConversasListProps {
   onSelecionarConversa: (conversaId: string, nomeDestinatario: string) => void;
   conversaSelecionada?: string;
-  compact?: boolean; // New prop for widget usage
+  compact?: boolean;
+  onNovaConversa?: () => void;
 }
 
 export const ConversasList: React.FC<ConversasListProps> = ({
   onSelecionarConversa,
   conversaSelecionada,
-  compact = false
+  compact = false,
+  onNovaConversa
 }) => {
-  const { conversas, isLoading } = useConversas();
+  const { conversas, isLoading, criarConversaEmpresa } = useConversas();
   const { role } = useAuth();
 
   if (isLoading) {
@@ -28,7 +30,7 @@ export const ConversasList: React.FC<ConversasListProps> = ({
       <Card className={compact ? "h-full" : ""}>
         <CardContent className="p-4">
           <div className="flex items-center space-x-2">
-            <MessageCircle className="h-5 w-5 animate-pulse" />
+            <Loader2 className="h-5 w-5 animate-spin" />
             <span>Carregando conversas...</span>
           </div>
         </CardContent>
@@ -47,9 +49,18 @@ export const ConversasList: React.FC<ConversasListProps> = ({
               <MessageCircle className="h-5 w-5" />
               <h3 className="font-medium">Conversas</h3>
             </div>
-            {role === 'corretora' && (
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
+            {onNovaConversa && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onNovaConversa}
+                disabled={criarConversaEmpresa.isPending}
+              >
+                {criarConversaEmpresa.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-1" />
+                )}
                 Nova
               </Button>
             )}
@@ -61,21 +72,37 @@ export const ConversasList: React.FC<ConversasListProps> = ({
         {conversas.length === 0 ? (
           <div className="p-6 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm mb-3">
               Nenhuma conversa encontrada
             </p>
-            {role === 'corretora' && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Inicie uma conversa com suas empresas
-              </p>
+            {onNovaConversa && (
+              <Button
+                size="sm"
+                onClick={onNovaConversa}
+                disabled={criarConversaEmpresa.isPending}
+              >
+                {criarConversaEmpresa.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                {role === 'corretora' ? 'Iniciar conversa com empresa' : 'Conversar com corretora'}
+              </Button>
             )}
           </div>
         ) : (
           <div className="space-y-0">
             {conversas.map((conversa) => {
-              const nomeDestinatario = role === 'corretora' 
-                ? conversa.empresa?.nome || `Empresa ${conversa.empresa_id.substring(0, 8)}`
-                : conversa.corretora?.nome || `Corretora ${conversa.corretora_id.substring(0, 8)}`;
+              // Determinar o nome do destinatário baseado no role
+              let nomeDestinatario: string;
+              
+              if (role === 'corretora') {
+                // Corretora vê o nome da empresa
+                nomeDestinatario = conversa.empresa?.nome || `Empresa ${conversa.empresa_id.substring(0, 8)}`;
+              } else {
+                // Empresa vê o nome da corretora
+                nomeDestinatario = conversa.corretora?.nome || `Corretora ${conversa.corretora_id.substring(0, 8)}`;
+              }
 
               const isSelected = conversaSelecionada === conversa.id;
 

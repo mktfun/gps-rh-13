@@ -633,6 +633,14 @@ export type Database = {
         Args: { p_funcionario_id: string }
         Returns: Json
       }
+      find_or_create_conversation_corretora: {
+        Args: { p_empresa_id: string }
+        Returns: Json
+      }
+      find_or_create_conversation_empresa: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_acoes_necessarias_corretora: {
         Args: Record<PropertyKey, never>
         Returns: Json
