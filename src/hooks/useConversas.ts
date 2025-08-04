@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,54 +60,98 @@ export const useConversas = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      let query = supabase
+      // Buscar conversas básicas primeiro
+      let conversasQuery = supabase
         .from('conversas')
-        .select(`
-          *,
-          empresa:empresas ( id, nome ),
-          corretora:profiles ( id, nome )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Filtrar baseado no role
       if (role === 'corretora') {
-        query = query.eq('corretora_id', user.id);
+        conversasQuery = conversasQuery.eq('corretora_id', user.id);
       } else if (role === 'empresa' && empresaId) {
-        query = query.eq('empresa_id', empresaId);
+        conversasQuery = conversasQuery.eq('empresa_id', empresaId);
       } else {
         // Se não for corretora nem empresa com empresaId, retornar vazio
         return [];
       }
 
-      const { data, error } = await query;
+      const { data: conversasData, error: conversasError } = await conversasQuery;
 
-      if (error) {
-        console.error('❌ Erro ao buscar conversas:', error);
-        throw error;
+      if (conversasError) {
+        console.error('❌ Erro ao buscar conversas:', conversasError);
+        throw conversasError;
       }
 
-      console.log('✅ Conversas encontradas:', data);
-      
-      // Transformar os dados para o formato esperado
-      return (data || []).map(item => ({
-        id: item.id,
-        corretora_id: item.corretora_id,
-        empresa_id: item.empresa_id,
-        created_at: item.created_at,
-        empresa: item.empresa ? {
-          id: item.empresa.id,
-          nome: item.empresa.nome
-        } : undefined,
-        corretora: item.corretora ? {
-          id: item.corretora.id,
-          nome: item.corretora.nome
-        } : undefined
+      if (!conversasData || conversasData.length === 0) {
+        console.log('✅ Nenhuma conversa encontrada');
+        return [];
+      }
+
+      // Buscar dados das empresas
+      const empresaIds = [...new Set(conversasData.map(c => c.empresa_id))];
+      const { data: empresasData } = await supabase
+        .from('empresas')
+        .select('id, nome')
+        .in('id', empresaIds);
+
+      // Buscar dados dos profiles (corretoras)
+      const corretoraIds = [...new Set(conversasData.map(c => c.corretora_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, nome')
+        .in('id', corretoraIds);
+
+      // Combinar os dados
+      const conversasCompletas = conversasData.map(conversa => ({
+        id: conversa.id,
+        corretora_id: conversa.corretora_id,
+        empresa_id: conversa.empresa_id,
+        created_at: conversa.created_at,
+        empresa: empresasData?.find(e => e.id === conversa.empresa_id) || undefined,
+        corretora: profilesData?.find(p => p.id === conversa.corretora_id) || undefined
       }));
+
+      console.log('✅ Conversas encontradas:', conversasCompletas);
+      return conversasCompletas;
     },
     enabled: !!user?.id && !!role,
-    staleTime: 1 * 60 * 1000, // 1 minuto de cache
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // Cache agressivo de 5 minutos
+    refetchOnWindowFocus: false, // Não refetch ao focar janela
   });
+
+  // Configurar realtime para invalidações pontuais
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('🔄 Configurando realtime para conversas');
+
+    const channel = supabase
+      .channel(`conversas-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversas'
+        },
+        (payload) => {
+          console.log('📨 Conversa alterada em tempo real:', payload);
+          // Invalidar apenas se a conversa pertence ao usuário atual
+          const conversa = payload.new || payload.old;
+          if (conversa && (conversa.corretora_id === user.id || 
+              (role === 'empresa' && conversa.empresa_id === empresaId))) {
+            queryClient.invalidateQueries({ queryKey: ['conversas', user.id, role] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('🔌 Desconectando realtime para conversas');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, role, empresaId, queryClient]);
 
   // Mutação para corretoras criarem conversas
   const criarConversaCorretora = useMutation({

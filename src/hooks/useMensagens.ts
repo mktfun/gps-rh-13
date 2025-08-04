@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
-import { toast } from 'sonner';
 
 interface Mensagem {
   id: number;
@@ -12,6 +11,7 @@ interface Mensagem {
   conteudo: string;
   lida: boolean;
   created_at: string;
+  status?: 'enviando' | 'enviado' | 'erro';
 }
 
 export const useMensagens = (conversaId: string | null) => {
@@ -44,11 +44,11 @@ export const useMensagens = (conversaId: string | null) => {
       return data || [];
     },
     enabled: !!conversaId,
-    staleTime: 0, // Sempre refetch para ter dados em tempo real
-    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000, // Cache por 30 segundos
+    refetchOnWindowFocus: false,
   });
 
-  // Configurar realtime para mensagens
+  // Configurar realtime para atualizações diretas no cache
   useEffect(() => {
     if (!conversaId) return;
 
@@ -66,7 +66,22 @@ export const useMensagens = (conversaId: string | null) => {
         },
         (payload) => {
           console.log('📨 Nova mensagem em tempo real:', payload);
-          queryClient.invalidateQueries({ queryKey: ['mensagens', conversaId] });
+          
+          // Atualizar cache diretamente sem invalidar
+          queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
+            const novaMensagem = payload.new as Mensagem;
+            const exists = old?.some(msg => msg.id === novaMensagem.id);
+            
+            if (!exists) {
+              return [...(old || []), novaMensagem];
+            }
+            return old;
+          });
+
+          // Auto-marcar como lida se não for do usuário atual
+          if (payload.new.remetente_id !== user?.id) {
+            marcarComoLida.mutate({ mensagemId: payload.new.id });
+          }
         }
       )
       .on(
@@ -79,7 +94,15 @@ export const useMensagens = (conversaId: string | null) => {
         },
         (payload) => {
           console.log('📝 Mensagem atualizada em tempo real:', payload);
-          queryClient.invalidateQueries({ queryKey: ['mensagens', conversaId] });
+          
+          // Atualizar mensagem específica no cache
+          queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
+            return old?.map(msg => 
+              msg.id === payload.new.id 
+                ? { ...msg, ...payload.new }
+                : msg
+            ) || [];
+          });
         }
       )
       .subscribe();
@@ -88,42 +111,7 @@ export const useMensagens = (conversaId: string | null) => {
       console.log('🔌 Desconectando realtime para conversa:', conversaId);
       supabase.removeChannel(channel);
     };
-  }, [conversaId, queryClient]);
-
-  const enviarMensagem = useMutation({
-    mutationFn: async ({ conteudo }: { conteudo: string }) => {
-      if (!conversaId || !user?.id) {
-        throw new Error('Dados insuficientes para enviar mensagem');
-      }
-
-      console.log('📤 Enviando mensagem:', { conversaId, conteudo: conteudo.substring(0, 50) + '...' });
-
-      const { data, error } = await supabase
-        .from('mensagens')
-        .insert({
-          conversa_id: conversaId,
-          remetente_id: user.id,
-          conteudo: conteudo.trim()
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Erro ao enviar mensagem:', error);
-        throw error;
-      }
-
-      console.log('✅ Mensagem enviada:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mensagens', conversaId] });
-    },
-    onError: (error) => {
-      console.error('❌ Erro ao enviar mensagem:', error);
-      toast.error('Erro ao enviar mensagem');
-    }
-  });
+  }, [conversaId, queryClient, user?.id]);
 
   const marcarComoLida = useMutation({
     mutationFn: async ({ mensagemId }: { mensagemId: number }) => {
@@ -141,9 +129,6 @@ export const useMensagens = (conversaId: string | null) => {
       }
 
       console.log('✅ Mensagem marcada como lida');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mensagens', conversaId] });
     }
   });
 
@@ -151,7 +136,6 @@ export const useMensagens = (conversaId: string | null) => {
     mensagens,
     isLoading,
     error,
-    enviarMensagem,
     marcarComoLida
   };
 };

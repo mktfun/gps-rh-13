@@ -2,20 +2,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMensagens } from '@/hooks/useMensagens';
+import { useEnviarMensagem } from '@/hooks/useEnviarMensagem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { MessageCircle, Send, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { MessageBubble } from './MessageBubble';
 
 interface ChatModuleProps {
   conversaId: string;
   destinatarioNome: string;
   onClose?: () => void;
-  compact?: boolean; // New prop for widget usage
+  compact?: boolean;
 }
 
 export const ChatModule: React.FC<ChatModuleProps> = ({
@@ -25,10 +25,11 @@ export const ChatModule: React.FC<ChatModuleProps> = ({
   compact = false
 }) => {
   const { user } = useAuth();
-  const { mensagens, isLoading, enviarMensagem, marcarComoLida } = useMensagens(conversaId);
+  const { mensagens, isLoading } = useMensagens(conversaId);
+  const enviarMensagem = useEnviarMensagem(conversaId);
   const [novoConteudo, setNovoConteudo] = useState('');
-  const [enviando, setEnviando] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll para a última mensagem
   useEffect(() => {
@@ -37,30 +38,26 @@ export const ChatModule: React.FC<ChatModuleProps> = ({
     }
   }, [mensagens]);
 
-  // Marcar mensagens não lidas como lidas ao abrir o chat
+  // Focar input quando conversa muda
   useEffect(() => {
-    const mensagensNaoLidas = mensagens.filter(
-      msg => !msg.lida && msg.remetente_id !== user?.id
-    );
-
-    mensagensNaoLidas.forEach(msg => {
-      marcarComoLida.mutate({ mensagemId: msg.id });
-    });
-  }, [mensagens, user?.id, marcarComoLida]);
+    if (inputRef.current && !compact) {
+      inputRef.current.focus();
+    }
+  }, [conversaId, compact]);
 
   const handleEnviar = async () => {
-    if (!novoConteudo.trim() || enviando) return;
+    const conteudo = novoConteudo.trim();
+    if (!conteudo || enviarMensagem.isPending) return;
 
-    setEnviando(true);
+    // Limpar input imediatamente para UX responsiva
+    setNovoConteudo('');
+    
     try {
-      await enviarMensagem.mutateAsync({
-        conteudo: novoConteudo
-      });
-      setNovoConteudo('');
+      await enviarMensagem.mutateAsync({ conteudo });
     } catch (error) {
+      // Em caso de erro, restaurar o conteúdo do input
+      setNovoConteudo(conteudo);
       console.error('Erro ao enviar mensagem:', error);
-    } finally {
-      setEnviando(false);
     }
   };
 
@@ -126,36 +123,14 @@ export const ChatModule: React.FC<ChatModuleProps> = ({
                 </p>
               </div>
             ) : (
-              mensagens.map((mensagem) => {
-                const isFromMe = mensagem.remetente_id === user?.id;
-                
-                return (
-                  <div
-                    key={mensagem.id}
-                    className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[70%] rounded-lg p-3 ${
-                        isFromMe
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <p className="text-sm">{mensagem.conteudo}</p>
-                      <p
-                        className={`text-xs mt-1 ${
-                          isFromMe ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                        }`}
-                      >
-                        {formatDistanceToNow(new Date(mensagem.created_at), {
-                          addSuffix: true,
-                          locale: ptBR
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
+              mensagens.map((mensagem) => (
+                <MessageBubble
+                  key={mensagem.id}
+                  mensagem={mensagem}
+                  isFromMe={mensagem.remetente_id === user?.id}
+                  compact={compact}
+                />
+              ))
             )}
             <div ref={scrollRef} />
           </div>
@@ -164,17 +139,18 @@ export const ChatModule: React.FC<ChatModuleProps> = ({
         <div className="border-t p-4">
           <div className="flex space-x-2">
             <Input
+              ref={inputRef}
               value={novoConteudo}
               onChange={(e) => setNovoConteudo(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Digite sua mensagem..."
               maxLength={500}
-              disabled={enviando}
+              disabled={enviarMensagem.isPending}
               className="flex-1"
             />
             <Button
               onClick={handleEnviar}
-              disabled={!novoConteudo.trim() || enviando}
+              disabled={!novoConteudo.trim() || enviarMensagem.isPending}
               size="sm"
             >
               <Send className="h-4 w-4" />
