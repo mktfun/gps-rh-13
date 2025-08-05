@@ -42,11 +42,11 @@ export const useConversasWidget = () => {
         empresa_nome: conversa.empresa_nome,
         created_at: conversa.created_at,
         protocolo: conversa.protocolo || null,
-        nao_lidas: conversa.nao_lidas || 0
+        nao_lidas: Number(conversa.nao_lidas) || 0
       }));
     },
     enabled: !!user,
-    refetchInterval: 3000, // Atualizar mais frequentemente para captuar novas mensagens
+    refetchInterval: 3000, // Atualizar mais frequentemente para capturar novas mensagens
   });
 
   // Tempo real simplificado - invalidar queries ao invés de atualizar cache manualmente
@@ -62,8 +62,7 @@ export const useConversasWidget = () => {
       }, (payload) => {
         console.log('⚡ Nova conversa em tempo real! Invalidando queries...', payload);
 
-        // O JEITO ROBUSTO E SIMPLES
-        // Invalida a query, forçando o React Query a buscar a lista completa e correta de novo.
+        // Invalidar as queries para forçar refresh
         queryClient.invalidateQueries({ queryKey: ['conversas', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['total-unread-count', user?.id] });
       })
@@ -74,7 +73,7 @@ export const useConversasWidget = () => {
       }, (payload) => {
         console.log('⚡ Nova mensagem em tempo real! Invalidando queries...', payload);
         
-        // Invalidar both queries para atualizar contadores
+        // Invalidar queries para atualizar contadores
         queryClient.invalidateQueries({ queryKey: ['conversas', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['total-unread-count', user?.id] });
       })
