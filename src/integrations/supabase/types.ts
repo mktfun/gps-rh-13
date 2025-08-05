@@ -621,6 +621,10 @@ export type Database = {
       }
     }
     Functions: {
+      contar_total_mensagens_nao_lidas: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       create_plano: {
         Args: {
           p_cnpj_id: string
