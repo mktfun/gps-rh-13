@@ -61,7 +61,13 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               </div>
             </div>
             <span className="text-xs text-muted-foreground ml-2">
-              {new Date(conversa.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(conversa.created_at).toLocaleDateString('pt-BR', { 
+                day: '2-digit', 
+                month: '2-digit' 
+              })} {new Date(conversa.created_at).toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
             </span>
           </div>
         </button>
