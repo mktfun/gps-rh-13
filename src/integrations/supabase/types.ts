@@ -646,6 +646,10 @@ export type Database = {
         }
         Returns: Json
       }
+      deletar_conversa: {
+        Args: { p_conversa_id: string }
+        Returns: undefined
+      }
       delete_cnpj_with_cleanup: {
         Args: { cnpj_id_param: string }
         Returns: boolean

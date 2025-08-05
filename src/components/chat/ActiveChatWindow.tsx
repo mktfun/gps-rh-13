@@ -1,14 +1,26 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Loader2, Hash, Paperclip } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Hash, Paperclip, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 import { useMensagens } from '@/hooks/useMensagens';
 import { useEnviarMensagem } from '@/hooks/useEnviarMensagem';
 import { useUploadAnexo } from '@/hooks/useUploadAnexo';
 import { useConversaComProtocolo } from '@/hooks/useConversaComProtocolo';
+import { useDeletarConversa } from '@/hooks/useDeletarConversa';
 import { useAuth } from '@/hooks/useAuth';
 import { MessageBubble } from './MessageBubble';
 
@@ -32,6 +44,7 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
   const { conversa } = useConversaComProtocolo(conversaId);
   const enviarMensagem = useEnviarMensagem(conversaId);
   const uploadAnexo = useUploadAnexo(conversaId);
+  const deletarConversa = useDeletarConversa();
 
   // Determinar se o outro usuário está online
   const isOtherUserOnline = onlineUsers.length > 1;
@@ -83,9 +96,17 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
     }
   };
 
+  const handleDeletarConversa = () => {
+    deletarConversa.mutate(conversaId, {
+      onSuccess: () => {
+        onBack(); // Volta para a lista de conversas
+      }
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
-      {/* Cabeçalho com protocolo */}
+      {/* Cabeçalho com protocolo e botão de exclusão */}
       <div className="flex items-center p-4 border-b bg-muted/30">
         <Button
           variant="ghost"
@@ -121,6 +142,41 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
             </p>
           </div>
         </div>
+        
+        {/* Botão de excluir conversa */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. Isso irá excluir permanentemente a conversa 
+                com <strong>{empresaNome}</strong> e todas as suas mensagens.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeletarConversa}
+                disabled={deletarConversa.isPending}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deletarConversa.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  'Sim, excluir'
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Área de mensagens */}

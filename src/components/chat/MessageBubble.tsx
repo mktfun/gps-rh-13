@@ -40,11 +40,9 @@ const MessageStatusIcon = React.memo(({ mensagem, isFromMe }: {
       return <span className="text-destructive text-xs font-bold">!</span>;
     case 'enviado':
     default:
-      // Se tem timestamp de leitura, mostrar check duplo azul
       if (mensagem.lida_em) {
         return <CheckCheck className="h-3 w-3 text-blue-500" />;
       }
-      // Se apenas entregue (sem leitura), mostrar check simples cinza
       return <Check className="h-3 w-3 text-primary-foreground/60" />;
   }
 });
@@ -116,27 +114,30 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
   }, [mensagem.created_at]);
 
   const renderContent = () => {
-    // Renderizar imagem com preview
-    if (mensagem.tipo === 'imagem' && mensagem.metadata?.path) {
-      return (
-        <div className="space-y-2">
-          <ImagePreview 
-            filePath={mensagem.metadata.path} 
-            fileName={mensagem.metadata.nome || 'Imagem enviada'}
-          />
-          {mensagem.conteudo && (
-            <p className="text-sm">{mensagem.conteudo}</p>
-          )}
-        </div>
-      );
-    }
+    const filePath = mensagem.metadata?.path;
 
-    // Renderizar arquivo com download seguro
-    if (mensagem.tipo === 'arquivo' && mensagem.metadata?.path) {
+    // LÓGICA À PROVA DE BALAS: Se tem metadata com path, É um arquivo/imagem
+    if (filePath) {
+      // Se o tipo do arquivo nos metadados começa com 'image/', renderiza como imagem
+      if (mensagem.metadata?.tipoArquivo?.startsWith('image/')) {
+        return (
+          <div className="space-y-2">
+            <ImagePreview 
+              filePath={filePath} 
+              fileName={mensagem.metadata.nome || 'Imagem enviada'}
+            />
+            {mensagem.conteudo && mensagem.conteudo !== 'Enviou uma imagem' && (
+              <p className="text-sm">{mensagem.conteudo}</p>
+            )}
+          </div>
+        );
+      }
+
+      // Senão, renderiza como arquivo genérico para download
       return (
         <div className="space-y-2">
           <button 
-            onClick={() => downloadFile(mensagem.metadata!.path)}
+            onClick={() => downloadFile(filePath)}
             className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors hover:bg-accent/20 ${
               isFromMe 
                 ? 'bg-primary-foreground/10 border-primary-foreground/20' 
@@ -154,14 +155,14 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
             </div>
             <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           </button>
-          {mensagem.conteudo && (
+          {mensagem.conteudo && !mensagem.conteudo.startsWith('Enviou o arquivo:') && (
             <p className="text-sm">{mensagem.conteudo}</p>
           )}
         </div>
       );
     }
 
-    // Fallback para texto normal
+    // Se nada disso for verdade, aí sim é uma mensagem de texto
     return (
       <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
         {mensagem.conteudo}
