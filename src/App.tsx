@@ -1,4 +1,5 @@
 
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -8,7 +9,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import RootLayout from "@/components/layout/RootLayout";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { lazy, Suspense } from "react";
 import { DashboardLoadingState } from "@/components/ui/loading-state";
 
 // Debug React availability
