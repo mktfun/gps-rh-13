@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Users, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,12 +41,22 @@ const Funcionarios = () => {
     funcionarios,
     totalCount,
     totalPages,
+    currentPage: realCurrentPage, // CORREÇÃO: Usar a página real retornada pelo hook
     isLoading,
   } = useFuncionarios({
     search,
     page: currentPage,
     pageSize,
+    empresaId: empresaId || undefined,
   });
+
+  // CORREÇÃO: Sincronizar página atual com a página real retornada
+  useEffect(() => {
+    if (realCurrentPage !== undefined && realCurrentPage !== currentPage) {
+      console.log('🔄 [Funcionarios] Sincronizando página:', currentPage, '→', realCurrentPage);
+      setCurrentPage(realCurrentPage);
+    }
+  }, [realCurrentPage, currentPage]);
 
   const handleViewDetails = (funcionario: any) => {
     setSelectedFuncionario(funcionario);
@@ -57,12 +67,12 @@ const Funcionarios = () => {
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    setCurrentPage(0);
+    setCurrentPage(0); // CORREÇÃO: Sempre resetar para primeira página ao buscar
   };
 
   const handleStatusFilter = (value: string) => {
     setStatusFilter(value);
-    setCurrentPage(0);
+    setCurrentPage(0); // CORREÇÃO: Sempre resetar para primeira página ao filtrar
   };
 
   // Filtrar funcionários baseado no status
@@ -77,6 +87,7 @@ const Funcionarios = () => {
   };
 
   const setPagination = (newPagination: { pageIndex: number; pageSize: number }) => {
+    console.log('📄 [Funcionarios] Mudando página:', currentPage, '→', newPagination.pageIndex);
     setCurrentPage(newPagination.pageIndex);
   };
 
@@ -103,7 +114,6 @@ const Funcionarios = () => {
         </div>
       </div>
 
-      {/* Card principal */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -147,7 +157,7 @@ const Funcionarios = () => {
               )}
             </div>
 
-            {/* Tabela de funcionários */}
+            {/* CORREÇÃO: Usar dados filtrados e paginação corrigida */}
             <DataTable
               columns={columns}
               data={filteredFuncionarios}

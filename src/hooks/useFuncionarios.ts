@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { useEffect, useCallback } from 'react';
 
 type Funcionario = Tables<'funcionarios'>;
 type FuncionarioInsert = TablesInsert<'funcionarios'>;
@@ -51,9 +52,14 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
   // Determinar qual empresa_id usar: parâmetro passado ou do AuthContext
   const targetEmpresaId = paramEmpresaId || empresaId;
 
+  // CORREÇÃO: Resetar página quando filtros mudarem
+  const resetPageKey = `${search}-${cnpj_id}-${targetEmpresaId}-${statusFilter}`;
+  
+  const queryKey = ['funcionarios', user?.id, search, page, pageSize, cnpj_id, targetEmpresaId, statusFilter, resetPageKey];
+
   // Query para buscar funcionários com dados do CNPJ e plano
   const funcionariosQuery = useQuery({
-    queryKey: ['funcionarios', user?.id, search, page, pageSize, cnpj_id, targetEmpresaId, statusFilter],
+    queryKey,
     queryFn: async () => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
@@ -62,12 +68,52 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
         targetEmpresaId, 
         statusFilter, 
         search,
+        page,
+        pageSize,
         empresaIdFromAuth: empresaId 
       });
 
+      // CORREÇÃO: Função para validar e ajustar paginação
+      const validateAndAdjustPagination = async (baseQuery: any) => {
+        // Primeiro, fazer uma query sem paginação para contar total
+        const { count: totalCount, error: countError } = await baseQuery.select('*', { count: 'exact', head: true });
+        
+        if (countError) {
+          console.error('❌ Erro ao contar registros:', countError);
+          throw countError;
+        }
+
+        console.log('📊 Total de registros encontrados:', totalCount);
+
+        // Calcular o offset seguro
+        const totalPages = Math.ceil((totalCount || 0) / pageSize);
+        let safePage = page;
+        
+        // CORREÇÃO: Se a página solicitada é maior que as disponíveis, usar a última página válida
+        if (page > 0 && totalCount !== null) {
+          const maxPage = Math.max(0, totalPages - 1);
+          safePage = Math.min(page, maxPage);
+          
+          if (safePage !== page) {
+            console.log('⚠️ Ajustando página:', page, '→', safePage, 'Total páginas:', totalPages);
+          }
+        }
+
+        const safeOffset = safePage * pageSize;
+        
+        console.log('📄 Paginação segura:', {
+          solicitada: { page, offset: page * pageSize },
+          segura: { page: safePage, offset: safeOffset },
+          total: totalCount,
+          totalPages
+        });
+
+        return { safeOffset, safePage, totalCount, totalPages };
+      };
+
       // Se cnpj_id foi fornecido, usar diretamente
       if (cnpj_id) {
-        let query = supabase
+        let baseQuery = supabase
           .from('funcionarios')
           .select(`
             *,
@@ -80,28 +126,29 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
                 cobertura_morte
               )
             )
-          `, { count: 'exact' })
+          `)
           .eq('cnpj_id', cnpj_id);
 
         // Aplicar filtro de status se fornecido
         if (statusFilter && statusFilter !== 'all') {
-          query = query.eq('status', statusFilter as any);
+          baseQuery = baseQuery.eq('status', statusFilter as any);
         } else {
-          // Status padrão quando não há filtro específico
-          query = query.in('status', ['ativo', 'pendente', 'exclusao_solicitada']);
+          baseQuery = baseQuery.in('status', ['ativo', 'pendente', 'exclusao_solicitada']);
         }
 
-        query = query.order('nome');
+        baseQuery = baseQuery.order('nome');
 
         if (search) {
-          query = query.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
+          baseQuery = baseQuery.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
         }
 
-        const start = page * pageSize;
+        // CORREÇÃO: Validar paginação antes de aplicar
+        const { safeOffset, safePage, totalCount, totalPages } = await validateAndAdjustPagination(baseQuery);
+        
+        const start = safeOffset;
         const end = start + pageSize - 1;
-        query = query.range(start, end);
-
-        const { data, error, count } = await query;
+        
+        const { data, error } = await baseQuery.range(start, end);
 
         if (error) {
           console.error('❌ Erro ao buscar funcionários por CNPJ:', error);
@@ -130,12 +177,12 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
         });
 
         console.log('✅ Funcionários transformados:', funcionariosTransformados.length);
-        console.log('📊 Primeiro funcionário com plano:', funcionariosTransformados.find(f => f.plano));
 
         return {
           funcionarios: funcionariosTransformados as FuncionarioWithCnpj[],
-          totalCount: count || 0,
-          totalPages: Math.ceil((count || 0) / pageSize)
+          totalCount: totalCount || 0,
+          totalPages,
+          currentPage: safePage
         };
       }
 
@@ -143,7 +190,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       if (targetEmpresaId) {
         console.log('🏢 Usando empresa_id do contexto:', targetEmpresaId);
         
-        let query = supabase
+        let baseQuery = supabase
           .from('funcionarios')
           .select(`
             *,
@@ -156,28 +203,29 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
                 cobertura_morte
               )
             )
-          `, { count: 'exact' })
+          `)
           .eq('cnpjs.empresa_id', targetEmpresaId);
 
         // Aplicar filtro de status se fornecido
         if (statusFilter && statusFilter !== 'all') {
-          query = query.eq('status', statusFilter as any);
+          baseQuery = baseQuery.eq('status', statusFilter as any);
         } else {
-          // Status padrão quando não há filtro específico
-          query = query.in('status', ['ativo', 'pendente', 'exclusao_solicitada']);
+          baseQuery = baseQuery.in('status', ['ativo', 'pendente', 'exclusao_solicitada']);
         }
 
-        query = query.order('nome');
+        baseQuery = baseQuery.order('nome');
 
         if (search) {
-          query = query.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
+          baseQuery = baseQuery.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
         }
 
-        const start = page * pageSize;
+        // CORREÇÃO: Validar paginação antes de aplicar
+        const { safeOffset, safePage, totalCount, totalPages } = await validateAndAdjustPagination(baseQuery);
+        
+        const start = safeOffset;
         const end = start + pageSize - 1;
-        query = query.range(start, end);
-
-        const { data, error, count } = await query;
+        
+        const { data, error } = await baseQuery.range(start, end);
 
         if (error) {
           console.error('❌ Erro ao buscar funcionários por empresa:', error);
@@ -202,12 +250,13 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
           };
         });
 
-        console.log('✅ Funcionários da empresa encontrados:', funcionariosTransformados.length, 'de', count || 0);
+        console.log('✅ Funcionários da empresa encontrados:', funcionariosTransformados.length, 'de', totalCount || 0);
 
         return {
           funcionarios: funcionariosTransformados as FuncionarioWithCnpj[],
-          totalCount: count || 0,
-          totalPages: Math.ceil((count || 0) / pageSize)
+          totalCount: totalCount || 0,
+          totalPages,
+          currentPage: safePage
         };
       }
 
@@ -216,10 +265,22 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       return {
         funcionarios: [],
         totalCount: 0,
-        totalPages: 0
+        totalPages: 0,
+        currentPage: 0
       };
     },
     enabled: !!user?.id && (!!cnpj_id || !!targetEmpresaId),
+    // CORREÇÃO: Configurações de retry melhoradas
+    retry: (failureCount, error: any) => {
+      // Não fazer retry para erros de range - isso indica problema de paginação
+      if (error?.code === 'PGRST103' || error?.message?.includes('range not satisfiable')) {
+        console.log('🚫 Não fazendo retry para erro de paginação:', error.message);
+        return false;
+      }
+      // Fazer retry para outros erros até 2 vezes
+      return failureCount < 2;
+    },
+    retryDelay: 1000,
   });
 
   const addFuncionario = useMutation({
@@ -257,7 +318,6 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     },
   });
 
-  // Mutation para atualizar funcionário
   const updateFuncionario = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: FuncionarioUpdate }) => {
       const { data, error } = await supabase
@@ -292,7 +352,6 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     },
   });
 
-  // Mutation para solicitar exclusão de funcionário
   const archiveFuncionario = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase
@@ -321,7 +380,6 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     },
   });
 
-  // NOVA: Mutation para aprovar exclusão de funcionário
   const approveExclusao = useMutation({
     mutationFn: async (funcionarioId: string) => {
       const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
@@ -333,14 +391,11 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       return data as unknown as ResolverExclusaoResponse;
     },
     onSuccess: (data) => {
-      // CORREÇÃO CRÍTICA: Invalidar TODAS as queries relevantes
       console.log('🔄 Aprovação realizada com sucesso. Invalidando caches...');
       
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
       queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      
-      // Também invalidar outras possíveis queries de dashboard
       queryClient.invalidateQueries({ queryKey: ['corretora-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['empresaDashboard'] });
       
@@ -359,7 +414,6 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     },
   });
 
-  // NOVA: Mutation para negar exclusão de funcionário
   const denyExclusao = useMutation({
     mutationFn: async (funcionarioId: string) => {
       const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
@@ -371,14 +425,11 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       return data as unknown as ResolverExclusaoResponse;
     },
     onSuccess: (data) => {
-      // CORREÇÃO CRÍTICA: Invalidar TODAS as queries relevantes
       console.log('🔄 Negação realizada com sucesso. Invalidando caches...');
       
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
       queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      
-      // Também invalidar outras possíveis queries de dashboard
       queryClient.invalidateQueries({ queryKey: ['corretora-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['empresaDashboard'] });
       
@@ -401,6 +452,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     funcionarios: funcionariosQuery.data?.funcionarios || [],
     totalCount: funcionariosQuery.data?.totalCount || 0,
     totalPages: funcionariosQuery.data?.totalPages || 0,
+    currentPage: funcionariosQuery.data?.currentPage || page,
     isLoading: funcionariosQuery.isLoading,
     error: funcionariosQuery.error,
     addFuncionario,
