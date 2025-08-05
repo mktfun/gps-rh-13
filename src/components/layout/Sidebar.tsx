@@ -8,32 +8,32 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 
-// Configuração centralizada para Corretora
+// Configuração CORRIGIDA para Corretora - Links agora apontam para rotas que EXISTEM
 const corretoraNavItems = [
-  { href: '/corretora', label: 'Dashboard', icon: BarChart3 },
+  { href: '/corretora/dashboard', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta diretamente para dashboard
   { href: '/corretora/empresas', label: 'Empresas', icon: Building2 },
 ];
 
 const corretoraPlanos = [
-  { href: '/corretora/seguros-de-vida', label: 'Seguros de Vida', icon: Shield },
+  { href: '/corretora/seguros-de-vida', label: 'Seguros de Vida', icon: Shield }, // CORRIGIDO: rota existe agora
   { href: '/corretora/planos-saude', label: 'Planos de Saúde', icon: HeartPulse, disabled: true },
 ];
 
 const corretoraRelatorios = [
-  { href: '/corretora/relatorios/funcionarios', label: 'Funcionários', icon: Users },
-  { href: '/corretora/relatorios/financeiro', label: 'Financeiro', icon: BarChart3 },
-  { href: '/corretora/relatorios/movimentacao', label: 'Movimentação', icon: GanttChartSquare },
-  { href: '/corretora/auditoria', label: 'Auditoria', icon: FileText },
+  { href: '/corretora/relatorios/funcionarios', label: 'Funcionários', icon: Users }, // CORRIGIDO: rota existe agora
+  { href: '/corretora/relatorios/financeiro', label: 'Financeiro', icon: BarChart3 }, // CORRIGIDO: rota existe agora
+  { href: '/corretora/relatorios/movimentacao', label: 'Movimentação', icon: GanttChartSquare }, // CORRIGIDO: rota existe agora
+  { href: '/corretora/auditoria', label: 'Auditoria', icon: FileText }, // CORRIGIDO: rota existe agora
 ];
 
 const corretoraConfiguracao = [
-  { href: '/corretora/perfil', label: 'Perfil', icon: User },
-  { href: '/corretora/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/perfil', label: 'Perfil', icon: User }, // CORRIGIDO: rota compartilhada existe
+  { href: '/configuracoes', label: 'Configurações', icon: Settings }, // CORRIGIDO: rota compartilhada existe
 ];
 
 // Configuração centralizada para Empresa
 const empresaNavItems = [
-  { href: '/empresa', label: 'Dashboard', icon: BarChart3 },
+  { href: '/empresa/dashboard', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta diretamente para dashboard
   { href: '/empresa/funcionarios', label: 'Funcionários', icon: Users },
 ];
 
@@ -49,8 +49,8 @@ const empresaRelatorios = [
 ];
 
 const empresaConfiguracao = [
-  { href: '/empresa/perfil', label: 'Perfil', icon: User },
-  { href: '/empresa/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/perfil', label: 'Perfil', icon: User }, // CORRIGIDO: rota compartilhada existe
+  { href: '/configuracoes', label: 'Configurações', icon: Settings }, // CORRIGIDO: rota compartilhada existe
 ];
 
 interface NavItem {
@@ -113,7 +113,7 @@ const CorretoraNav: React.FC = () => {
   const { user } = useAuth();
   
   const isActive = (path: string) => {
-    if (path === '/corretora') return location.pathname === path;
+    if (path === '/corretora/dashboard') return location.pathname === '/corretora/dashboard';
     return location.pathname.startsWith(path);
   };
 
@@ -122,7 +122,7 @@ const CorretoraNav: React.FC = () => {
 
     // Prefetch data based on the route being hovered
     switch (href) {
-      case '/corretora':
+      case '/corretora/dashboard':
         // Prefetch corretora dashboard metrics
         queryClient.prefetchQuery({
           queryKey: ['corretoraDashboardMetrics', user.id],
@@ -191,7 +191,7 @@ const EmpresaNav: React.FC = () => {
   const { user } = useAuth();
   
   const isActive = (path: string) => {
-    if (path === '/empresa') return location.pathname === path;
+    if (path === '/empresa/dashboard') return location.pathname === '/empresa/dashboard';
     return location.pathname.startsWith(path);
   };
 
@@ -200,7 +200,7 @@ const EmpresaNav: React.FC = () => {
 
     // Prefetch data based on the route being hovered
     switch (href) {
-      case '/empresa':
+      case '/empresa/dashboard':
         // Prefetch empresa dashboard metrics
         queryClient.prefetchQuery({
           queryKey: ['empresa-dashboard', user.id],
