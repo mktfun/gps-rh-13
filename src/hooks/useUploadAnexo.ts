@@ -37,23 +37,18 @@ export const useUploadAnexo = (conversaId: string) => {
         throw uploadError;
       }
 
-      // 3. Pega a URL pública do arquivo
-      const { data: { publicUrl } } = supabase.storage
-        .from('anexos_chat')
-        .getPublicUrl(filePath);
+      console.log('📎 Upload realizado com sucesso');
 
-      console.log('📎 URL do arquivo:', publicUrl);
-
-      // 4. Determina o tipo e cria os metadados
+      // 3. Determina o tipo e cria os metadados
       const tipo = file.type.startsWith('image/') ? 'imagem' : 'arquivo';
       const metadata = {
-        url: publicUrl,
+        path: filePath, // Salva o caminho para gerar URLs assinadas depois
         nome: file.name, // Mantém o nome original para exibição
         tipoArquivo: file.type,
         tamanho: file.size,
       };
 
-      // 5. Envia a "mensagem" do tipo arquivo/imagem
+      // 4. Envia a "mensagem" do tipo arquivo/imagem
       const conteudo = tipo === 'imagem' ? 'Enviou uma imagem' : `Enviou o arquivo: ${file.name}`;
       
       return await enviarMensagem.mutateAsync({ 

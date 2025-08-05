@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Check, CheckCheck, File, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
 
 interface MessageBubbleProps {
   mensagem: {
@@ -15,7 +17,7 @@ interface MessageBubbleProps {
     status?: 'enviando' | 'enviado' | 'erro';
     tipo?: string;
     metadata?: {
-      url: string;
+      path: string;
       nome: string;
       tipoArquivo: string;
       tamanho: number;
@@ -55,11 +57,57 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+const ImagePreview: React.FC<{ filePath: string; fileName: string }> = ({ filePath, fileName }) => {
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const { getSignedUrl } = useSignedUrl();
+
+  useEffect(() => {
+    const loadImage = async () => {
+      try {
+        const url = await getSignedUrl(filePath, 3600);
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Erro ao carregar imagem:', error);
+      }
+    };
+    loadImage();
+  }, [filePath, getSignedUrl]);
+
+  if (!imageUrl) {
+    return (
+      <div className="rounded-lg max-w-xs max-h-64 bg-muted animate-pulse flex items-center justify-center">
+        <span className="text-muted-foreground text-sm">Carregando...</span>
+      </div>
+    );
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <img 
+          src={imageUrl} 
+          alt={fileName}
+          className="rounded-lg max-w-xs max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+        />
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-2">
+        <img 
+          src={imageUrl} 
+          alt={fileName}
+          className="max-h-[85vh] w-full object-contain rounded-lg"
+        />
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export const MessageBubble = React.memo<MessageBubbleProps>(({ 
   mensagem, 
   isFromMe, 
   compact = false 
 }) => {
+  const { downloadFile } = useSignedUrl();
+
   const timeAgo = React.useMemo(() => {
     return formatDistanceToNow(new Date(mensagem.created_at), {
       addSuffix: true,
@@ -68,15 +116,13 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
   }, [mensagem.created_at]);
 
   const renderContent = () => {
-    // Renderizar imagem
-    if (mensagem.tipo === 'imagem' && mensagem.metadata?.url) {
+    // Renderizar imagem com preview
+    if (mensagem.tipo === 'imagem' && mensagem.metadata?.path) {
       return (
         <div className="space-y-2">
-          <img 
-            src={mensagem.metadata.url} 
-            alt={mensagem.metadata.nome || 'Imagem enviada'}
-            className="rounded-lg max-w-xs max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => window.open(mensagem.metadata?.url, '_blank')}
+          <ImagePreview 
+            filePath={mensagem.metadata.path} 
+            fileName={mensagem.metadata.nome || 'Imagem enviada'}
           />
           {mensagem.conteudo && (
             <p className="text-sm">{mensagem.conteudo}</p>
@@ -85,14 +131,12 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
       );
     }
 
-    // Renderizar arquivo
-    if (mensagem.tipo === 'arquivo' && mensagem.metadata?.url) {
+    // Renderizar arquivo com download seguro
+    if (mensagem.tipo === 'arquivo' && mensagem.metadata?.path) {
       return (
         <div className="space-y-2">
-          <a 
-            href={mensagem.metadata.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
+          <button 
+            onClick={() => downloadFile(mensagem.metadata!.path)}
             className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors hover:bg-accent/20 ${
               isFromMe 
                 ? 'bg-primary-foreground/10 border-primary-foreground/20' 
@@ -109,7 +153,7 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
               </p>
             </div>
             <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          </a>
+          </button>
           {mensagem.conteudo && (
             <p className="text-sm">{mensagem.conteudo}</p>
           )}
