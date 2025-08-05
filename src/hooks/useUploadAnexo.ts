@@ -4,6 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEnviarMensagem } from './useEnviarMensagem';
 import { toast } from 'sonner';
 
+// Função para sanitizar nomes de arquivo
+const sanitizeFileName = (name: string) => {
+  // Substitui espaços por underscores e remove qualquer coisa que não seja
+  // letra, número, ponto, underscore ou hífen. Simples e brutal.
+  return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+};
+
 export const useUploadAnexo = (conversaId: string) => {
   const enviarMensagem = useEnviarMensagem(conversaId);
 
@@ -13,8 +20,12 @@ export const useUploadAnexo = (conversaId: string) => {
 
       console.log('📎 Iniciando upload de arquivo:', file.name);
 
-      // 1. Gera um nome de arquivo único para evitar conflitos
-      const filePath = `${conversaId}/${Date.now()}_${file.name}`;
+      // 1. Sanitiza o nome do arquivo para evitar caracteres inválidos
+      const sanitizedFileName = sanitizeFileName(file.name);
+      const filePath = `${conversaId}/${Date.now()}_${sanitizedFileName}`;
+
+      console.log('📎 Nome sanitizado:', sanitizedFileName);
+      console.log('📎 Caminho do arquivo:', filePath);
 
       // 2. Faz o upload para o Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -37,7 +48,7 @@ export const useUploadAnexo = (conversaId: string) => {
       const tipo = file.type.startsWith('image/') ? 'imagem' : 'arquivo';
       const metadata = {
         url: publicUrl,
-        nome: file.name,
+        nome: file.name, // Mantém o nome original para exibição
         tipoArquivo: file.type,
         tamanho: file.size,
       };
