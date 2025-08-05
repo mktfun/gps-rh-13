@@ -1,17 +1,19 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 interface ConversaWidget {
   conversa_id: string;
   empresa_nome: string;
   created_at: string;
-  protocolo?: string; // CAMPO NOVO AQUI
+  protocolo?: string;
 }
 
 export const useConversasWidget = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['conversas', user?.id],
@@ -37,11 +39,51 @@ export const useConversasWidget = () => {
         conversa_id: conversa.conversa_id,
         empresa_nome: conversa.empresa_nome,
         created_at: conversa.created_at,
-        protocolo: conversa.protocolo || null // CAMPO NOVO AQUI - usando any para acessar protocolo
+        protocolo: conversa.protocolo || null
       }));
     },
     enabled: !!user,
   });
+
+  // Tempo real profissional - atualizações diretas no cache
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('public:conversas')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'conversas'
+      }, (payload) => {
+        console.log('⚡ Nova conversa em tempo real! Adicionando ao cache...', payload);
+
+        // O JEITO PROFISSIONAL: ATUALIZE O CACHE DIRETAMENTE
+        queryClient.setQueryData(['conversas', user?.id], (oldData: ConversaWidget[] | undefined) => {
+          if (!oldData) return [payload.new];
+          
+          // Adiciona o novo item no topo da lista, sem duplicatas
+          if (oldData.some(item => item.conversa_id === payload.new.id)) {
+            return oldData;
+          }
+          
+          // A RPC retorna 'conversa_id', o payload tem 'id'. Precisamos normalizar.
+          const novaConversa: ConversaWidget = {
+            conversa_id: payload.new.id,
+            empresa_nome: payload.new.empresa_nome || 'Nova Conversa',
+            created_at: payload.new.created_at,
+            protocolo: payload.new.protocolo || null
+          };
+          
+          return [novaConversa, ...oldData];
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   return {
     conversas: data || [],
