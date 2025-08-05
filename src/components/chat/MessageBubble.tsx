@@ -138,14 +138,14 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
         <div className="space-y-2">
           <button 
             onClick={() => downloadFile(filePath)}
-            className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors hover:bg-accent/20 ${
+            className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors hover:bg-accent/20 w-full ${
               isFromMe 
                 ? 'bg-primary-foreground/10 border-primary-foreground/20' 
                 : 'bg-muted border-border'
             }`}
           >
             <File className="h-8 w-8 text-muted-foreground flex-shrink-0" />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 overflow-hidden">
               <p className="font-medium text-sm truncate">
                 {mensagem.metadata.nome}
               </p>
