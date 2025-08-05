@@ -44,6 +44,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto space-y-2 p-4">
+      <span>CARALHO, ATUALIZA ESSA PORRA!</span>
       {conversas.map((conversa) => (
         <button
           key={conversa.conversa_id}
