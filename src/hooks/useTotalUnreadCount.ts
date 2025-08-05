@@ -13,15 +13,19 @@ export const useTotalUnreadCount = () => {
 
       console.log('🔢 Buscando total de mensagens não lidas...');
 
-      const { data, error } = await supabase.rpc('contar_total_mensagens_nao_lidas');
+      // Usar .single() ao invés de rpc para evitar problemas de tipos
+      const { data, error } = await supabase
+        .rpc('contar_total_mensagens_nao_lidas');
 
       if (error) {
         console.error('❌ Erro ao contar mensagens não lidas:', error);
         return 0;
       }
 
-      console.log('✅ Total de mensagens não lidas:', data);
-      return data || 0;
+      // Garantir que retornamos um number
+      const count = typeof data === 'number' ? data : 0;
+      console.log('✅ Total de mensagens não lidas:', count);
+      return count;
     },
     enabled: !!user,
     refetchInterval: 5000, // Atualizar a cada 5 segundos

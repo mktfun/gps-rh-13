@@ -9,7 +9,7 @@ interface ConversaWidget {
   empresa_nome: string;
   created_at: string;
   protocolo?: string | null;
-  nao_lidas: number; // Novo campo
+  nao_lidas: number;
 }
 
 export const useConversasWidget = () => {
@@ -49,7 +49,7 @@ export const useConversasWidget = () => {
     refetchInterval: 3000, // Atualizar mais frequentemente para captuar novas mensagens
   });
 
-  // Tempo real profissional - atualizações diretas no cache
+  // Tempo real simplificado - invalidar queries ao invés de atualizar cache manualmente
   useEffect(() => {
     if (!user) return;
 
@@ -60,27 +60,23 @@ export const useConversasWidget = () => {
         schema: 'public',
         table: 'conversas'
       }, (payload) => {
-        console.log('⚡ Nova conversa em tempo real! Adicionando ao cache...', payload);
+        console.log('⚡ Nova conversa em tempo real! Invalidando queries...', payload);
 
-        // O JEITO PROFISSIONAL: ATUALIZE O CACHE DIRETAMENTE
-        queryClient.setQueryData(['conversas', user?.id], (oldData: ConversaWidget[] | undefined) => {
-          if (!oldData) return [payload.new];
-          
-          // Adiciona o novo item no topo da lista, sem duplicatas
-          if (oldData.some(item => item.conversa_id === payload.new.id)) {
-            return oldData;
-          }
-          
-          // A RPC retorna 'conversa_id', o payload tem 'id'. Precisamos normalizar.
-          const novaConversa: ConversaWidget = {
-            conversa_id: payload.new.id,
-            empresa_nome: payload.new.empresa_nome || 'Nova Conversa',
-            created_at: payload.new.created_at,
-            protocolo: payload.new.protocolo || null
-          };
-          
-          return [novaConversa, ...oldData];
-        });
+        // O JEITO ROBUSTO E SIMPLES
+        // Invalida a query, forçando o React Query a buscar a lista completa e correta de novo.
+        queryClient.invalidateQueries({ queryKey: ['conversas', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['total-unread-count', user?.id] });
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'mensagens'
+      }, (payload) => {
+        console.log('⚡ Nova mensagem em tempo real! Invalidando queries...', payload);
+        
+        // Invalidar both queries para atualizar contadores
+        queryClient.invalidateQueries({ queryKey: ['conversas', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['total-unread-count', user?.id] });
       })
       .subscribe();
 
