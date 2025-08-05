@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Check, CheckCheck } from 'lucide-react';
+import { Clock, Check, CheckCheck, File, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -13,6 +13,13 @@ interface MessageBubbleProps {
     lida: boolean;
     lida_em: string | null;
     status?: 'enviando' | 'enviado' | 'erro';
+    tipo?: string;
+    metadata?: {
+      url: string;
+      nome: string;
+      tipoArquivo: string;
+      tamanho: number;
+    };
   };
   isFromMe: boolean;
   compact?: boolean;
@@ -40,6 +47,14 @@ const MessageStatusIcon = React.memo(({ mensagem, isFromMe }: {
   }
 });
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 export const MessageBubble = React.memo<MessageBubbleProps>(({ 
   mensagem, 
   isFromMe, 
@@ -52,6 +67,64 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
     });
   }, [mensagem.created_at]);
 
+  const renderContent = () => {
+    // Renderizar imagem
+    if (mensagem.tipo === 'imagem' && mensagem.metadata?.url) {
+      return (
+        <div className="space-y-2">
+          <img 
+            src={mensagem.metadata.url} 
+            alt={mensagem.metadata.nome || 'Imagem enviada'}
+            className="rounded-lg max-w-xs max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => window.open(mensagem.metadata?.url, '_blank')}
+          />
+          {mensagem.conteudo && (
+            <p className="text-sm">{mensagem.conteudo}</p>
+          )}
+        </div>
+      );
+    }
+
+    // Renderizar arquivo
+    if (mensagem.tipo === 'arquivo' && mensagem.metadata?.url) {
+      return (
+        <div className="space-y-2">
+          <a 
+            href={mensagem.metadata.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors hover:bg-accent/20 ${
+              isFromMe 
+                ? 'bg-primary-foreground/10 border-primary-foreground/20' 
+                : 'bg-muted border-border'
+            }`}
+          >
+            <File className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm truncate">
+                {mensagem.metadata.nome}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatFileSize(mensagem.metadata.tamanho)}
+              </p>
+            </div>
+            <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          </a>
+          {mensagem.conteudo && (
+            <p className="text-sm">{mensagem.conteudo}</p>
+          )}
+        </div>
+      );
+    }
+
+    // Fallback para texto normal
+    return (
+      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+        {mensagem.conteudo}
+      </p>
+    );
+  };
+
   return (
     <div className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -61,9 +134,7 @@ export const MessageBubble = React.memo<MessageBubbleProps>(({
             : 'bg-muted'
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-          {mensagem.conteudo}
-        </p>
+        {renderContent()}
         <div className={`flex items-center justify-between mt-2 gap-2 ${
           compact ? 'text-xs' : 'text-xs'
         }`}>

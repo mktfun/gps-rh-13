@@ -1,12 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Loader2, Hash } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Hash, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useMensagens } from '@/hooks/useMensagens';
 import { useEnviarMensagem } from '@/hooks/useEnviarMensagem';
+import { useUploadAnexo } from '@/hooks/useUploadAnexo';
 import { useConversaComProtocolo } from '@/hooks/useConversaComProtocolo';
 import { useAuth } from '@/hooks/useAuth';
 import { MessageBubble } from './MessageBubble';
@@ -24,11 +25,13 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
 }) => {
   const [novoConteudo, setNovoConteudo] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputFileRef = useRef<HTMLInputElement>(null);
   
   const { user } = useAuth();
   const { mensagens, isLoading, onlineUsers, marcarComoLidas } = useMensagens(conversaId);
   const { conversa } = useConversaComProtocolo(conversaId);
   const enviarMensagem = useEnviarMensagem(conversaId);
+  const uploadAnexo = useUploadAnexo(conversaId);
 
   // Determinar se o outro usuário está online
   const isOtherUserOnline = onlineUsers.length > 1;
@@ -59,6 +62,17 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
     } catch (error) {
       setNovoConteudo(conteudo); // Restaurar em caso de erro
       console.error('Erro ao enviar mensagem:', error);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      uploadAnexo.mutate(file);
+      // Limpar o input para permitir selecionar o mesmo arquivo novamente
+      if (inputFileRef.current) {
+        inputFileRef.current.value = '';
+      }
     }
   };
 
@@ -143,6 +157,26 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
       {/* Campo de digitação */}
       <div className="border-t p-4 bg-background">
         <div className="flex space-x-2">
+          <input
+            type="file"
+            ref={inputFileRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*,.pdf,.doc,.docx,.txt"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => inputFileRef.current?.click()}
+            disabled={uploadAnexo.isPending}
+            className="shrink-0"
+          >
+            {uploadAnexo.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Paperclip className="h-4 w-4" />
+            )}
+          </Button>
           <Input
             value={novoConteudo}
             onChange={(e) => setNovoConteudo(e.target.value)}
@@ -150,11 +184,11 @@ export const ActiveChatWindow: React.FC<ActiveChatWindowProps> = ({
             placeholder="Digite sua mensagem..."
             maxLength={500}
             className="flex-1"
-            disabled={enviarMensagem.isPending}
+            disabled={enviarMensagem.isPending || uploadAnexo.isPending}
           />
           <Button
             onClick={handleEnviar}
-            disabled={!novoConteudo.trim() || enviarMensagem.isPending}
+            disabled={!novoConteudo.trim() || enviarMensagem.isPending || uploadAnexo.isPending}
             size="sm"
           >
             {enviarMensagem.isPending ? (

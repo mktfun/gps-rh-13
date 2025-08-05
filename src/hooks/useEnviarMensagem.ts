@@ -1,9 +1,7 @@
 
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 
 interface MensagemOtimista {
   id: string;
@@ -14,6 +12,14 @@ interface MensagemOtimista {
   lida_em: string | null;
   created_at: string;
   status: 'enviando' | 'enviado' | 'erro';
+  tipo?: string;
+  metadata?: any;
+}
+
+interface EnviarMensagemParams {
+  conteudo: string;
+  tipo?: string;
+  metadata?: any;
 }
 
 export const useEnviarMensagem = (conversaId: string) => {
@@ -21,20 +27,27 @@ export const useEnviarMensagem = (conversaId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ conteudo }: { conteudo: string }) => {
+    mutationFn: async ({ conteudo, tipo = 'texto', metadata }: EnviarMensagemParams) => {
       if (!conversaId || !user?.id) {
         throw new Error('Dados insuficientes para enviar mensagem');
       }
 
-      console.log('📤 Enviando mensagem:', { conversaId, conteudo: conteudo.substring(0, 50) + '...' });
+      console.log('📤 Enviando mensagem:', { conversaId, tipo, conteudo: conteudo?.substring(0, 50) + '...' });
+
+      const mensagemData: any = {
+        conversa_id: conversaId,
+        remetente_id: user.id,
+        conteudo: conteudo?.trim() || '',
+        tipo
+      };
+
+      if (metadata) {
+        mensagemData.metadata = metadata;
+      }
 
       const { data, error } = await supabase
         .from('mensagens')
-        .insert({
-          conversa_id: conversaId,
-          remetente_id: user.id,
-          conteudo: conteudo.trim()
-        })
+        .insert(mensagemData)
         .select()
         .single();
 
@@ -46,7 +59,7 @@ export const useEnviarMensagem = (conversaId: string) => {
       console.log('✅ Mensagem enviada:', data);
       return data;
     },
-    onMutate: async ({ conteudo }) => {
+    onMutate: async ({ conteudo, tipo = 'texto', metadata }) => {
       // Cancelar queries em andamento
       await queryClient.cancelQueries({ queryKey: ['mensagens', conversaId] });
 
@@ -58,11 +71,13 @@ export const useEnviarMensagem = (conversaId: string) => {
         id: `temp-${Date.now()}`, // ID temporário
         conversa_id: conversaId,
         remetente_id: user!.id,
-        conteudo: conteudo.trim(),
+        conteudo: conteudo?.trim() || '',
         lida: false,
         lida_em: null,
         created_at: new Date().toISOString(),
-        status: 'enviando'
+        status: 'enviando',
+        tipo,
+        metadata
       };
 
       // Atualizar cache otimisticamente
@@ -103,4 +118,3 @@ export const useEnviarMensagem = (conversaId: string) => {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 };
-
