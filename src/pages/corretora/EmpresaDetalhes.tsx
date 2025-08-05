@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, FileText, Phone, Mail, User, Plus } from 'lucide-react';
+import { Building2, Users, FileText, Phone, Mail, User, Plus, AlertCircle } from 'lucide-react';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
 import { useCnpjs } from '@/hooks/useCnpjs';
@@ -16,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DashboardLoadingState } from '@/components/ui/loading-state';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -44,7 +45,8 @@ const EmpresaDetalhes = () => {
     }
   }, [filtroStatus]);
 
-  const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId!);
+  // AGORA CAPTURANDO O ESTADO DE ERRO DO HOOK
+  const { data: empresa, isLoading: isLoadingEmpresa, error: erroEmpresa } = useEmpresa(empresaId);
   
   const { 
     funcionarios, 
@@ -103,18 +105,38 @@ const EmpresaDetalhes = () => {
     setEditingCnpj(null);
   };
 
+  // ESTADO 1: CARREGANDO
+  // Mostre um loader de página inteira enquanto a informação principal (a empresa) carrega
   if (isLoadingEmpresa) {
+    return <DashboardLoadingState />;
+  }
+
+  // ESTADO 2: ERRO
+  // Se o hook retornar um erro (incluindo 'não encontrado' pelo .single()), mostre o estado de erro
+  if (erroEmpresa) {
+    console.error("❌ Erro ao buscar dados da empresa:", erroEmpresa);
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="container mx-auto p-8">
+        <EmptyState 
+          icon={AlertCircle}
+          title="Empresa Não Encontrada"
+          description="O ID da empresa na URL é inválido, a empresa foi excluída ou você não tem permissão para acessá-la."
+        />
       </div>
     );
   }
-
+  
+  // ESTADO 3: SUCESSO
+  // Se não está carregando e não deu erro, TEMOS UMA EMPRESA
+  // A verificação `if (!empresa)` aqui se torna uma segurança extra, mas o estado de erro já deve ter pego
   if (!empresa) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Empresa não encontrada</p>
+      <div className="container mx-auto p-8">
+        <EmptyState 
+          icon={AlertCircle}
+          title="Algo Estranho Aconteceu"
+          description="Os dados da empresa não foram carregados corretamente. Tente recarregar a página."
+        />
       </div>
     );
   }
