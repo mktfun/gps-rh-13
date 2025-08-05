@@ -55,19 +55,15 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               <MessageCircle className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col space-y-1">
-                <p className="font-medium text-sm truncate">
-                  {conversa.empresa_nome}
-                </p>
-                {conversa.protocolo && (
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Hash className="h-3 w-3 mr-1" />
-                    <span className="font-mono">{conversa.protocolo}</span>
-                  </div>
+              <div className="flex flex-col items-start">
+                <span className="font-semibold">{conversa.empresa_nome}</span>
+                {conversa.protocolo ? (
+                  <span className="text-xs text-muted-foreground">#{conversa.protocolo}</span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{new Date(conversa.created_at).toLocaleDateString('pt-BR')}</span>
                 )}
               </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex-1" />
+              <div className="flex items-center justify-end mt-2">
                 <p className="text-xs text-muted-foreground">
                   {new Date(conversa.created_at).toLocaleDateString('pt-BR', {
                     day: '2-digit',
