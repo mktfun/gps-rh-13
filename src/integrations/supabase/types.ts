@@ -447,7 +447,9 @@ export type Database = {
           id: number
           lida: boolean
           lida_em: string | null
+          metadata: Json | null
           remetente_id: string
+          tipo: string
         }
         Insert: {
           conteudo: string
@@ -456,7 +458,9 @@ export type Database = {
           id?: never
           lida?: boolean
           lida_em?: string | null
+          metadata?: Json | null
           remetente_id: string
+          tipo?: string
         }
         Update: {
           conteudo?: string
@@ -465,7 +469,9 @@ export type Database = {
           id?: never
           lida?: boolean
           lida_em?: string | null
+          metadata?: Json | null
           remetente_id?: string
+          tipo?: string
         }
         Relationships: [
           {
@@ -697,6 +703,7 @@ export type Database = {
           conversa_id: string
           empresa_nome: string
           created_at: string
+          protocolo: string
         }[]
       }
       get_corretora_dashboard_metrics: {
