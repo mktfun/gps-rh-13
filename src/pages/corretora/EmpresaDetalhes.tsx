@@ -52,12 +52,27 @@ const EmpresaDetalhes = () => {
   useEffect(() => {
     if (empresaId) {
       console.log('🧹 [EmpresaDetalhes] Limpando cache ao montar componente');
-      clearEmpresaCache(empresaId);
+      // Usar setTimeout para dar tempo ao React Query processar
+      setTimeout(() => {
+        clearEmpresaCache(empresaId);
+      }, 100);
     }
   }, [empresaId, clearEmpresaCache]);
 
   const { data: empresa, isLoading: isLoadingEmpresa, error: erroEmpresa } = useEmpresa(empresaId);
   
+  // Debug logs para monitorar estados
+  useEffect(() => {
+    console.log('🔍 [EmpresaDetalhes] Estados atuais:', {
+      empresaId,
+      isLoadingEmpresa,
+      hasEmpresa: !!empresa,
+      empresaNome: empresa?.nome,
+      hasError: !!erroEmpresa,
+      errorMessage: erroEmpresa?.message
+    });
+  }, [empresaId, isLoadingEmpresa, empresa, erroEmpresa]);
+
   const { 
     funcionarios, 
     totalCount: totalFuncionarios, 
@@ -123,13 +138,181 @@ const EmpresaDetalhes = () => {
     }
   };
 
-  // ESTADO 1: CARREGANDO
-  if (isLoadingEmpresa) {
+  // CORREÇÃO PRINCIPAL: Priorizar dados válidos sobre estados de erro antigos
+  
+  // ESTADO 1: CARREGANDO (apenas se realmente não temos dados)
+  if (isLoadingEmpresa && !empresa) {
+    console.log('📊 [EmpresaDetalhes] Renderizando loading state');
     return <DashboardLoadingState />;
   }
 
-  // ESTADO 2: ERRO
-  if (erroEmpresa) {
+  // ESTADO 2: DADOS VÁLIDOS ENCONTRADOS (prioridade máxima)
+  if (empresa && empresa.id && empresa.nome) {
+    console.log('✅ [EmpresaDetalhes] Renderizando com dados válidos:', empresa.nome);
+    
+    return (
+      <div className="space-y-6">
+        {/* Header da Empresa com botão de refresh */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">{empresa.nome}</h1>
+            <p className="text-muted-foreground">
+              Gestão completa da empresa e seus funcionários
+            </p>
+          </div>
+          <Button variant="outline" onClick={handleForceRefresh} className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Atualizar
+          </Button>
+        </div>
+
+        {/* Informações da Empresa */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Informações da Empresa
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Responsável</p>
+                  <p className="text-sm text-muted-foreground">{empresa.responsavel}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-sm text-muted-foreground">{empresa.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Telefone</p>
+                  <p className="text-sm text-muted-foreground">{empresa.telefone}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs */}
+        <Tabs defaultValue="funcionarios" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="funcionarios" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Funcionários
+              {totalFuncionarios > 0 && (
+                <Badge variant="secondary">{totalFuncionarios}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="cnpjs" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              CNPJs
+              {totalCnpjs > 0 && (
+                <Badge variant="secondary">{totalCnpjs}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="funcionarios">
+            <Card>
+              <CardHeader>
+                <CardTitle>Funcionários da Empresa</CardTitle>
+                <CardDescription>
+                  Gerencie os funcionários desta empresa
+                </CardDescription>
+                
+                {/* Filtros */}
+                <div className="flex gap-4 mt-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar funcionários..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <FuncionariosTable
+                  funcionarios={funcionarios}
+                  isLoading={isLoadingFuncionarios}
+                  totalCount={totalFuncionarios}
+                  totalPages={totalPages}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cnpjs">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>CNPJs da Empresa</CardTitle>
+                    <CardDescription>
+                      Gerencie os CNPJs desta empresa
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar CNPJ
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <CnpjsTable 
+                  cnpjs={cnpjs || []} 
+                  isLoading={isLoadingCnpjs}
+                  totalCount={totalCnpjs}
+                  totalPages={cnpjTotalPages}
+                  pagination={cnpjPagination}
+                  setPagination={setCnpjPagination}
+                  onEdit={handleEditCnpj}
+                  onDelete={handleDeleteCnpj}
+                  onAdd={() => setIsModalOpen(true)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Modal para adicionar/editar CNPJ */}
+        <CnpjModal
+          isOpen={isModalOpen || !!editingCnpj}
+          onClose={handleCloseModal}
+          initialData={editingCnpj}
+          empresaId={empresaId!}
+          onSubmit={editingCnpj ? handleUpdateCnpj : handleAddCnpj}
+          isLoading={editingCnpj ? updateCnpj.isPending : addCnpj.isPending}
+        />
+      </div>
+    );
+  }
+
+  // ESTADO 3: ERRO APENAS SE REALMENTE NÃO TEMOS DADOS
+  if (erroEmpresa && !empresa) {
     console.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa);
     
     const isPermissionError = erroEmpresa.message?.includes('Row Level Security') || 
@@ -161,180 +344,20 @@ const EmpresaDetalhes = () => {
       </div>
     );
   }
+
+  // ESTADO 4: FALLBACK FINAL - dados indefinidos
+  console.warn('⚠️ [EmpresaDetalhes] Estado indefinido - forçando refresh');
   
-  // ESTADO 3: SUCESSO VERIFICADO
-  if (!empresa) {
-    return (
-      <div className="container mx-auto p-8">
-        <EmptyState 
-          icon={AlertCircle}
-          title="Dados Não Carregados"
-          description="Os dados da empresa não foram carregados corretamente. Isso pode ser um problema temporário."
-          action={{
-            label: "Recarregar",
-            onClick: handleForceRefresh
-          }}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Header da Empresa com botão de refresh */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{empresa.nome}</h1>
-          <p className="text-muted-foreground">
-            Gestão completa da empresa e seus funcionários
-          </p>
-        </div>
-        <Button variant="outline" onClick={handleForceRefresh} className="flex items-center gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Atualizar
-        </Button>
-      </div>
-
-      {/* Informações da Empresa */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Informações da Empresa
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Responsável</p>
-                <p className="text-sm text-muted-foreground">{empresa.responsavel}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">{empresa.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Telefone</p>
-                <p className="text-sm text-muted-foreground">{empresa.telefone}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tabs */}
-      <Tabs defaultValue="funcionarios" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="funcionarios" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Funcionários
-            {totalFuncionarios > 0 && (
-              <Badge variant="secondary">{totalFuncionarios}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="cnpjs" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            CNPJs
-            {totalCnpjs > 0 && (
-              <Badge variant="secondary">{totalCnpjs}</Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="funcionarios">
-          <Card>
-            <CardHeader>
-              <CardTitle>Funcionários da Empresa</CardTitle>
-              <CardDescription>
-                Gerencie os funcionários desta empresa
-              </CardDescription>
-              
-              {/* Filtros */}
-              <div className="flex gap-4 mt-4">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar funcionários..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtrar por status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <FuncionariosTable
-                funcionarios={funcionarios}
-                isLoading={isLoadingFuncionarios}
-                totalCount={totalFuncionarios}
-                totalPages={totalPages}
-                pagination={pagination}
-                setPagination={setPagination}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="cnpjs">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>CNPJs da Empresa</CardTitle>
-                  <CardDescription>
-                    Gerencie os CNPJs desta empresa
-                  </CardDescription>
-                </div>
-                <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Adicionar CNPJ
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <CnpjsTable 
-                cnpjs={cnpjs || []} 
-                isLoading={isLoadingCnpjs}
-                totalCount={totalCnpjs}
-                totalPages={cnpjTotalPages}
-                pagination={cnpjPagination}
-                setPagination={setCnpjPagination}
-                onEdit={handleEditCnpj}
-                onDelete={handleDeleteCnpj}
-                onAdd={() => setIsModalOpen(true)}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Modal para adicionar/editar CNPJ */}
-      <CnpjModal
-        isOpen={isModalOpen || !!editingCnpj}
-        onClose={handleCloseModal}
-        initialData={editingCnpj}
-        empresaId={empresaId!}
-        onSubmit={editingCnpj ? handleUpdateCnpj : handleAddCnpj}
-        isLoading={editingCnpj ? updateCnpj.isPending : addCnpj.isPending}
+    <div className="container mx-auto p-8">
+      <EmptyState 
+        icon={AlertCircle}
+        title="Carregando Dados"
+        description="Os dados da empresa estão sendo carregados. Aguarde um momento..."
+        action={{
+          label: "Recarregar",
+          onClick: handleForceRefresh
+        }}
       />
     </div>
   );
