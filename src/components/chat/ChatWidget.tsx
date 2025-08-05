@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useConversasWidget } from '@/hooks/useConversasWidget';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Loader2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { ConversationList } from './ConversationList';
 import { ActiveChatWindow } from './ActiveChatWindow';
@@ -22,6 +23,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
   const [selectedEmpresaNome, setSelectedEmpresaNome] = useState<string>('');
   const [showNovaConversaModal, setShowNovaConversaModal] = useState(false);
   const [showNovaConversaCorretoraModal, setShowNovaConversaCorretoraModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -57,6 +59,12 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
     // O nome da empresa será obtido pelo componente ActiveChatWindow
     setSelectedEmpresaNome('Nova Conversa');
   };
+
+  // Filter conversations based on search term
+  const filteredConversas = conversas.filter(conversa =>
+    conversa.protocolo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conversa.empresa_nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Loading state
   if (isLoading && !isExpanded) {
@@ -101,28 +109,28 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
             <div className="flex items-center space-x-2">
               {!selectedConversaId && role === 'empresa' && (
                 <Button 
-                  size="sm" 
-                  variant="secondary" 
+                  variant="ghost" 
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleNovaConversaEmpresa();
                   }}
+                  className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Nova
+                  <Plus className="h-4 w-4" />
                 </Button>
               )}
               {!selectedConversaId && role === 'corretora' && (
                 <Button 
-                  size="sm" 
-                  variant="secondary" 
+                  variant="ghost" 
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleNovaConversaCorretora();
                   }}
+                  className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Nova
+                  <Plus className="h-4 w-4" />
                 </Button>
               )}
               {onOpenChat && (
@@ -148,11 +156,21 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
                 onBack={handleBackToList}
               />
             ) : (
-              <ConversationList
-                conversas={conversas}
-                isLoading={isLoading}
-                onSelectConversa={handleSelectConversa}
-              />
+              <>
+                <div className="p-2 border-b border-border">
+                  <Input
+                    placeholder="Buscar por protocolo..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <ConversationList
+                  conversas={filteredConversas}
+                  isLoading={isLoading}
+                  onSelectConversa={handleSelectConversa}
+                />
+              </>
             )}
           </CardContent>
         </Card>
