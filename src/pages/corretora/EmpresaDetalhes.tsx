@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,8 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
 const EmpresaDetalhes = () => {
-  const { empresaId } = useParams<{ empresaId: string }>();
+  // CORREÇÃO: Extrair 'id' da URL e renomear para empresaId
+  const { id: empresaId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const filtroStatus = searchParams.get('filtroStatus');
   
@@ -51,7 +53,7 @@ const EmpresaDetalhes = () => {
   // Limpar cache quando o componente monta para garantir dados frescos
   useEffect(() => {
     if (empresaId) {
-      console.log('🧹 [EmpresaDetalhes] Limpando cache ao montar componente');
+      console.log('🧹 [EmpresaDetalhes] Limpando cache ao montar componente para empresa:', empresaId);
       // Usar setTimeout para dar tempo ao React Query processar
       setTimeout(() => {
         clearEmpresaCache(empresaId);
@@ -61,15 +63,18 @@ const EmpresaDetalhes = () => {
 
   const { data: empresa, isLoading: isLoadingEmpresa, error: erroEmpresa } = useEmpresa(empresaId);
   
-  // Debug logs para monitorar estados
+  // Debug logs para monitorar estados - com informações mais detalhadas
   useEffect(() => {
-    console.log('🔍 [EmpresaDetalhes] Estados atuais:', {
+    console.log('🔍 [EmpresaDetalhes] Estados atuais (DETALHADO):', {
       empresaId,
+      empresaIdType: typeof empresaId,
       isLoadingEmpresa,
       hasEmpresa: !!empresa,
       empresaNome: empresa?.nome,
+      empresaData: empresa,
       hasError: !!erroEmpresa,
-      errorMessage: erroEmpresa?.message
+      errorMessage: erroEmpresa?.message,
+      urlParams: window.location.pathname
     });
   }, [empresaId, isLoadingEmpresa, empresa, erroEmpresa]);
 
@@ -132,23 +137,35 @@ const EmpresaDetalhes = () => {
 
   const handleForceRefresh = async () => {
     if (empresaId) {
-      console.log('🔄 [EmpresaDetalhes] Forçando refresh manual');
+      console.log('🔄 [EmpresaDetalhes] Forçando refresh manual para empresa:', empresaId);
       clearEmpresaCache(empresaId);
       await refreshEmpresa(empresaId);
     }
   };
 
-  // CORREÇÃO PRINCIPAL: Priorizar dados válidos sobre estados de erro antigos
-  
+  // VERIFICAÇÃO DE SEGURANÇA: Garantir que empresaId existe
+  if (!empresaId) {
+    console.error('❌ [EmpresaDetalhes] empresaId não encontrado na URL');
+    return (
+      <div className="container mx-auto p-8">
+        <EmptyState 
+          icon={AlertCircle}
+          title="ID da Empresa Não Encontrado"
+          description="O ID da empresa não foi encontrado na URL. Verifique se o endereço está correto."
+        />
+      </div>
+    );
+  }
+
   // ESTADO 1: CARREGANDO (apenas se realmente não temos dados)
   if (isLoadingEmpresa && !empresa) {
-    console.log('📊 [EmpresaDetalhes] Renderizando loading state');
+    console.log('📊 [EmpresaDetalhes] Renderizando loading state para empresa:', empresaId);
     return <DashboardLoadingState />;
   }
 
   // ESTADO 2: DADOS VÁLIDOS ENCONTRADOS (prioridade máxima)
   if (empresa && empresa.id && empresa.nome) {
-    console.log('✅ [EmpresaDetalhes] Renderizando com dados válidos:', empresa.nome);
+    console.log('✅ [EmpresaDetalhes] Renderizando com dados válidos:', empresa.nome, 'ID:', empresa.id);
     
     return (
       <div className="space-y-6">
@@ -313,7 +330,7 @@ const EmpresaDetalhes = () => {
 
   // ESTADO 3: ERRO APENAS SE REALMENTE NÃO TEMOS DADOS
   if (erroEmpresa && !empresa) {
-    console.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa);
+    console.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa, 'ID:', empresaId);
     
     const isPermissionError = erroEmpresa.message?.includes('Row Level Security') || 
                              erroEmpresa.message?.includes('permission');
@@ -345,15 +362,15 @@ const EmpresaDetalhes = () => {
     );
   }
 
-  // ESTADO 4: FALLBACK FINAL - dados indefinidos
-  console.warn('⚠️ [EmpresaDetalhes] Estado indefinido - forçando refresh');
+  // ESTADO 4: FALLBACK FINAL - dados indefinidos (não deveria mais acontecer)
+  console.warn('⚠️ [EmpresaDetalhes] Estado indefinido - dados válidos mas não renderizados. ID:', empresaId);
   
   return (
     <div className="container mx-auto p-8">
       <EmptyState 
         icon={AlertCircle}
         title="Carregando Dados"
-        description="Os dados da empresa estão sendo carregados. Aguarde um momento..."
+        description={`Os dados da empresa (ID: ${empresaId}) estão sendo carregados. Aguarde um momento...`}
         action={{
           label: "Recarregar",
           onClick: handleForceRefresh
