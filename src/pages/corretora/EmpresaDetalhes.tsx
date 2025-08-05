@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -134,11 +133,9 @@ const EmpresaDetalhes = () => {
     console.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa);
     
     const isPermissionError = erroEmpresa.message?.includes('Row Level Security') || 
-                             erroEmpresa.message?.includes('permission') ||
-                             erroEmpresa.code === 'PGRST116';
+                             erroEmpresa.message?.includes('permission');
     
-    const isNotFoundError = erroEmpresa.message?.includes('não encontrada') ||
-                           erroEmpresa.code === 'PGRST116';
+    const isNotFoundError = erroEmpresa.message?.includes('não encontrada');
     
     return (
       <div className="container mx-auto p-8">
