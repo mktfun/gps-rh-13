@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, FileText, Phone, Mail, User, Plus, AlertCircle } from 'lucide-react';
+import { Building2, Users, FileText, Phone, Mail, User, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { useEmpresa } from '@/hooks/useEmpresa';
+import { useEmpresaCache } from '@/hooks/useEmpresaCache';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
 import { useCnpjs } from '@/hooks/useCnpjs';
 import { FuncionariosTable } from '@/components/funcionarios/FuncionariosTable';
@@ -38,6 +40,8 @@ const EmpresaDetalhes = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCnpj, setEditingCnpj] = useState<Cnpj | null>(null);
 
+  const { clearEmpresaCache, refreshEmpresa } = useEmpresaCache();
+
   // Atualizar o filtro quando o parâmetro da URL mudar
   useEffect(() => {
     if (filtroStatus) {
@@ -45,7 +49,14 @@ const EmpresaDetalhes = () => {
     }
   }, [filtroStatus]);
 
-  // AGORA CAPTURANDO O ESTADO DE ERRO DO HOOK
+  // Limpar cache quando o componente monta para garantir dados frescos
+  useEffect(() => {
+    if (empresaId) {
+      console.log('🧹 [EmpresaDetalhes] Limpando cache ao montar componente');
+      clearEmpresaCache(empresaId);
+    }
+  }, [empresaId, clearEmpresaCache]);
+
   const { data: empresa, isLoading: isLoadingEmpresa, error: erroEmpresa } = useEmpresa(empresaId);
   
   const { 
@@ -105,37 +116,67 @@ const EmpresaDetalhes = () => {
     setEditingCnpj(null);
   };
 
+  const handleForceRefresh = async () => {
+    if (empresaId) {
+      console.log('🔄 [EmpresaDetalhes] Forçando refresh manual');
+      clearEmpresaCache(empresaId);
+      await refreshEmpresa(empresaId);
+    }
+  };
+
   // ESTADO 1: CARREGANDO
-  // Mostre um loader de página inteira enquanto a informação principal (a empresa) carrega
   if (isLoadingEmpresa) {
     return <DashboardLoadingState />;
   }
 
   // ESTADO 2: ERRO
-  // Se o hook retornar um erro (incluindo 'não encontrado' pelo .single()), mostre o estado de erro
   if (erroEmpresa) {
-    console.error("❌ Erro ao buscar dados da empresa:", erroEmpresa);
+    console.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa);
+    
+    const isPermissionError = erroEmpresa.message?.includes('Row Level Security') || 
+                             erroEmpresa.message?.includes('permission') ||
+                             erroEmpresa.code === 'PGRST116';
+    
+    const isNotFoundError = erroEmpresa.message?.includes('não encontrada') ||
+                           erroEmpresa.code === 'PGRST116';
+    
     return (
       <div className="container mx-auto p-8">
         <EmptyState 
           icon={AlertCircle}
-          title="Empresa Não Encontrada"
-          description="O ID da empresa na URL é inválido, a empresa foi excluída ou você não tem permissão para acessá-la."
+          title={isPermissionError ? "Sem Permissão" : "Empresa Não Encontrada"}
+          description={
+            isPermissionError 
+              ? "Você não tem permissão para acessar esta empresa. Verifique se o ID está correto e se você tem as permissões necessárias."
+              : "O ID da empresa na URL é inválido, a empresa foi excluída ou não existe no sistema."
+          }
+          action={{
+            label: "Tentar Novamente",
+            onClick: handleForceRefresh
+          }}
         />
+        <div className="mt-4 text-center">
+          <Button variant="outline" onClick={handleForceRefresh} className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Recarregar Dados
+          </Button>
+        </div>
       </div>
     );
   }
   
-  // ESTADO 3: SUCESSO
-  // Se não está carregando e não deu erro, TEMOS UMA EMPRESA
-  // A verificação `if (!empresa)` aqui se torna uma segurança extra, mas o estado de erro já deve ter pego
+  // ESTADO 3: SUCESSO VERIFICADO
   if (!empresa) {
     return (
       <div className="container mx-auto p-8">
         <EmptyState 
           icon={AlertCircle}
-          title="Algo Estranho Aconteceu"
-          description="Os dados da empresa não foram carregados corretamente. Tente recarregar a página."
+          title="Dados Não Carregados"
+          description="Os dados da empresa não foram carregados corretamente. Isso pode ser um problema temporário."
+          action={{
+            label: "Recarregar",
+            onClick: handleForceRefresh
+          }}
         />
       </div>
     );
@@ -143,7 +184,7 @@ const EmpresaDetalhes = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header da Empresa */}
+      {/* Header da Empresa com botão de refresh */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{empresa.nome}</h1>
@@ -151,6 +192,10 @@ const EmpresaDetalhes = () => {
             Gestão completa da empresa e seus funcionários
           </p>
         </div>
+        <Button variant="outline" onClick={handleForceRefresh} className="flex items-center gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Atualizar
+        </Button>
       </div>
 
       {/* Informações da Empresa */}
