@@ -1,9 +1,10 @@
-
 import React, { useState } from 'react';
 import { useConversasWidget } from '@/hooks/useConversasWidget';
+import { useTotalUnreadCount } from '@/hooks/useTotalUnreadCount';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { ConversationList } from './ConversationList';
 import { ActiveChatWindow } from './ActiveChatWindow';
@@ -17,6 +18,7 @@ interface ChatWidgetProps {
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
   const { conversas, isLoading } = useConversasWidget();
+  const { data: totalUnreadCount = 0 } = useTotalUnreadCount();
   const { role } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedConversaId, setSelectedConversaId] = useState<string | null>(null);
@@ -81,16 +83,28 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
     );
   }
 
-  // Collapsed state (Chat Bar)
+  // Collapsed state (Chat Bar) - COM BADGE DE TOTAL
   if (!isExpanded) {
     return (
       <div className="fixed bottom-0 right-6 z-50">
-        <div 
-          className="w-80 h-12 bg-primary text-primary-foreground px-4 flex items-center justify-between cursor-pointer rounded-t-lg shadow-lg hover:shadow-xl transition-all duration-300 animate-scale-in"
-          onClick={toggleExpanded}
-        >
-          <span className="font-medium">Conversas</span>
-          <ChevronUp className="h-4 w-4" />
+        <div className="relative">
+          {/* Badge de total de mensagens não lidas */}
+          {totalUnreadCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-2 -right-2 z-10 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+            </Badge>
+          )}
+          
+          <div 
+            className="w-80 h-12 bg-primary text-primary-foreground px-4 flex items-center justify-between cursor-pointer rounded-t-lg shadow-lg hover:shadow-xl transition-all duration-300 animate-scale-in"
+            onClick={toggleExpanded}
+          >
+            <span className="font-medium">Conversas</span>
+            <ChevronUp className="h-4 w-4" />
+          </div>
         </div>
       </div>
     );

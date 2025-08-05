@@ -1,5 +1,3 @@
-
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -168,6 +166,12 @@ export const useMensagens = (conversaId: string | null) => {
       }
 
       console.log('✅ Mensagens marcadas como lidas');
+    },
+    onSuccess: () => {
+      // Invalidar queries relacionadas para atualizar contadores
+      queryClient.invalidateQueries({ queryKey: ['conversas'] });
+      queryClient.invalidateQueries({ queryKey: ['total-unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['mensagens', conversaId] });
     }
   });
 
@@ -179,4 +183,3 @@ export const useMensagens = (conversaId: string | null) => {
     onlineUsers
   };
 };
-

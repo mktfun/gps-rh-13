@@ -9,6 +9,7 @@ interface ConversaWidget {
   empresa_nome: string;
   created_at: string;
   protocolo?: string | null;
+  nao_lidas: number; // Novo campo
 }
 
 export const useConversasWidget = () => {
@@ -35,15 +36,17 @@ export const useConversasWidget = () => {
       console.log('✅ Conversas encontradas:', conversas?.length || 0);
       console.log('📋 Dados das conversas:', conversas);
       
-      // Mapear para o formato esperado, incluindo o protocolo
+      // Mapear para o formato esperado
       return (conversas || []).map((conversa: any) => ({
         conversa_id: conversa.conversa_id,
         empresa_nome: conversa.empresa_nome,
         created_at: conversa.created_at,
-        protocolo: conversa.protocolo || null
+        protocolo: conversa.protocolo || null,
+        nao_lidas: conversa.nao_lidas || 0
       }));
     },
     enabled: !!user,
+    refetchInterval: 3000, // Atualizar mais frequentemente para captuar novas mensagens
   });
 
   // Tempo real profissional - atualizações diretas no cache

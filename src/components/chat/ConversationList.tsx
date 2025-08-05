@@ -2,12 +2,14 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 interface Conversa {
   conversa_id: string;
   empresa_nome: string;
   created_at: string;
   protocolo?: string | null;
+  nao_lidas: number; // Novo campo
 }
 
 interface ConversationListProps {
@@ -47,7 +49,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       {conversas.map((conversa) => (
         <button
           key={conversa.conversa_id}
-          className="w-full p-4 text-left rounded-lg hover:bg-muted transition-colors border border-border"
+          className="w-full p-4 text-left rounded-lg hover:bg-muted transition-colors border border-border relative"
           onClick={() => onSelectConversa(conversa.conversa_id, conversa.empresa_nome)}
         >
           <div className="flex w-full justify-between items-center">
@@ -70,6 +72,16 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               })}
             </span>
           </div>
+
+          {/* Badge de mensagens não lidas */}
+          {conversa.nao_lidas > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute top-2 right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              {conversa.nao_lidas > 99 ? '99+' : conversa.nao_lidas}
+            </Badge>
+          )}
         </button>
       ))}
     </div>
