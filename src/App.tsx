@@ -11,6 +11,13 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { lazy, Suspense } from "react";
 import { DashboardLoadingState } from "@/components/ui/loading-state";
 
+// Debug React availability
+console.log('🔍 React availability check:', {
+  React: typeof React !== 'undefined' ? 'Available' : 'Not available',
+  Suspense: typeof Suspense !== 'undefined' ? 'Available' : 'Not available',
+  lazy: typeof lazy !== 'undefined' ? 'Available' : 'Not available'
+});
+
 // IMPORTAR APENAS AS PÁGINAS QUE SABEMOS QUE EXISTEM E FUNCIONAM
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const Login = lazy(() => import("@/pages/auth/Login"));
@@ -32,11 +39,13 @@ const PerfilPage = lazy(() => import("@/pages/PerfilPage"));
 const ConfiguracoesPage = lazy(() => import("@/pages/ConfiguracoesPage"));
 const ChatPage = lazy(() => import("@/pages/ChatPage"));
 
+// Create QueryClient with additional debugging
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: (failureCount, error) => {
+        console.log('🔄 Query retry:', { failureCount, error: error?.message });
         if (error?.message?.includes('JWT')) return false;
         return failureCount < 3;
       },
@@ -44,7 +53,11 @@ const queryClient = new QueryClient({
   },
 });
 
+console.log('🔍 QueryClient created successfully:', !!queryClient);
+
 function App() {
+  console.log('🚀 App component rendering...');
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
