@@ -14,6 +14,8 @@ interface PlanoEmpresa {
   cnpj_id: string;
   cnpj_numero: string;
   cnpj_razao_social: string;
+  tipo_seguro: string;
+  total_funcionarios?: number;
 }
 
 export const useEmpresaPlanos = () => {
@@ -38,8 +40,28 @@ export const useEmpresaPlanos = () => {
         throw error;
       }
 
-      console.log('✅ useEmpresaPlanos - Planos encontrados:', data?.length || 0);
-      return data || [];
+      // Buscar contagem de funcionários para cada plano
+      const planosComFuncionarios = await Promise.all(
+        (data || []).map(async (plano: any) => {
+          const { data: funcionariosData, error: funcionariosError } = await supabase
+            .from('funcionarios')
+            .select('id', { count: 'exact' })
+            .eq('cnpj_id', plano.cnpj_id);
+
+          if (funcionariosError) {
+            console.error('❌ Erro ao buscar funcionários:', funcionariosError);
+          }
+
+          return {
+            ...plano,
+            tipo_seguro: plano.tipo_seguro || 'vida',
+            total_funcionarios: funcionariosData?.length || 0,
+          };
+        })
+      );
+
+      console.log('✅ useEmpresaPlanos - Planos encontrados:', planosComFuncionarios?.length || 0);
+      return planosComFuncionarios;
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 5, // 5 minutos

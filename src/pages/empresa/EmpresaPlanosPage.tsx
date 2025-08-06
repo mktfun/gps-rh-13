@@ -66,7 +66,7 @@ const EmpresaPlanosPage = () => {
                     {plano.seguradora}
                   </CardTitle>
                   <Badge variant="secondary">
-                    {plano.tipo_seguro}
+                    {plano.tipo_seguro || 'Seguro de Vida'}
                   </Badge>
                 </div>
               </CardHeader>
