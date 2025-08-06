@@ -36,6 +36,7 @@ const RelatorioMovimentacaoPage = lazy(() => import("@/pages/corretora/relatorio
 // ROTAS - Seguros de Vida existentes
 const SegurosVidaEmpresasPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage"));
 const SegurosVidaCnpjsPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage"));
+const SegurosVidaPlanoPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaPlanoPage"));
 
 // ROTA - Auditoria existente
 const AuditoriaPage = lazy(() => import("@/pages/corretora/AuditoriaPage"));
@@ -152,6 +153,16 @@ function App() {
                         element={
                           <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
                             <SegurosVidaCnpjsPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* NOVA ROTA: Página de detalhes do plano */}
+                      <Route 
+                        path="seguros-de-vida/plano/:cnpjId" 
+                        element={
+                          <Suspense fallback={<CardLoadingState />}>
+                            <SegurosVidaPlanoPage />
                           </Suspense>
                         } 
                       />

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Search, Building2, Shield, Grid3X3, List, MapPin } from 'lucide-react';
@@ -28,9 +27,9 @@ const SegurosVidaCnpjsPage = () => {
   });
 
   const handleCnpjClick = (cnpj: any) => {
-    console.log('🔗 Navegando para CNPJ:', cnpj.id);
-    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/empresa/${empresaId}/cnpj/${cnpj.id}`);
-    navigate(`/corretora/seguros-de-vida/empresa/${empresaId}/cnpj/${cnpj.id}`);
+    console.log('🔗 Navegando para página de detalhes do plano:', cnpj.id);
+    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/plano/${cnpj.id}`);
+    navigate(`/corretora/seguros-de-vida/plano/${cnpj.id}`);
   };
 
   const handleImportClick = (cnpj: any) => {
