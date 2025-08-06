@@ -7,6 +7,7 @@ interface EmpresaDashboardMetrics {
   custoMensalTotal: number;
   totalCnpjs: number;
   totalFuncionarios: number;
+  funcionariosAtivos: number; // Added missing field
   funcionariosPendentes: number;
   custosPorCnpj: Array<{
     cnpj: string;
@@ -58,6 +59,9 @@ export const useEmpresaDashboardMetrics = () => {
         throw dashboardError;
       }
 
+      // Type cast the JSON response properly
+      const typedData = dashboardData as any;
+
       // CORREÇÃO: Buscar plano principal com todas as coberturas via JOIN
       const { data: planoPrincipalData, error: planoError } = await supabase
         .from('dados_planos')
@@ -100,13 +104,14 @@ export const useEmpresaDashboardMetrics = () => {
       console.log('✅ Plano principal com coberturas:', planoPrincipal);
 
       return {
-        custoMensalTotal: dashboardData?.custoMensalTotal || 0,
-        totalCnpjs: dashboardData?.totalCnpjs || 0,
-        totalFuncionarios: dashboardData?.totalFuncionarios || 0,
-        funcionariosPendentes: dashboardData?.funcionariosPendentes || 0,
-        custosPorCnpj: dashboardData?.custosPorCnpj || [],
-        evolucaoMensal: dashboardData?.evolucaoMensal || [],
-        distribuicaoCargos: dashboardData?.distribuicaoCargos || [],
+        custoMensalTotal: typedData?.custoMensalTotal || 0,
+        totalCnpjs: typedData?.totalCnpjs || 0,
+        totalFuncionarios: typedData?.totalFuncionarios || 0,
+        funcionariosAtivos: typedData?.funcionariosAtivos || 0,
+        funcionariosPendentes: typedData?.funcionariosPendentes || 0,
+        custosPorCnpj: typedData?.custosPorCnpj || [],
+        evolucaoMensal: typedData?.evolucaoMensal || [],
+        distribuicaoCargos: typedData?.distribuicaoCargos || [],
         planoPrincipal,
       };
     },

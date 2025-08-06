@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
@@ -265,7 +264,7 @@ const EmpresaDashboard = () => {
                                   {new Intl.NumberFormat('pt-BR', {
                                     style: 'currency',
                                     currency: 'BRL',
-                                  }).format(metrics.planoPrincipal.cobertura_invalidez)}
+                                  }).format(metrics.planoPrincipal.cobertura_invalidez_acidente)}
                                 </p>
                               </div>
                             </div>
