@@ -111,7 +111,7 @@ const EmpresaDashboardWithFilter = () => {
       <div className="grid gap-6 md:grid-cols-2">
         {/* Card de Custo Total */}
         <CustoTotalCard 
-          custoMensal={metrics.custoMensalTotal}
+          valor={metrics.custoMensalTotal}
         />
 
         {/* Card do Plano Principal */}
