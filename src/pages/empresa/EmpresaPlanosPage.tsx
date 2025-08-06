@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Users, DollarSign, Eye } from 'lucide-react';
+import { Shield, Users, DollarSign, Eye, ExternalLink } from 'lucide-react';
 import { useEmpresaPlanos } from '@/hooks/useEmpresaPlanos';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -101,13 +102,25 @@ const EmpresaPlanosPage = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={() => setPlanoSelecionadoId(plano.id)}
-                    className="w-full"
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Ver Detalhes
-                  </Button>
+                  <div className="flex gap-2">
+                    {/* Botão principal - navegar para página dedicada */}
+                    <Button asChild className="flex-1">
+                      <Link to={`/empresa/planos/${plano.id}`}>
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Abrir Plano
+                      </Link>
+                    </Button>
+                    
+                    {/* Botão secundário - modal rápido */}
+                    <Button 
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setPlanoSelecionadoId(plano.id)}
+                      className="shrink-0"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -115,6 +128,7 @@ const EmpresaPlanosPage = () => {
         </div>
       )}
 
+      {/* Modal para visualização rápida (mantido como opção secundária) */}
       <PlanoDetalhesModal
         planoId={planoSelecionadoId}
         open={!!planoSelecionadoId}
