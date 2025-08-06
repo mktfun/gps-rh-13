@@ -40,13 +40,14 @@ export const useEmpresaPlanos = () => {
         throw error;
       }
 
-      // Buscar contagem de funcionários para cada plano
+      // Buscar contagem de funcionários ATIVOS para cada plano
       const planosComFuncionarios = await Promise.all(
         (data || []).map(async (plano: any) => {
           const { data: funcionariosData, error: funcionariosError } = await supabase
             .from('funcionarios')
             .select('id', { count: 'exact' })
-            .eq('cnpj_id', plano.cnpj_id);
+            .eq('cnpj_id', plano.cnpj_id)
+            .eq('status', 'ativo'); // Apenas funcionários ativos
 
           if (funcionariosError) {
             console.error('❌ Erro ao buscar funcionários:', funcionariosError);

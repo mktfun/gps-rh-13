@@ -100,10 +100,10 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-muted-foreground">Custo Total</span>
+              <span className="text-sm text-muted-foreground">Custo por Funcionário</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(stats?.custoTotal || 0)}
+              {formatCurrency(stats?.custoPorFuncionario || 0)}
             </div>
           </CardContent>
         </Card>

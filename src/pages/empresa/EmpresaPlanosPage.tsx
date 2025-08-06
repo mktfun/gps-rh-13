@@ -57,56 +57,61 @@ const EmpresaPlanosPage = () => {
         />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {planos.map((plano) => (
-            <Card key={plano.id} className="relative">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    {plano.seguradora}
-                  </CardTitle>
-                  <Badge variant="secondary">
-                    {plano.tipo_seguro || 'Seguro de Vida'}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Valor Mensal</p>
-                    <p className="font-semibold">{formatCurrency(plano.valor_mensal)}</p>
+          {planos.map((plano) => {
+            const funcionariosAtivos = plano.total_funcionarios || 0;
+            const custoPorFuncionario = funcionariosAtivos > 0 ? plano.valor_mensal / funcionariosAtivos : 0;
+            
+            return (
+              <Card key={plano.id} className="relative">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Shield className="h-5 w-5" />
+                      {plano.seguradora}
+                    </CardTitle>
+                    <Badge variant="secondary">
+                      {plano.tipo_seguro || 'Seguro de Vida'}
+                    </Badge>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Cobertura Morte</p>
-                    <p className="font-semibold">{formatCurrency(plano.cobertura_morte)}</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Valor Mensal</p>
+                      <p className="font-semibold">{formatCurrency(plano.valor_mensal)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Cobertura Morte</p>
+                      <p className="font-semibold">{formatCurrency(plano.cobertura_morte)}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Funcionários: {plano.total_funcionarios || 0}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Funcionários Ativos: {funcionariosAtivos}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Custo por Funcionário: {formatCurrency(custoPorFuncionario)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Custo Total: {formatCurrency((plano.total_funcionarios || 0) * plano.valor_mensal)}
-                    </span>
-                  </div>
-                </div>
 
-                <Button 
-                  onClick={() => setPlanoSelecionadoId(plano.id)}
-                  className="w-full"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Ver Detalhes
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  <Button 
+                    onClick={() => setPlanoSelecionadoId(plano.id)}
+                    className="w-full"
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver Detalhes
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

@@ -7,7 +7,7 @@ interface PlanoFuncionariosStats {
   ativos: number;
   pendentes: number;
   desativados: number;
-  custoTotal: number;
+  custoPorFuncionario: number;
 }
 
 export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) => {
@@ -42,11 +42,12 @@ export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) =
         return acc;
       }, { total: 0, ativos: 0, pendentes: 0, desativados: 0 }) || { total: 0, ativos: 0, pendentes: 0, desativados: 0 };
 
-      const custoTotal = stats.ativos * valorMensal;
+      // Calcular custo por funcionário ativo (se não há funcionários ativos, custo = 0)
+      const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas calculadas:', { ...stats, custoTotal });
+      console.log('✅ Estatísticas calculadas:', { ...stats, custoPorFuncionario });
 
-      return { ...stats, custoTotal };
+      return { ...stats, custoPorFuncionario };
     },
     enabled: !!cnpjId,
   });
