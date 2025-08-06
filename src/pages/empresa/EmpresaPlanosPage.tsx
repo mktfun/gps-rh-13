@@ -3,8 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Shield, DollarSign, Heart, AlertTriangle, Flower2, Building2, FileText } from 'lucide-react';
+import { Shield, DollarSign, Heart, AlertTriangle, Flower2 } from 'lucide-react';
 import { useEmpresaPlanos } from '@/hooks/useEmpresaPlanos';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const EmpresaPlanosPage: React.FC = () => {
   const { data: planos, isLoading, error } = useEmpresaPlanos();
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return 'N/A';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -21,27 +21,11 @@ const EmpresaPlanosPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-96" />
-          </CardHeader>
-        </Card>
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-1/3" />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </CardContent>
-            </Card>
-          ))}
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
         </div>
       </div>
     );
@@ -49,110 +33,74 @@ const EmpresaPlanosPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto py-6">
-        <EmptyState
-          icon={AlertTriangle}
-          title="Erro ao Carregar Planos"
-          description="Não foi possível carregar seus planos de seguro. Tente recarregar a página."
-        />
-      </div>
+      <EmptyState
+        icon={AlertTriangle}
+        title="Ocorreu um Erro"
+        description="Não foi possível carregar seus planos. Tente recarregar a página."
+      />
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-6 w-6" />
-            Meus Planos de Seguro
-          </CardTitle>
-          <CardDescription>
-            Visualize e gerencie todos os seus planos de seguro de vida ativos.
-          </CardDescription>
+          <CardTitle>Meus Planos de Seguro</CardTitle>
+          <CardDescription>Visualize e gerencie todos os seus planos de seguro de vida ativos.</CardDescription>
         </CardHeader>
       </Card>
 
-      {/* Planos Grid */}
       {planos && planos.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {planos.map((plano) => (
-            <Card key={plano.id} className="hover:shadow-lg transition-shadow">
+            <Card key={plano.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    {plano.seguradora}
-                  </CardTitle>
-                  <Badge variant="default">Ativo</Badge>
+                  <CardTitle className="text-lg">{plano.seguradora}</CardTitle>
+                  <Shield className="h-6 w-6 text-primary" />
                 </div>
-                <CardDescription className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  {plano.cnpj_razao_social}
-                </CardDescription>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  CNPJ: {plano.cnpj_numero}
-                </div>
+                <CardDescription>CNPJ: {plano.cnpj_numero}</CardDescription>
               </CardHeader>
-              
               <CardContent className="space-y-4">
-                {/* Valor Mensal */}
-                <div className="p-3 bg-primary/5 rounded-lg border">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-primary" />
-                      <span className="font-medium">Valor Mensal</span>
-                    </div>
-                    <span className="text-lg font-bold text-primary">
-                      {formatCurrency(plano.valor_mensal)}
-                    </span>
-                  </div>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Valor Mensal</p>
+                  <p className="text-2xl font-bold">{formatCurrency(plano.valor_mensal)}</p>
                 </div>
-
-                {/* Coberturas */}
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm text-muted-foreground">Coberturas:</h4>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Heart className="h-4 w-4 text-red-500" />
-                      <span>Morte Natural</span>
-                    </div>
-                    <span className="font-medium">{formatCurrency(plano.cobertura_morte)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-orange-500" />
-                      <span>Morte Acidental</span>
-                    </div>
-                    <span className="font-medium">{formatCurrency(plano.cobertura_morte_acidental)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-blue-500" />
-                      <span>Invalidez Acidente</span>
-                    </div>
-                    <span className="font-medium">{formatCurrency(plano.cobertura_invalidez_acidente)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Flower2 className="h-4 w-4 text-purple-500" />
-                      <span>Auxílio Funeral</span>
-                    </div>
-                    <span className="font-medium">{formatCurrency(plano.cobertura_auxilio_funeral)}</span>
-                  </div>
+                <div>
+                  <h4 className="mb-2 font-semibold">Coberturas:</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex justify-between">
+                      <span>
+                        <Heart className="h-4 w-4 inline mr-2 text-red-500"/>
+                        Morte Natural
+                      </span> 
+                      <strong>{formatCurrency(plano.cobertura_morte)}</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>
+                        <AlertTriangle className="h-4 w-4 inline mr-2 text-orange-500"/>
+                        Morte Acidental
+                      </span> 
+                      <strong>{formatCurrency(plano.cobertura_morte_acidental)}</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>
+                        <Shield className="h-4 w-4 inline mr-2 text-blue-500"/>
+                        Invalidez Acidente
+                      </span> 
+                      <strong>{formatCurrency(plano.cobertura_invalidez_acidente)}</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>
+                        <Flower2 className="h-4 w-4 inline mr-2 text-purple-500"/>
+                        Auxílio Funeral
+                      </span> 
+                      <strong>{formatCurrency(plano.cobertura_auxilio_funeral)}</strong>
+                    </li>
+                  </ul>
                 </div>
-
-                {/* Botão de Ação */}
                 <Button asChild className="w-full mt-4">
-                  <Link to={`/empresa/planos/${plano.id}`}>
-                    Gerenciar Plano
-                  </Link>
+                  <Link to={`/empresa/planos/${plano.id}`}>Gerenciar Plano</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -162,7 +110,7 @@ const EmpresaPlanosPage: React.FC = () => {
         <EmptyState
           icon={Shield}
           title="Nenhum Plano Encontrado"
-          description="Sua empresa ainda não possui planos de seguro de vida cadastrados. Entre em contato com sua corretora para mais informações."
+          description="Sua empresa ainda não possui planos de seguro de vida cadastrados."
         />
       )}
     </div>
