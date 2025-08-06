@@ -123,7 +123,10 @@ export const CnpjsListView: React.FC<CnpjsListViewProps> = ({
                   </Button>
                   
                   <Button
-                    onClick={() => onCnpjClick(cnpj)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCnpjClick(cnpj);
+                    }}
                     size="sm"
                   >
                     <span>Gerenciar</span>

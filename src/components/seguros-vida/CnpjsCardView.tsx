@@ -56,7 +56,7 @@ export const CnpjsCardView: React.FC<CnpjsCardViewProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {cnpjs.map((cnpj) => (
-        <Card key={cnpj.id} className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+        <Card key={cnpj.id} className="hover:shadow-lg transition-all duration-200 group">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="space-y-1 flex-1">
@@ -119,7 +119,10 @@ export const CnpjsCardView: React.FC<CnpjsCardViewProps> = ({
               </Button>
               
               <Button
-                onClick={() => onCnpjClick(cnpj)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCnpjClick(cnpj);
+                }}
                 size="sm"
                 className="flex-1"
               >
