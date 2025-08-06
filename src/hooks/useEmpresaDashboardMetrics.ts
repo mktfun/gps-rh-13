@@ -46,18 +46,22 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
         throw new Error('Empresa ID não encontrado');
       }
 
+      console.log('🔍 [useEmpresaDashboardMetrics] Buscando métricas para empresa:', empresaId, 'período:', timePeriod);
+
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { 
           p_empresa_id: empresaId,
-          p_months: timePeriod
+          p_months: timePeriod 
         }
       );
 
       if (dashboardError) {
-        console.error('Erro ao buscar dados do dashboard:', dashboardError);
+        console.error('❌ [useEmpresaDashboardMetrics] Erro ao buscar dados do dashboard:', dashboardError);
         throw dashboardError;
       }
+
+      console.log('📊 [useEmpresaDashboardMetrics] Dados retornados da SQL:', dashboardData);
 
       const typedData = dashboardData as any;
 
@@ -96,7 +100,7 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
         razao_social: String(typedData.planoPrincipal.razao_social || ''),
       } : null;
 
-      return {
+      const resultado = {
         custoMensalTotal: Number(typedData?.custoMensalTotal || 0),
         totalCnpjs: Number(typedData?.totalCnpjs || 0),
         totalFuncionarios: Number(typedData?.totalFuncionarios || 0),
@@ -107,9 +111,13 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
         distribuicaoCargos,
         planoPrincipal,
       };
+
+      console.log('✅ [useEmpresaDashboardMetrics] Resultado final processado:', resultado);
+
+      return resultado;
     },
     enabled: !!empresaId,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };

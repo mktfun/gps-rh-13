@@ -1,9 +1,12 @@
 
-import React from 'react';
-import EmpresaDashboardWithFilter from '@/components/dashboard/EmpresaDashboardWithFilter';
+import { EmpresaDashboardWithFilter } from '@/components/dashboard/EmpresaDashboardWithFilter';
 
 const EmpresaDashboard = () => {
-  return <EmpresaDashboardWithFilter />;
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <EmpresaDashboardWithFilter />
+    </div>
+  );
 };
 
 export default EmpresaDashboard;

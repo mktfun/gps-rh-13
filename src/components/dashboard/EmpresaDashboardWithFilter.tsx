@@ -1,169 +1,150 @@
 
 import React, { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Users, Building2, TrendingUp, PieChart } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
-import StatCard from './StatCard';
-import CustoTotalCard from './CustoTotalCard';
-import EvolucaoMensalChart from './EvolucaoMensalChart';
-import DistribuicaoCargosChart from './DistribuicaoCargosChart';
-import PlanoInfoCard from './PlanoInfoCard';
-import CustosPorCnpjChart from './CustosPorCnpjChart';
+import { TimePeriodFilter } from './TimePeriodFilter';
+import { StatCard } from './StatCard';
+import { CustoTotalCard } from './CustoTotalCard';
+import { EvolucaoMensalChart } from './EvolucaoMensalChart';
+import { DistribuicaoCargosChart } from './DistribuicaoCargosChart';
+import { PlanoInfoCard } from './PlanoInfoCard';
+import { CustosPorCnpjChart } from './CustosPorCnpjChart';
+import { Users, Building2, UserCheck, UserClock } from 'lucide-react';
 
-const EmpresaDashboardWithFilter = () => {
-  const [timePeriod, setTimePeriod] = useState<number>(6);
+export const EmpresaDashboardWithFilter = () => {
+  const [timePeriod, setTimePeriod] = useState(6);
   
   const { data: metrics, isLoading, error } = useEmpresaDashboardMetrics(timePeriod);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          <Skeleton className="h-10 w-48" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-96" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <Alert variant="destructive" className="m-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Erro ao carregar dados do dashboard: {error.message}
-        </AlertDescription>
-      </Alert>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Erro ao carregar dados do dashboard</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
+        </div>
+      </div>
     );
   }
 
-  if (!metrics) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Dashboard da Empresa</h1>
+          <div className="animate-pulse bg-muted h-10 w-40 rounded"></div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-muted h-24 rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
-  const timePeriodText = timePeriod === 6 ? '6' : '12';
-
   return (
-    <div className="space-y-6 p-6">
-      {/* Header com filtro */}
+    <div className="space-y-6">
+      {/* Header com Filtro */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Painel da Empresa</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard da Empresa</h1>
           <p className="text-muted-foreground">
-            Visão completa dos seus funcionários e custos de planos
+            Visão geral dos seus dados para os {timePeriod === 6 ? 'últimos 6 meses' : 'últimos 12 meses'}
           </p>
         </div>
-        <Select value={timePeriod.toString()} onValueChange={(value) => setTimePeriod(parseInt(value))}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Selecione o período" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="6">Últimos 6 Meses</SelectItem>
-            <SelectItem value="12">Últimos 12 Meses</SelectItem>
-          </SelectContent>
-        </Select>
+        <TimePeriodFilter 
+          value={timePeriod} 
+          onChange={setTimePeriod}
+        />
       </div>
 
-      {/* Cards de métricas principais */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* KPIs principais */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total de CNPJs"
-          value={metrics.totalCnpjs.toString()}
+          title="CNPJs Ativos"
+          value={metrics?.totalCnpjs || 0}
           icon={Building2}
+          description="Total de unidades ativas"
         />
+        
         <StatCard
           title="Total de Funcionários"
-          value={metrics.totalFuncionarios.toString()}
+          value={metrics?.totalFuncionarios || 0}
           icon={Users}
+          description="Funcionários ativos e pendentes"
         />
+        
         <StatCard
           title="Funcionários Ativos"
-          value={metrics.funcionariosAtivos.toString()}
-          icon={Users}
-          variant="success"
+          value={metrics?.funcionariosAtivos || 0}
+          icon={UserCheck}
+          description="Com seguro ativo"
+          trend={{ value: 5.2, isPositive: true }}
         />
+        
         <StatCard
-          title="Funcionários Pendentes"
-          value={metrics.funcionariosPendentes.toString()}
-          icon={Users}
+          title="Pendentes"
+          value={metrics?.funcionariosPendentes || 0}
+          icon={UserClock}
+          description="Aguardando ativação"
           variant="warning"
         />
       </div>
 
-      {/* Grid principal dos cards */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Card de Custo Total */}
-        <CustoTotalCard 
-          valor={metrics.custoMensalTotal}
-        />
+      {/* Custo Total */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <CustoTotalCard 
+            valor={metrics?.custoMensalTotal || 0}
+            periodo={`${timePeriod} meses`}
+          />
+        </div>
+        
+        <PlanoInfoCard plano={metrics?.planoPrincipal} />
+      </div>
 
-        {/* Card do Plano Principal */}
-        <PlanoInfoCard 
-          plano={metrics.planoPrincipal}
-        />
-
-        {/* Card de Evolução Mensal */}
+      {/* Gráficos */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Evolução Mensal
-            </CardTitle>
-            <CardDescription>
-              Análise de novas contratações e custos de planos nos últimos {timePeriodText} meses.
-            </CardDescription>
+            <CardTitle>Evolução Mensal</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Novos funcionários e custos dos últimos {timePeriod} meses
+            </p>
           </CardHeader>
           <CardContent>
-            <EvolucaoMensalChart dados={metrics.evolucaoMensal} />
+            <EvolucaoMensalChart dados={metrics?.evolucaoMensal || []} />
           </CardContent>
         </Card>
 
-        {/* Card Unificado de Análise de Distribuição com Abas */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Análise de Distribuição
-            </CardTitle>
-            <CardDescription>
-              Visão detalhada da composição de seus funcionários e custos por unidade de negócio.
-            </CardDescription>
+            <CardTitle>Distribuição por Cargo</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Top 5 cargos mais comuns
+            </p>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="cargos" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="cargos">Por Cargo</TabsTrigger>
-                <TabsTrigger value="cnpj">Por CNPJ</TabsTrigger>
-              </TabsList>
-              <TabsContent value="cargos" className="mt-4">
-                <DistribuicaoCargosChart dados={metrics.distribuicaoCargos} />
-              </TabsContent>
-              <TabsContent value="cnpj" className="mt-4">
-                <CustosPorCnpjChart dados={metrics.custosPorCnpj} />
-              </TabsContent>
-            </Tabs>
+            <DistribuicaoCargosChart dados={metrics?.distribuicaoCargos || []} />
           </CardContent>
         </Card>
       </div>
+
+      {/* Custos por CNPJ */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Custos por CNPJ</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Distribuição de custos entre suas unidades
+          </p>
+        </CardHeader>
+        <CardContent>
+          <CustosPorCnpjChart dados={metrics?.custosPorCnpj || []} />
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-export default EmpresaDashboardWithFilter;
