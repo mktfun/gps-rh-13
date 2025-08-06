@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Grid, List, Upload } from 'lucide-react';
@@ -21,10 +20,10 @@ export default function SegurosVidaEmpresasPage() {
   const { data: cnpjs = [], isLoading } = useCnpjsComPlanos(search);
 
   const handleCnpjClick = (cnpj: any) => {
-    // ✅ CORREÇÃO: Usar empresa_id em vez de cnpj.id para a navegação
+    // ✅ CORREÇÃO: Remover '/empresa' do caminho de navegação
     console.log('🔗 Navegando para empresa:', cnpj.empresa_id);
-    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/empresa/${cnpj.empresa_id}`);
-    navigate(`/corretora/seguros-de-vida/empresa/${cnpj.empresa_id}`);
+    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/${cnpj.empresa_id}`);
+    navigate(`/corretora/seguros-de-vida/${cnpj.empresa_id}`);
   };
 
   const handleImportClick = (cnpj: any) => {
