@@ -1,29 +1,23 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
-import { useEmpresaEvolucaoMensal } from '@/hooks/useEmpresaEvolucaoMensal';
-import { useEmpresaDistCargos } from '@/hooks/useEmpresaDistCargos';
 import { 
   AlertTriangle, 
-  Clock, 
   Users, 
   Building2, 
   DollarSign,
-  FileText,
   TrendingUp,
   BarChart3,
   PieChart
 } from 'lucide-react';
-import { StatCard } from '@/components/dashboard/StatCard';
-import ClickableStatCard from '@/components/dashboard/ClickableStatCard';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import CustosPorCnpjChart from '@/components/dashboard/CustosPorCnpjChart';
 import EvolucaoMensalChart from '@/components/dashboard/EvolucaoMensalChart';
 import DistribuicaoCargosChart from '@/components/dashboard/DistribuicaoCargosChart';
-import ActionPriorityCard from '@/components/dashboard/ActionPriorityCard';
 import StatusSolicitacoesSection from '@/components/dashboard/StatusSolicitacoesSection';
 import DashboardCard from '@/components/ui/DashboardCard';
 
@@ -31,14 +25,16 @@ const EmpresaDashboard = () => {
   const { user } = useAuth();
   const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useEmpresaDashboard();
   const { data: metrics, isLoading: isMetricsLoading, error: metricsError } = useEmpresaDashboardMetrics();
-  const { data: evolucaoMensalData, isLoading: isEvolucaoLoading } = useEmpresaEvolucaoMensal();
-  const { data: cargosData, isLoading: isCargosLoading } = useEmpresaDistCargos();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // CORREÇÃO: Adicionar logs de debug
-  console.log('🔍 [EmpresaDashboard] Dados das métricas:', metrics);
-  console.log('📊 [EmpresaDashboard] Dados de evolução mensal:', evolucaoMensalData);
-  console.log('👥 [EmpresaDashboard] Dados de cargos:', cargosData);
+  console.log('🔍 [EmpresaDashboard] Estado dos dados:', { 
+    dashboardData, 
+    metrics, 
+    isDashboardLoading, 
+    isMetricsLoading,
+    dashboardError,
+    metricsError
+  });
 
   const isLoading = isDashboardLoading || isMetricsLoading;
   const hasError = dashboardError || metricsError;
@@ -81,7 +77,7 @@ const EmpresaDashboard = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Erro ao carregar dados</h3>
             <p className="text-muted-foreground">
-              Não foi possível carregar os dados. Tente recarregar a página.
+              {hasError?.message || 'Não foi possível carregar os dados. Tente recarregar a página.'}
             </p>
           </div>
         </div>
@@ -108,7 +104,7 @@ const EmpresaDashboard = () => {
           </div>
         </div>
 
-        {/* Status Banner - Largura Total */}
+        {/* Status Banner */}
         <div className="animate-fade-in opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
           <StatusSolicitacoesSection 
             solicitacoesPendentes={dashboardData.solicitacoes_pendentes_count}
@@ -125,7 +121,7 @@ const EmpresaDashboard = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-8">
-              {/* KPIs Row - Grid de 4 Colunas */}
+              {/* KPIs Row */}
               <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   <DashboardCard
@@ -153,12 +149,6 @@ const EmpresaDashboard = () => {
                         {metrics.funcionariosAtivos}
                       </div>
                       <p className="text-sm text-muted-foreground">ativos</p>
-                      {/* CORREÇÃO: Debug visual */}
-                      {process.env.NODE_ENV === 'development' && (
-                        <p className="text-xs text-red-500 mt-1">
-                          Debug: {JSON.stringify({ ativos: metrics.funcionariosAtivos, total: metrics.totalFuncionarios })}
-                        </p>
-                      )}
                     </div>
                   </DashboardCard>
 
@@ -193,123 +183,105 @@ const EmpresaDashboard = () => {
                 </div>
               </div>
 
-              {/* Grid Principal - 2 Colunas */}
+              {/* Charts Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Coluna Esquerda */}
-                <div className="space-y-8">
-                  {/* Análise Mensal - CORREÇÃO: Usar dados do hook correto */}
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
-                    <DashboardCard
-                      title="Evolução Mensal"
-                      icon={TrendingUp}
-                      description="Funcionários e custos nos últimos meses"
-                    >
-                      {/* CORREÇÃO: Debug visual */}
-                      {process.env.NODE_ENV === 'development' && (
-                        <div className="mb-2 p-2 bg-gray-100 rounded text-xs">
-                          Debug: {JSON.stringify(evolucaoMensalData?.slice(0, 2))}
-                        </div>
-                      )}
-                      <EvolucaoMensalChart dados={evolucaoMensalData || []} />
-                    </DashboardCard>
-                  </div>
-
-                  {/* Distribuição de Custos - CORREÇÃO: Garantir que dados estão corretos */}
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                    <DashboardCard
-                      title="Distribuição de Custos por CNPJ"
-                      icon={BarChart3}
-                      description="Custos mensais distribuídos por filial"
-                    >
-                      {/* CORREÇÃO: Debug visual */}
-                      {process.env.NODE_ENV === 'development' && (
-                        <div className="mb-2 p-2 bg-gray-100 rounded text-xs">
-                          Debug: {JSON.stringify(metrics.custosPorCnpj)}
-                        </div>
-                      )}
-                      <CustosPorCnpjChart dados={metrics.custosPorCnpj || []} />
-                    </DashboardCard>
-                  </div>
+                {/* Evolução Mensal */}
+                <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+                  <DashboardCard
+                    title="Evolução Mensal"
+                    icon={TrendingUp}
+                    description="Funcionários e custos nos últimos meses"
+                  >
+                    <EvolucaoMensalChart dados={metrics.evolucaoMensal || []} />
+                  </DashboardCard>
                 </div>
 
-                {/* Coluna Direita */}
-                <div className="space-y-8">
-                  {/* Distribuição por Cargos */}
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
-                    <DashboardCard
-                      title="Distribuição por Cargos"
-                      icon={PieChart}
-                      description="Funcionários organizados por cargo"
-                    >
-                      <DistribuicaoCargosChart dados={cargosData || []} />
-                    </DashboardCard>
-                  </div>
+                {/* Distribuição por Cargos */}
+                <div className="animate-fade-in opacity-0" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
+                  <DashboardCard
+                    title="Distribuição por Cargos"
+                    icon={PieChart}
+                    description="Funcionários organizados por cargo"
+                  >
+                    <DistribuicaoCargosChart dados={metrics.distribuicaoCargos || []} />
+                  </DashboardCard>
+                </div>
 
-                  {/* Plano Principal */}
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
-                    <DashboardCard
-                      title="Plano Principal"
-                      icon={DollarSign}
-                      description="Informações do seu plano ativo"
-                    >
-                      {metrics.planoPrincipal ? (
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="text-sm font-medium text-muted-foreground">Seguradora</h4>
-                            <p className="text-lg font-semibold">{metrics.planoPrincipal.seguradora}</p>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-muted-foreground">Empresa</h4>
-                            <p className="text-base">{metrics.planoPrincipal.razao_social}</p>
-                          </div>
-                          <div className="pt-2 border-t">
-                            <h4 className="text-sm font-medium text-muted-foreground mb-3">Coberturas</h4>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="bg-muted/50 p-3 rounded-lg">
-                                <p className="text-xs text-muted-foreground">Morte</p>
-                                <p className="text-lg font-semibold">
-                                  {new Intl.NumberFormat('pt-BR', {
-                                    style: 'currency',
-                                    currency: 'BRL',
-                                  }).format(metrics.planoPrincipal.cobertura_morte)}
-                                </p>
-                              </div>
-                              <div className="bg-muted/50 p-3 rounded-lg">
-                                <p className="text-xs text-muted-foreground">Invalidez</p>
-                                <p className="text-lg font-semibold">
-                                  {new Intl.NumberFormat('pt-BR', {
-                                    style: 'currency',
-                                    currency: 'BRL',
-                                  }).format(metrics.planoPrincipal.cobertura_invalidez_acidente)}
-                                </p>
-                              </div>
+                {/* Custos por CNPJ */}
+                <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                  <DashboardCard
+                    title="Custos por CNPJ"
+                    icon={BarChart3}
+                    description="Distribuição de custos por filial"
+                  >
+                    <CustosPorCnpjChart dados={metrics.custosPorCnpj || []} />
+                  </DashboardCard>
+                </div>
+
+                {/* Plano Principal */}
+                <div className="animate-fade-in opacity-0" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
+                  <DashboardCard
+                    title="Plano Principal"
+                    icon={DollarSign}
+                    description="Informações do seu plano ativo"
+                  >
+                    {metrics.planoPrincipal ? (
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">Seguradora</h4>
+                          <p className="text-lg font-semibold">{metrics.planoPrincipal.seguradora}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">Empresa</h4>
+                          <p className="text-base">{metrics.planoPrincipal.razao_social}</p>
+                        </div>
+                        <div className="pt-2 border-t">
+                          <h4 className="text-sm font-medium text-muted-foreground mb-3">Coberturas</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-muted/50 p-3 rounded-lg">
+                              <p className="text-xs text-muted-foreground">Morte</p>
+                              <p className="text-lg font-semibold">
+                                {new Intl.NumberFormat('pt-BR', {
+                                  style: 'currency',
+                                  currency: 'BRL',
+                                }).format(metrics.planoPrincipal.cobertura_morte)}
+                              </p>
+                            </div>
+                            <div className="bg-muted/50 p-3 rounded-lg">
+                              <p className="text-xs text-muted-foreground">Invalidez</p>
+                              <p className="text-lg font-semibold">
+                                {new Intl.NumberFormat('pt-BR', {
+                                  style: 'currency',
+                                  currency: 'BRL',
+                                }).format(metrics.planoPrincipal.cobertura_invalidez_acidente)}
+                              </p>
                             </div>
                           </div>
-                          <div className="pt-2 border-t">
-                            <h4 className="text-sm font-medium text-muted-foreground">Valor Mensal</h4>
-                            <p className="text-2xl font-bold text-green-600">
-                              {new Intl.NumberFormat('pt-BR', {
-                                style: 'currency',
-                                currency: 'BRL',
-                              }).format(metrics.planoPrincipal.valor_mensal)}
-                            </p>
-                          </div>
                         </div>
-                      ) : (
-                        <div className="py-8 text-center">
-                          <p className="text-muted-foreground">
-                            Nenhum plano principal configurado
+                        <div className="pt-2 border-t">
+                          <h4 className="text-sm font-medium text-muted-foreground">Valor Mensal</h4>
+                          <p className="text-2xl font-bold text-green-600">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(metrics.planoPrincipal.valor_mensal)}
                           </p>
                         </div>
-                      )}
-                    </DashboardCard>
-                  </div>
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center">
+                        <p className="text-muted-foreground">
+                          Nenhum plano principal configurado
+                        </p>
+                      </div>
+                    )}
+                  </DashboardCard>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="cnpjs" className="space-y-8">
-              {/* KPIs CNPJs - 3 Colunas */}
+              {/* KPIs CNPJs */}
               <div className="animate-fade-in opacity-0" style={{ animationFillMode: 'forwards' }}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <DashboardCard
@@ -339,15 +311,18 @@ const EmpresaDashboard = () => {
                   </DashboardCard>
 
                   <DashboardCard
-                    title="Relatório de Custos"
+                    title="Custo Total"
                     icon={DollarSign}
-                    description="Clique para ver custos"
-                    className="hover:scale-105 transition-transform cursor-pointer"
-                    onClick={() => window.location.href = '/empresa/relatorios/custos'}
+                    description="Valor mensal total"
                   >
                     <div className="text-center">
-                      <div className="text-xl font-bold text-primary mb-2">Ver</div>
-                      <p className="text-sm text-muted-foreground">relatório</p>
+                      <div className="text-2xl font-bold text-green-600 mb-2">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(metrics.custoMensalTotal || 0)}
+                      </div>
+                      <p className="text-sm text-muted-foreground">mensal</p>
                     </div>
                   </DashboardCard>
                 </div>

@@ -25,13 +25,11 @@ interface EmpresaDashboardMetrics {
     count: number;
   }>;
   planoPrincipal: {
-    id: string;
     seguradora: string;
     valor_mensal: number;
     cobertura_morte: number;
     cobertura_morte_acidental: number;
     cobertura_invalidez_acidente: number;
-    cobertura_auxilio_funeral: number;
     razao_social: string;
   } | null;
 }
@@ -48,7 +46,6 @@ export const useEmpresaDashboardMetrics = () => {
 
       console.log('🔍 [useEmpresaDashboardMetrics] Buscando métricas para empresa:', empresaId);
 
-      // CORREÇÃO: Chamar a função SQL com o parâmetro correto
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { p_empresa_id: empresaId }
@@ -59,12 +56,17 @@ export const useEmpresaDashboardMetrics = () => {
         throw dashboardError;
       }
 
+      if (!dashboardData) {
+        console.error('❌ [useEmpresaDashboardMetrics] Nenhum dado retornado');
+        throw new Error('Nenhum dado retornado');
+      }
+
       console.log('📊 [useEmpresaDashboardMetrics] Dados retornados da SQL:', dashboardData);
 
-      // CORREÇÃO: Processar corretamente o JSON retornado pela função
+      // Processar dados com segurança
       const typedData = dashboardData as any;
 
-      // CORREÇÃO: Processar evolução mensal com a nova estrutura
+      // Processar evolução mensal
       const evolucaoMensal = Array.isArray(typedData?.evolucaoMensal) 
         ? typedData.evolucaoMensal.map((item: any) => ({
             mes: String(item.mes || ''),
@@ -73,9 +75,7 @@ export const useEmpresaDashboardMetrics = () => {
           }))
         : [];
 
-      console.log('📈 [useEmpresaDashboardMetrics] Evolução mensal processada:', evolucaoMensal);
-
-      // CORREÇÃO: Processar custos por CNPJ
+      // Processar custos por CNPJ
       const custosPorCnpj = Array.isArray(typedData?.custosPorCnpj) 
         ? typedData.custosPorCnpj.map((item: any) => ({
             cnpj: String(item.cnpj || ''),
@@ -85,9 +85,7 @@ export const useEmpresaDashboardMetrics = () => {
           }))
         : [];
 
-      console.log('💰 [useEmpresaDashboardMetrics] Custos por CNPJ processados:', custosPorCnpj);
-
-      // CORREÇÃO: Processar distribuição de cargos
+      // Processar distribuição de cargos
       const distribuicaoCargos = Array.isArray(typedData?.distribuicaoCargos) 
         ? typedData.distribuicaoCargos.map((item: any) => ({
             cargo: String(item.cargo || ''),
@@ -95,15 +93,13 @@ export const useEmpresaDashboardMetrics = () => {
           }))
         : [];
 
-      // CORREÇÃO: Processar plano principal
+      // Processar plano principal
       const planoPrincipal = typedData?.planoPrincipal ? {
-        id: String(typedData.planoPrincipal.id || ''),
         seguradora: String(typedData.planoPrincipal.seguradora || ''),
         valor_mensal: Number(typedData.planoPrincipal.valor_mensal || 0),
         cobertura_morte: Number(typedData.planoPrincipal.cobertura_morte || 0),
         cobertura_morte_acidental: Number(typedData.planoPrincipal.cobertura_morte_acidental || 0),
-        cobertura_invalidez_acidente: Number(typedData.planoPrincipal.cobertura_invalidez || 0),
-        cobertura_auxilio_funeral: Number(typedData.planoPrincipal.cobertura_auxilio_funeral || 0),
+        cobertura_invalidez_acidente: Number(typedData.planoPrincipal.cobertura_invalidez_acidente || 0),
         razao_social: String(typedData.planoPrincipal.razao_social || ''),
       } : null;
 
@@ -124,7 +120,8 @@ export const useEmpresaDashboardMetrics = () => {
       return resultado;
     },
     enabled: !!empresaId,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos
+    staleTime: 1000 * 60 * 2, // 2 minutos
+    gcTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 };
