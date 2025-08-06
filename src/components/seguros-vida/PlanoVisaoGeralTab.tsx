@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Building2, Shield, DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,6 @@ import { usePlanosMutation } from '@/hooks/usePlanosMutation';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
 interface PlanoDetalhes {
   id: string;
   cnpj_id: string;
@@ -29,70 +27,61 @@ interface PlanoDetalhes {
   cobertura_auxilio_funeral: number;
   tipo_seguro: 'vida' | 'saude' | 'outros';
 }
-
 interface FuncionarioPlano {
   id: string;
   nome: string;
   status: string;
 }
-
 interface PlanoVisaoGeralTabProps {
   plano: PlanoDetalhes;
   funcionarios: FuncionarioPlano[];
   onNavigateToFuncionarios: () => void;
   onAddFuncionario: () => void;
 }
-
-export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({ 
-  plano, 
-  funcionarios, 
+export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
+  plano,
+  funcionarios,
   onNavigateToFuncionarios,
-  onAddFuncionario 
+  onAddFuncionario
 }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isCoberturasModalOpen, setIsCoberturasModalOpen] = useState(false);
-  
-  const { updatePlano } = usePlanosMutation();
+  const {
+    updatePlano
+  } = usePlanosMutation();
   const queryClient = useQueryClient();
-
   const ativacaoMassaMutation = useMutation({
     mutationFn: async (funcionarioIds: string[]) => {
-      const promises = funcionarioIds.map(id => 
-        supabase
-          .from('funcionarios')
-          .update({ status: 'ativo' })
-          .eq('id', id)
-      );
-      
+      const promises = funcionarioIds.map(id => supabase.from('funcionarios').update({
+        status: 'ativo'
+      }).eq('id', id));
       const results = await Promise.all(promises);
       const errors = results.filter(result => result.error);
       if (errors.length > 0) {
         throw new Error(`Erro ao ativar ${errors.length} funcionário(s)`);
       }
-      
       return results;
     },
     onSuccess: (_, funcionarioIds) => {
       toast.success(`${funcionarioIds.length} funcionário(s) ativado(s) com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ['plano-detalhes'] });
+      queryClient.invalidateQueries({
+        queryKey: ['plano-detalhes']
+      });
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Erro ao ativar funcionários');
-    },
+    }
   });
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
   };
-
   const funcionariosAtivos = funcionarios.filter(f => f.status === 'ativo').length;
   const funcionariosPendentes = funcionarios.filter(f => f.status === 'pendente');
   const receitaMensalTotal = plano.valor_mensal * funcionarios.length;
   const coberturaTotalMorte = plano.cobertura_morte * funcionarios.length;
-
   const handleInfoSubmit = async (data: any) => {
     try {
       await updatePlano.mutateAsync({
@@ -112,7 +101,6 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
       toast.error('Erro ao atualizar informações do plano');
     }
   };
-
   const handleCoberturasSubmit = async (data: any) => {
     try {
       await updatePlano.mutateAsync({
@@ -132,7 +120,6 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
       toast.error('Erro ao atualizar coberturas do plano');
     }
   };
-
   const handleAtivarPendentes = () => {
     if (funcionariosPendentes.length === 0) {
       toast.error('Não há funcionários pendentes para ativar');
@@ -141,57 +128,40 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
     const funcionarioIds = funcionariosPendentes.map(f => f.id);
     ativacaoMassaMutation.mutate(funcionarioIds);
   };
-
   const handleAtivarFuncionario = async (funcionarioId: string) => {
     try {
-      await supabase
-        .from('funcionarios')
-        .update({ status: 'ativo' })
-        .eq('id', funcionarioId);
-      
+      await supabase.from('funcionarios').update({
+        status: 'ativo'
+      }).eq('id', funcionarioId);
       toast.success('Funcionário ativado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['plano-detalhes'] });
+      queryClient.invalidateQueries({
+        queryKey: ['plano-detalhes']
+      });
     } catch (error) {
       toast.error('Erro ao ativar funcionário');
     }
   };
-
   const handleProcessarExclusao = (funcionarioId: string) => {
     // Navegar para a aba de funcionários com foco no funcionário específico
     onNavigateToFuncionarios();
     toast.info('Navegando para a aba de funcionários para processar a exclusão');
   };
-
   const handleGerarRelatorio = () => {
     toast.info('Funcionalidade de relatório em desenvolvimento');
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Alertas Críticos */}
       <PlanoAlertas funcionarios={funcionarios} plano={plano} />
 
       {/* Ações Rápidas */}
-      <AcoesRapidas 
-        funcionarios={funcionarios}
-        plano={plano}
-        onAtivarPendentes={handleAtivarPendentes}
-        onGerarRelatorio={handleGerarRelatorio}
-        onEditarPlano={() => setIsInfoModalOpen(true)}
-        onAdicionarFuncionario={onAddFuncionario}
-      />
+      <AcoesRapidas funcionarios={funcionarios} plano={plano} onAtivarPendentes={handleAtivarPendentes} onGerarRelatorio={handleGerarRelatorio} onEditarPlano={() => setIsInfoModalOpen(true)} onAdicionarFuncionario={onAddFuncionario} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Indicadores Financeiros */}
         <IndicadoresFinanceiros funcionarios={funcionarios} plano={plano} />
 
         {/* Gestor de Pendências */}
-        <GestorPendencias 
-          funcionarios={funcionarios}
-          onAtivarFuncionario={handleAtivarFuncionario}
-          onProcessarExclusao={handleProcessarExclusao}
-          onNavigateToFuncionarios={onNavigateToFuncionarios}
-        />
+        <GestorPendencias funcionarios={funcionarios} onAtivarFuncionario={handleAtivarFuncionario} onProcessarExclusao={handleProcessarExclusao} onNavigateToFuncionarios={onNavigateToFuncionarios} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -220,8 +190,7 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Tipo de Seguro</label>
                 <Badge variant="outline">
-                  {plano.tipo_seguro === 'vida' ? 'Vida' : 
-                   plano.tipo_seguro === 'saude' ? 'Saúde' : 'Outros'}
+                  {plano.tipo_seguro === 'vida' ? 'Vida' : plano.tipo_seguro === 'saude' ? 'Saúde' : 'Outros'}
                 </Badge>
               </div>
               <div>
@@ -236,11 +205,7 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
             </div>
 
             <div className="pt-4 border-t">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setIsInfoModalOpen(true)}
-              >
+              <Button variant="outline" className="w-full" onClick={() => setIsInfoModalOpen(true)}>
                 <Calendar className="h-4 w-4 mr-2" />
                 Editar Informações
               </Button>
@@ -277,11 +242,7 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
             </div>
 
             <div className="pt-4 border-t">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setIsCoberturasModalOpen(true)}
-              >
+              <Button variant="outline" className="w-full" onClick={() => setIsCoberturasModalOpen(true)}>
                 <Shield className="h-4 w-4 mr-2" />
                 Editar Coberturas
               </Button>
@@ -291,55 +252,11 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
       </div>
 
       {/* Resumo Estatístico */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Resumo Estatístico
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">{funcionarios.length}</div>
-              <div className="text-sm text-muted-foreground">Funcionários Vinculados</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{funcionariosAtivos}</div>
-              <div className="text-sm text-muted-foreground">Funcionários Ativos</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {formatCurrency(receitaMensalTotal)}
-              </div>
-              <div className="text-sm text-muted-foreground">Receita Mensal Total</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {formatCurrency(coberturaTotalMorte)}
-              </div>
-              <div className="text-sm text-muted-foreground">Cobertura Total Morte</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      
 
       {/* Modais */}
-      <PlanoInfoFormModal
-        isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModalOpen(false)}
-        plano={plano}
-        onSubmit={handleInfoSubmit}
-        isLoading={updatePlano.isPending}
-      />
+      <PlanoInfoFormModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} plano={plano} onSubmit={handleInfoSubmit} isLoading={updatePlano.isPending} />
 
-      <PlanoCoberturasFormModal
-        isOpen={isCoberturasModalOpen}
-        onClose={() => setIsCoberturasModalOpen(false)}
-        plano={plano}
-        onSubmit={handleCoberturasSubmit}
-        isLoading={updatePlano.isPending}
-      />
-    </div>
-  );
+      <PlanoCoberturasFormModal isOpen={isCoberturasModalOpen} onClose={() => setIsCoberturasModalOpen(false)} plano={plano} onSubmit={handleCoberturasSubmit} isLoading={updatePlano.isPending} />
+    </div>;
 };
