@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,13 +15,17 @@ import { FuncionariosTab } from '@/components/planos/FuncionariosTab';
 
 const PlanoDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
-  const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
+  
+  console.log('🔗 Parâmetro planoId capturado da URL:', planoId);
+  
+  const { data: plano, isLoading, error } = usePlanoDetalhes(planoId);
 
   if (isLoading) {
     return <DashboardLoadingState />;
   }
 
   if (error) {
+    console.error('🚨 Erro no componente:', error);
     return (
       <div className="container mx-auto py-6">
         <EmptyState
