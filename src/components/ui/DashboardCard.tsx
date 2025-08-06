@@ -9,6 +9,7 @@ interface DashboardCardProps {
   description?: string;
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
 const DashboardCard = ({ 
@@ -16,14 +17,27 @@ const DashboardCard = ({
   icon: Icon, 
   description, 
   children, 
-  className 
+  className,
+  onClick
 }: DashboardCardProps) => {
   return (
-    <div className={cn(
-      "bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-300",
-      "p-6 space-y-4",
-      className
-    )}>
+    <div 
+      className={cn(
+        "bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all duration-300",
+        "p-6 space-y-4",
+        onClick && "cursor-pointer hover:scale-[1.02]",
+        className
+      )}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 pb-2 border-b border-border/50">
         {Icon && (
