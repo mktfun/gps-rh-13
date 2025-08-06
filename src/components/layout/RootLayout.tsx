@@ -19,8 +19,8 @@ const RootLayout = () => {
 
   return (
     <>
-      {/* A ESTRUTURA PRINCIPAL DA PÁGINA COM TEMA APLICADO */}
-      <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      {/* A ESTRUTURA PRINCIPAL DA PÁGINA FICA AQUI DENTRO */}
+      <div className="flex h-screen overflow-hidden bg-background">
         {/* Container do Sidebar: Tem largura fixa (w-64), borda, e só aparece em telas médias ou maiores (md:block) */}
         <div className="hidden border-r bg-card md:block w-64">
           <div className="flex h-full max-h-screen flex-col gap-2">
@@ -29,10 +29,10 @@ const RootLayout = () => {
         </div>
 
         {/* Container do Conteúdo Principal: Ocupa o espaço restante e é o ÚNICO com rolagem. */}
-        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden bg-background">
+        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <Header />
 
-          <main className="flex-1 p-6 lg:p-8 bg-background">
+          <main className="flex-1 p-6 lg:p-8">
             <Outlet />
           </main>
         </div>

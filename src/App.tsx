@@ -206,7 +206,7 @@ function App() {
                       />
                     </Route>
 
-                    {/* Grupo de Rotas da Empresa - GARANTINDO QUE ESTÁ DENTRO DO ROOTLAYOUT */}
+                    {/* Grupo de Rotas da Empresa - APENAS AS ESSENCIAIS COM SUSPENSE */}
                     <Route path="/empresa">
                       <Route index element={<Navigate to="/empresa/dashboard" replace />} />
                       

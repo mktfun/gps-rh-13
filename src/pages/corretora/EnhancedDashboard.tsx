@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCorretoraDashboardMetrics } from '@/hooks/useCorretoraDashboardMetrics';
 import { Building2, Users, FileText, AlertTriangle, BarChart3, DollarSign } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import StatCard from '@/components/dashboard/StatCard';
+import { StatCard } from '@/components/dashboard/StatCard';
 import RevenueCard from '@/components/dashboard/RevenueCard';
 import ChartCard from '@/components/dashboard/ChartCard';
 import RankingCard from '@/components/dashboard/RankingCard';

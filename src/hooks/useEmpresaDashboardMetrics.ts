@@ -50,12 +50,11 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
         'get_empresa_dashboard_metrics',
         { 
           p_empresa_id: empresaId,
-          p_months: timePeriod
+          p_months: timePeriod 
         }
       );
 
       if (dashboardError) {
-        console.error('Erro ao buscar dados do dashboard:', dashboardError);
         throw dashboardError;
       }
 
@@ -109,7 +108,7 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
       };
     },
     enabled: !!empresaId,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };
