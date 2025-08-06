@@ -12,12 +12,17 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
+  variant?: string;
   className?: string;
 }
 
-export const StatCard = ({ title, value, icon: Icon, description, trend, className }: StatCardProps) => {
+export const StatCard = ({ title, value, icon: Icon, description, trend, variant, className }: StatCardProps) => {
   return (
-    <Card className={cn("hover:shadow-md transition-shadow", className)}>
+    <Card className={cn(
+      "hover:shadow-md transition-shadow",
+      variant === 'warning' && 'border-yellow-200 bg-yellow-50',
+      className
+    )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
@@ -43,3 +48,5 @@ export const StatCard = ({ title, value, icon: Icon, description, trend, classNa
     </Card>
   );
 };
+
+export default StatCard;

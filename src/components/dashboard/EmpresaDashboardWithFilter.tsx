@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { TimePeriodFilter } from './TimePeriodFilter';
-import { StatCard } from './StatCard';
-import { CustoTotalCard } from './CustoTotalCard';
-import { EvolucaoMensalChart } from './EvolucaoMensalChart';
-import { DistribuicaoCargosChart } from './DistribuicaoCargosChart';
-import { PlanoInfoCard } from './PlanoInfoCard';
-import { CustosPorCnpjChart } from './CustosPorCnpjChart';
-import { Users, Building2, UserCheck, UserClock } from 'lucide-react';
+import StatCard from './StatCard';
+import CustoTotalCard from './CustoTotalCard';
+import EvolucaoMensalChart from './EvolucaoMensalChart';
+import DistribuicaoCargosChart from './DistribuicaoCargosChart';
+import PlanoInfoCard from './PlanoInfoCard';
+import CustosPorCnpjChart from './CustosPorCnpjChart';
+import { Users, Building2, UserCheck, UserCog } from 'lucide-react';
 
 export const EmpresaDashboardWithFilter = () => {
   const [timePeriod, setTimePeriod] = useState(6);
@@ -88,7 +88,7 @@ export const EmpresaDashboardWithFilter = () => {
         <StatCard
           title="Pendentes"
           value={metrics?.funcionariosPendentes || 0}
-          icon={UserClock}
+          icon={UserCog}
           description="Aguardando ativação"
           variant="warning"
         />
