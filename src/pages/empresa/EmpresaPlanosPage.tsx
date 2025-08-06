@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Users, DollarSign, Eye } from 'lucide-react';
+import { Shield, Users, DollarSign, Eye, ArrowRight } from 'lucide-react';
 import { useEmpresaPlanos } from '@/hooks/useEmpresaPlanos';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PlanoDetalhesModal } from '@/components/planos/PlanoDetalhesModal';
+import { Link } from 'react-router-dom';
 
 const EmpresaPlanosPage = () => {
   const { data: planos, isLoading, error } = useEmpresaPlanos();
@@ -62,7 +63,7 @@ const EmpresaPlanosPage = () => {
             const custoPorFuncionario = funcionariosAtivos > 0 ? plano.valor_mensal / funcionariosAtivos : 0;
             
             return (
-              <Card key={plano.id} className="relative">
+              <Card key={plano.id} className="relative hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
@@ -101,13 +102,28 @@ const EmpresaPlanosPage = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={() => setPlanoSelecionadoId(plano.id)}
-                    className="w-full"
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Ver Detalhes
-                  </Button>
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPlanoSelecionadoId(plano.id)}
+                      className="flex-1"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Modal
+                    </Button>
+                    
+                    <Button 
+                      asChild
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Link to={`/empresa/planos/${plano.id}`}>
+                        Gerenciar
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
