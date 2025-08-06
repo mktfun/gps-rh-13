@@ -34,8 +34,9 @@ const RelatorioFuncionariosPage = lazy(() => import("@/pages/corretora/relatorio
 const RelatorioFinanceiroPage = lazy(() => import("@/pages/corretora/relatorios/RelatorioFinanceiroPage"));
 const RelatorioMovimentacaoPage = lazy(() => import("@/pages/corretora/relatorios/RelatorioMovimentacaoPage"));
 
-// ROTAS - Seguros de Vida existente
+// ROTAS - Seguros de Vida existentes
 const SegurosVidaEmpresasPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage"));
+const SegurosVidaCnpjsPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage"));
 
 // ROTA - Auditoria existente
 const AuditoriaPage = lazy(() => import("@/pages/corretora/AuditoriaPage"));
@@ -132,6 +133,16 @@ function App() {
                         element={
                           <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
                             <SegurosVidaEmpresasPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* NOVA ROTA: Detalhes da empresa - CNPJs com planos */}
+                      <Route 
+                        path="seguros-de-vida/:empresaId" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
+                            <SegurosVidaCnpjsPage />
                           </Suspense>
                         } 
                       />
