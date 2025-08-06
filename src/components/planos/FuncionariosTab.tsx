@@ -1,15 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Plus, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Users, Plus, Search, DollarSign } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
+import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
+import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
+import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
 
 interface PlanoDetalhes {
   id: string;
   cnpj_id: string;
   seguradora: string;
+  valor_mensal: number;
+  cobertura_morte: number;
 }
 
 interface FuncionariosTabProps {
@@ -17,6 +24,38 @@ interface FuncionariosTabProps {
 }
 
 export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [addModalOpen, setAddModalOpen] = useState(false);
+
+  // Buscar funcionários do plano
+  const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
+    cnpjId: plano.cnpj_id,
+    statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
+    search: search || undefined,
+    pageIndex: pagination.pageIndex,
+    pageSize: pagination.pageSize,
+  });
+
+  // Buscar estatísticas
+  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal);
+
+  const funcionarios = funcionariosData?.funcionarios || [];
+  const totalCount = funcionariosData?.totalCount || 0;
+  const totalPages = funcionariosData?.totalPages || 0;
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
+  const resetPagination = () => {
+    setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header com Estatísticas */}
@@ -27,7 +66,9 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <Users className="h-4 w-4 text-green-600" />
               <span className="text-sm text-muted-foreground">Ativos</span>
             </div>
-            <div className="text-2xl font-bold text-green-600">0</div>
+            <div className="text-2xl font-bold text-green-600">
+              {stats?.ativos || 0}
+            </div>
           </CardContent>
         </Card>
         
@@ -37,7 +78,9 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <Users className="h-4 w-4 text-yellow-600" />
               <span className="text-sm text-muted-foreground">Pendentes</span>
             </div>
-            <div className="text-2xl font-bold text-yellow-600">0</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {stats?.pendentes || 0}
+            </div>
           </CardContent>
         </Card>
         
@@ -47,16 +90,21 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <Users className="h-4 w-4 text-blue-600" />
               <span className="text-sm text-muted-foreground">Total</span>
             </div>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">
+              {stats?.total || 0}
+            </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-green-600" />
               <span className="text-sm text-muted-foreground">Custo Total</span>
             </div>
-            <div className="text-2xl font-bold text-green-600">R$ 0,00</div>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(stats?.custoTotal || 0)}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -67,9 +115,9 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
           <div className="flex justify-between items-start">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Funcionários do Plano
+              Funcionários do Plano ({totalCount})
             </CardTitle>
-            <Button>
+            <Button onClick={() => setAddModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Funcionário
             </Button>
@@ -82,30 +130,55 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar funcionário por nome, CPF ou email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Todos</Badge>
-              <Badge variant="outline">Ativos</Badge>
-              <Badge variant="outline">Pendentes</Badge>
-            </div>
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Status</SelectItem>
+                <SelectItem value="ativo">Ativos</SelectItem>
+                <SelectItem value="pendente">Pendentes</SelectItem>
+                <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
+                <SelectItem value="edicao_solicitada">Edição Solicitada</SelectItem>
+                <SelectItem value="desativado">Desativados</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Placeholder para a tabela */}
-          <div className="border rounded-lg p-12 text-center">
-            <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum funcionário encontrado</h3>
-            <p className="text-muted-foreground mb-4">
-              Não há funcionários vinculados a este plano ainda.
-            </p>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Primeiro Funcionário
-            </Button>
-          </div>
+          <FuncionariosPlanoDataTable
+            funcionarios={funcionarios}
+            isLoading={isLoading}
+            totalCount={totalCount}
+            totalPages={totalPages}
+            pagination={pagination}
+            setPagination={setPagination}
+            search={search}
+            setSearch={setSearch}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            plano={{
+              seguradora: plano.seguradora,
+              valor_mensal: plano.valor_mensal,
+              cnpj_id: plano.cnpj_id,
+            }}
+          />
         </CardContent>
       </Card>
+
+      {/* Modal para Adicionar Funcionário */}
+      <AdicionarFuncionarioModal
+        cnpjId={plano.cnpj_id}
+        planoSeguradora={plano.seguradora}
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        onFuncionarioAdded={resetPagination}
+      />
     </div>
   );
 };

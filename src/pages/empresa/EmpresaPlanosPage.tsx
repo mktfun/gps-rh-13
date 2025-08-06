@@ -1,18 +1,19 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, DollarSign, Heart, AlertTriangle, Flower2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Shield, Users, DollarSign, Eye } from 'lucide-react';
 import { useEmpresaPlanos } from '@/hooks/useEmpresaPlanos';
+import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PlanoDetalhesModal } from '@/components/planos/PlanoDetalhesModal';
 
-const EmpresaPlanosPage: React.FC = () => {
+const EmpresaPlanosPage = () => {
   const { data: planos, isLoading, error } = useEmpresaPlanos();
+  const [planoSelecionadoId, setPlanoSelecionadoId] = useState<string | null>(null);
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return 'N/A';
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -21,98 +22,103 @@ const EmpresaPlanosPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-12 w-1/3" />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="p-6">
+        <DashboardLoadingState />
       </div>
     );
   }
 
   if (error) {
     return (
-      <EmptyState
-        icon={AlertTriangle}
-        title="Ocorreu um Erro"
-        description="Não foi possível carregar seus planos. Tente recarregar a página."
-      />
+      <div className="p-6">
+        <EmptyState
+          icon={Shield}
+          title="Erro ao carregar planos"
+          description="Não foi possível carregar os planos de seguro. Tente novamente."
+        />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Meus Planos de Seguro</CardTitle>
-          <CardDescription>Visualize e gerencie todos os seus planos de seguro de vida ativos.</CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Planos de Seguro</h1>
+        <p className="text-muted-foreground">
+          Gerencie os planos de seguro de vida da sua empresa
+        </p>
+      </div>
 
-      {planos && planos.length > 0 ? (
+      {!planos || planos.length === 0 ? (
+        <EmptyState
+          icon={Shield}
+          title="Nenhum plano encontrado"
+          description="Não há planos de seguro configurados para sua empresa ainda."
+        />
+      ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {planos.map((plano) => (
-            <Card key={plano.id}>
+            <Card key={plano.id} className="relative">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{plano.seguradora}</CardTitle>
-                  <Shield className="h-6 w-6 text-primary" />
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    {plano.seguradora}
+                  </CardTitle>
+                  <Badge variant="secondary">
+                    {plano.tipo_seguro}
+                  </Badge>
                 </div>
-                <CardDescription>CNPJ: {plano.cnpj_numero}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">Valor Mensal</p>
-                  <p className="text-2xl font-bold">{formatCurrency(plano.valor_mensal)}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Valor Mensal</p>
+                    <p className="font-semibold">{formatCurrency(plano.valor_mensal)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Cobertura Morte</p>
+                    <p className="font-semibold">{formatCurrency(plano.cobertura_morte)}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="mb-2 font-semibold">Coberturas:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between">
-                      <span>
-                        <Heart className="h-4 w-4 inline mr-2 text-red-500"/>
-                        Morte Natural
-                      </span> 
-                      <strong>{formatCurrency(plano.cobertura_morte)}</strong>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>
-                        <AlertTriangle className="h-4 w-4 inline mr-2 text-orange-500"/>
-                        Morte Acidental
-                      </span> 
-                      <strong>{formatCurrency(plano.cobertura_morte_acidental)}</strong>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>
-                        <Shield className="h-4 w-4 inline mr-2 text-blue-500"/>
-                        Invalidez Acidente
-                      </span> 
-                      <strong>{formatCurrency(plano.cobertura_invalidez_acidente)}</strong>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>
-                        <Flower2 className="h-4 w-4 inline mr-2 text-purple-500"/>
-                        Auxílio Funeral
-                      </span> 
-                      <strong>{formatCurrency(plano.cobertura_auxilio_funeral)}</strong>
-                    </li>
-                  </ul>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Funcionários: {plano.total_funcionarios || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Custo Total: {formatCurrency((plano.total_funcionarios || 0) * plano.valor_mensal)}
+                    </span>
+                  </div>
                 </div>
-                <Button asChild className="w-full mt-4">
-                  <Link to={`/empresa/planos/${plano.id}`}>Gerenciar Plano</Link>
+
+                <Button 
+                  onClick={() => setPlanoSelecionadoId(plano.id)}
+                  className="w-full"
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Ver Detalhes
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
-      ) : (
-        <EmptyState
-          icon={Shield}
-          title="Nenhum Plano Encontrado"
-          description="Sua empresa ainda não possui planos de seguro de vida cadastrados."
-        />
       )}
+
+      <PlanoDetalhesModal
+        planoId={planoSelecionadoId}
+        open={!!planoSelecionadoId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setPlanoSelecionadoId(null);
+          }
+        }}
+      />
     </div>
   );
 };
