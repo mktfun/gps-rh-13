@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -12,7 +11,7 @@ export const SmartBreadcrumbs: React.FC = () => {
 
   // Hooks condicionais baseados na rota
   const { data: empresa } = useEmpresa(empresaId);
-  const { plano } = usePlanoDetalhes(planoId || cnpjId || '');
+  const { data: plano } = usePlanoDetalhes(planoId || cnpjId || '');
 
   const generateBreadcrumbs = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
