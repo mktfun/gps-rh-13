@@ -91,7 +91,7 @@ const TopEmpresasReceita = () => {
                 <div className="font-bold text-lg">
                   {formatCurrency(empresa.receita_mensal)}
                 </div>
-                <div className="text-xs text-muted-foreground">por mês</div>
+                <div className="text-xs text-muted-foreground">valor do plano</div>
               </div>
               <Button
                 variant="outline"
