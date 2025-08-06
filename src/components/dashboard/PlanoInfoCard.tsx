@@ -1,14 +1,17 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Building2, DollarSign, Heart } from 'lucide-react';
+import { Shield, Building2, DollarSign, Heart, AlertTriangle, Flower2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 interface PlanoPrincipal {
+  id: string;
   seguradora: string;
   valor_mensal: number;
   cobertura_morte: number;
-  cobertura_invalidez: number;
+  cobertura_morte_acidental: number;
+  cobertura_invalidez_acidente: number;
+  cobertura_auxilio_funeral: number;
   razao_social: string;
 }
 
@@ -35,6 +38,33 @@ const PlanoInfoCard = ({ plano }: PlanoInfoCardProps) => {
       </Card>
     );
   }
+
+  const coberturas = [
+    {
+      icon: Heart,
+      label: 'Morte Natural',
+      value: plano.cobertura_morte,
+      color: 'text-red-500'
+    },
+    {
+      icon: AlertTriangle,
+      label: 'Morte Acidental',
+      value: plano.cobertura_morte_acidental,
+      color: 'text-orange-500'
+    },
+    {
+      icon: Shield,
+      label: 'Invalidez por Acidente',
+      value: plano.cobertura_invalidez_acidente,
+      color: 'text-blue-500'
+    },
+    {
+      icon: Flower2,
+      label: 'Auxílio Funeral',
+      value: plano.cobertura_auxilio_funeral,
+      color: 'text-purple-500'
+    }
+  ];
 
   return (
     <Card>
@@ -69,25 +99,20 @@ const PlanoInfoCard = ({ plano }: PlanoInfoCardProps) => {
           <h4 className="font-medium text-sm">Coberturas</h4>
           
           <div className="grid grid-cols-1 gap-2">
-            <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-              <div className="flex items-center gap-2">
-                <Heart className="h-3 w-3 text-red-500" />
-                <span className="text-sm">Morte</span>
-              </div>
-              <span className="text-sm font-medium">
-                {formatCurrency(plano.cobertura_morte)}
-              </span>
-            </div>
-            
-            <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-              <div className="flex items-center gap-2">
-                <Shield className="h-3 w-3 text-blue-500" />
-                <span className="text-sm">Invalidez</span>
-              </div>
-              <span className="text-sm font-medium">
-                {formatCurrency(plano.cobertura_invalidez)}
-              </span>
-            </div>
+            {coberturas.map((cobertura, index) => {
+              const Icon = cobertura.icon;
+              return (
+                <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-3 w-3 ${cobertura.color}`} />
+                    <span className="text-sm">{cobertura.label}</span>
+                  </div>
+                  <span className="text-sm font-medium">
+                    {formatCurrency(cobertura.value)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
