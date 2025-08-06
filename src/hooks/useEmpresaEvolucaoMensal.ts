@@ -3,10 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+// Este é o "contrato" que diz ao TypeScript como são os dados de DENTRO do objeto retornado pela RPC
 interface EvolucaoMensalData {
   mes: string;
   funcionarios: number;
   custo: number;
+}
+
+// Este é o "contrato" para a RESPOSTA COMPLETA da sua função RPC
+interface DashboardMetricsResponse {
+  evolucaoMensal: EvolucaoMensalData[];
+  // Adicione aqui outras propriedades que sua RPC retorna, se houver
 }
 
 export const useEmpresaEvolucaoMensal = () => {
@@ -22,8 +29,8 @@ export const useEmpresaEvolucaoMensal = () => {
         throw new Error('Empresa ID não encontrado');
       }
 
-      // CORREÇÃO: Usar a função SQL correta que existe
-      const { data: dashboardData, error } = await supabase.rpc(
+      // AGORA VOCÊ USA O CONTRATO, PASSANDO ELE COMO UM GENÉRICO PARA A FUNÇÃO RPC
+      const { data, error } = await supabase.rpc<DashboardMetricsResponse>(
         'get_empresa_dashboard_metrics',
         { p_empresa_id: empresaId }
       );
@@ -33,10 +40,11 @@ export const useEmpresaEvolucaoMensal = () => {
         throw new Error(`Erro ao buscar dados: ${error.message}`);
       }
 
-      console.log('📊 [useEmpresaEvolucaoMensal] Dashboard data raw:', dashboardData);
+      console.log('📊 [useEmpresaEvolucaoMensal] Dashboard data raw:', data);
 
-      // CORREÇÃO: Extrair os dados de evolução mensal do resultado
-      const evolucaoMensal = dashboardData?.evolucaoMensal || [];
+      // COM O TIPO CORRETO, O TYPESCRIPT SABE QUE 'data.evolucaoMensal' EXISTE E É UM ARRAY.
+      // CHEGA DE ERROS.
+      const evolucaoMensal = data?.evolucaoMensal || [];
       console.log('📈 [useEmpresaEvolucaoMensal] Evolução mensal extraída:', evolucaoMensal);
 
       // CORREÇÃO: Garantir que os dados estão no formato correto
