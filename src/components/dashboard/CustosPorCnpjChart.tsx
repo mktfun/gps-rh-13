@@ -4,11 +4,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { Building2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
+// CORREÇÃO: Interface que coincide com os dados da SQL
 interface CustoPorCnpj {
   cnpj: string;
   razao_social: string;
   valor_mensal: number;
-  funcionarios_count: number;
+  funcionarios_count: number; // Mantém o nome da SQL
 }
 
 interface CustosPorCnpjChartProps {
@@ -16,6 +17,8 @@ interface CustosPorCnpjChartProps {
 }
 
 const CustosPorCnpjChart = ({ dados }: CustosPorCnpjChartProps) => {
+  console.log('📊 [CustosPorCnpjChart] Dados recebidos:', dados);
+
   // Cores para o gráfico
   const COLORS = [
     'hsl(var(--chart-1))',
@@ -25,22 +28,31 @@ const CustosPorCnpjChart = ({ dados }: CustosPorCnpjChartProps) => {
     'hsl(var(--chart-5))',
   ];
 
-  // Preparar dados para o gráfico
+  // CORREÇÃO: Filtrar dados válidos e preparar para o gráfico
   const chartData = dados
-    .filter(item => item.valor_mensal > 0)
-    .map((item, index) => ({
-      name: item.razao_social,
-      value: item.valor_mensal,
-      funcionarios: item.funcionarios_count,
-      fill: COLORS[index % COLORS.length]
-    }));
+    .filter(item => {
+      const isValid = item && item.valor_mensal > 0;
+      console.log('📋 [CustosPorCnpjChart] Item válido?', isValid, item);
+      return isValid;
+    })
+    .map((item, index) => {
+      const chartItem = {
+        name: item.razao_social || 'Sem nome',
+        value: Number(item.valor_mensal) || 0,
+        funcionarios: Number(item.funcionarios_count) || 0, // CORREÇÃO: usar funcionarios_count
+        fill: COLORS[index % COLORS.length]
+      };
+      console.log('📈 [CustosPorCnpjChart] Item do gráfico:', chartItem);
+      return chartItem;
+    });
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
+  console.log('💰 [CustosPorCnpjChart] Total calculado:', total);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const percentage = ((data.value / total) * 100).toFixed(1);
+      const percentage = total > 0 ? ((data.value / total) * 100).toFixed(1) : '0';
       
       return (
         <div className="bg-background border rounded-lg p-3 shadow-lg">
@@ -57,7 +69,8 @@ const CustosPorCnpjChart = ({ dados }: CustosPorCnpjChartProps) => {
     return null;
   };
 
-  if (chartData.length === 0) {
+  if (!dados || dados.length === 0 || chartData.length === 0) {
+    console.log('⚠️ [CustosPorCnpjChart] Nenhum dado para exibir');
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -95,7 +108,7 @@ const CustosPorCnpjChart = ({ dados }: CustosPorCnpjChartProps) => {
         <h4 className="font-medium text-sm">Detalhes por CNPJ</h4>
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {chartData.map((item, index) => {
-            const percentage = ((item.value / total) * 100).toFixed(1);
+            const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
             return (
               <div key={index} className="flex items-center justify-between p-2 border rounded">
                 <div className="flex items-center gap-2">

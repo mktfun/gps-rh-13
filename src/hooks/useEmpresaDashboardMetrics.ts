@@ -7,7 +7,7 @@ interface EmpresaDashboardMetrics {
   custoMensalTotal: number;
   totalCnpjs: number;
   totalFuncionarios: number;
-  funcionariosAtivos: number; // Added missing field
+  funcionariosAtivos: number;
   funcionariosPendentes: number;
   custosPorCnpj: Array<{
     cnpj: string;
@@ -46,7 +46,7 @@ export const useEmpresaDashboardMetrics = () => {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 Buscando métricas do dashboard para empresa:', empresaId);
+      console.log('🔍 [useEmpresaDashboardMetrics] Buscando métricas para empresa:', empresaId);
 
       // Buscar dados básicos do dashboard
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
@@ -55,14 +55,37 @@ export const useEmpresaDashboardMetrics = () => {
       );
 
       if (dashboardError) {
-        console.error('❌ Erro ao buscar dados do dashboard:', dashboardError);
+        console.error('❌ [useEmpresaDashboardMetrics] Erro ao buscar dados do dashboard:', dashboardError);
         throw dashboardError;
       }
 
-      // Type cast the JSON response properly
-      const typedData = dashboardData as any;
+      console.log('📊 [useEmpresaDashboardMetrics] Dados brutos da SQL:', dashboardData);
 
-      // CORREÇÃO: Buscar plano principal com todas as coberturas via JOIN
+      // CORREÇÃO: Cast correto do resultado JSON
+      const typedData = dashboardData as any;
+      console.log('📋 [useEmpresaDashboardMetrics] Dados tipados:', typedData);
+
+      // CORREÇÃO: Buscar funcionários ativos manualmente se não vier da SQL
+      const { data: funcionariosAtivosData, error: funcionariosError } = await supabase
+        .from('funcionarios')
+        .select('id, status')
+        .eq('status', 'ativo')
+        .in('cnpj_id', 
+          await supabase
+            .from('cnpjs')
+            .select('id')
+            .eq('empresa_id', empresaId)
+            .then(result => result.data?.map(c => c.id) || [])
+        );
+
+      if (funcionariosError) {
+        console.error('❌ [useEmpresaDashboardMetrics] Erro ao buscar funcionários ativos:', funcionariosError);
+      }
+
+      const funcionariosAtivos = funcionariosAtivosData?.length || 0;
+      console.log('👥 [useEmpresaDashboardMetrics] Funcionários ativos encontrados:', funcionariosAtivos);
+
+      // CORREÇÃO: Buscar plano principal com todas as coberturas
       const { data: planoPrincipalData, error: planoError } = await supabase
         .from('dados_planos')
         .select(`
@@ -86,8 +109,10 @@ export const useEmpresaDashboardMetrics = () => {
         .maybeSingle();
 
       if (planoError) {
-        console.error('❌ Erro ao buscar plano principal:', planoError);
+        console.error('❌ [useEmpresaDashboardMetrics] Erro ao buscar plano principal:', planoError);
       }
+
+      console.log('💼 [useEmpresaDashboardMetrics] Plano principal encontrado:', planoPrincipalData);
 
       // Processar plano principal com coberturas completas
       const planoPrincipal = planoPrincipalData ? {
@@ -101,19 +126,35 @@ export const useEmpresaDashboardMetrics = () => {
         razao_social: planoPrincipalData.cnpjs?.razao_social || '',
       } : null;
 
-      console.log('✅ Plano principal com coberturas:', planoPrincipal);
+      // CORREÇÃO: Processar dados de custos por CNPJ
+      const custosPorCnpj = Array.isArray(typedData?.custosPorCnpj) 
+        ? typedData.custosPorCnpj 
+        : [];
 
-      return {
-        custoMensalTotal: typedData?.custoMensalTotal || 0,
-        totalCnpjs: typedData?.totalCnpjs || 0,
-        totalFuncionarios: typedData?.totalFuncionarios || 0,
-        funcionariosAtivos: typedData?.funcionariosAtivos || 0,
-        funcionariosPendentes: typedData?.funcionariosPendentes || 0,
-        custosPorCnpj: typedData?.custosPorCnpj || [],
-        evolucaoMensal: typedData?.evolucaoMensal || [],
-        distribuicaoCargos: typedData?.distribuicaoCargos || [],
+      console.log('💰 [useEmpresaDashboardMetrics] Custos por CNPJ processados:', custosPorCnpj);
+
+      // CORREÇÃO: Processar evolução mensal
+      const evolucaoMensal = Array.isArray(typedData?.evolucaoMensal) 
+        ? typedData.evolucaoMensal 
+        : [];
+
+      console.log('📈 [useEmpresaDashboardMetrics] Evolução mensal processada:', evolucaoMensal);
+
+      const resultado = {
+        custoMensalTotal: Number(typedData?.custoMensalTotal || 0),
+        totalCnpjs: Number(typedData?.totalCnpjs || 0),
+        totalFuncionarios: Number(typedData?.totalFuncionarios || 0),
+        funcionariosAtivos, // CORREÇÃO: Usar o valor calculado manualmente
+        funcionariosPendentes: Number(typedData?.funcionariosPendentes || 0),
+        custosPorCnpj,
+        evolucaoMensal,
+        distribuicaoCargos: Array.isArray(typedData?.distribuicaoCargos) ? typedData.distribuicaoCargos : [],
         planoPrincipal,
       };
+
+      console.log('✅ [useEmpresaDashboardMetrics] Resultado final:', resultado);
+
+      return resultado;
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 5, // 5 minutos

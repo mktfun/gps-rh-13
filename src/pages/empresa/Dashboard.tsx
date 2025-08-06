@@ -35,6 +35,11 @@ const EmpresaDashboard = () => {
   const { data: cargosData, isLoading: isCargosLoading } = useEmpresaDistCargos();
   const [activeTab, setActiveTab] = useState('overview');
 
+  // CORREÇÃO: Adicionar logs de debug
+  console.log('🔍 [EmpresaDashboard] Dados das métricas:', metrics);
+  console.log('📊 [EmpresaDashboard] Dados de evolução mensal:', evolucaoMensalData);
+  console.log('👥 [EmpresaDashboard] Dados de cargos:', cargosData);
+
   const isLoading = isDashboardLoading || isMetricsLoading;
   const hasError = dashboardError || metricsError;
 
@@ -148,6 +153,12 @@ const EmpresaDashboard = () => {
                         {metrics.funcionariosAtivos}
                       </div>
                       <p className="text-sm text-muted-foreground">ativos</p>
+                      {/* CORREÇÃO: Debug visual */}
+                      {process.env.NODE_ENV === 'development' && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Debug: {JSON.stringify({ ativos: metrics.funcionariosAtivos, total: metrics.totalFuncionarios })}
+                        </p>
+                      )}
                     </div>
                   </DashboardCard>
 
@@ -186,25 +197,37 @@ const EmpresaDashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Coluna Esquerda */}
                 <div className="space-y-8">
-                  {/* Análise Mensal */}
+                  {/* Análise Mensal - CORREÇÃO: Usar dados do hook correto */}
                   <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
                     <DashboardCard
                       title="Evolução Mensal"
                       icon={TrendingUp}
                       description="Funcionários e custos nos últimos meses"
                     >
+                      {/* CORREÇÃO: Debug visual */}
+                      {process.env.NODE_ENV === 'development' && (
+                        <div className="mb-2 p-2 bg-gray-100 rounded text-xs">
+                          Debug: {JSON.stringify(evolucaoMensalData?.slice(0, 2))}
+                        </div>
+                      )}
                       <EvolucaoMensalChart dados={evolucaoMensalData || []} />
                     </DashboardCard>
                   </div>
 
-                  {/* Distribuição de Custos */}
+                  {/* Distribuição de Custos - CORREÇÃO: Garantir que dados estão corretos */}
                   <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     <DashboardCard
                       title="Distribuição de Custos por CNPJ"
                       icon={BarChart3}
                       description="Custos mensais distribuídos por filial"
                     >
-                      <CustosPorCnpjChart dados={metrics.custosPorCnpj} />
+                      {/* CORREÇÃO: Debug visual */}
+                      {process.env.NODE_ENV === 'development' && (
+                        <div className="mb-2 p-2 bg-gray-100 rounded text-xs">
+                          Debug: {JSON.stringify(metrics.custosPorCnpj)}
+                        </div>
+                      )}
+                      <CustosPorCnpjChart dados={metrics.custosPorCnpj || []} />
                     </DashboardCard>
                   </div>
                 </div>
