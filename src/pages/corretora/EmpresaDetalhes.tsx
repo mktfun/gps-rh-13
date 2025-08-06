@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,16 +49,8 @@ const EmpresaDetalhes = () => {
     }
   }, [filtroStatus]);
 
-  // Limpar cache quando o componente monta para garantir dados frescos
-  useEffect(() => {
-    if (empresaId) {
-      console.log('🧹 [EmpresaDetalhes] Limpando cache ao montar componente para empresa:', empresaId);
-      // Usar setTimeout para dar tempo ao React Query processar
-      setTimeout(() => {
-        clearEmpresaCache(empresaId);
-      }, 100);
-    }
-  }, [empresaId, clearEmpresaCache]);
+  // CORREÇÃO: Removido o useEffect que causava loop infinito
+  // O cache será gerenciado apenas quando necessário via botão refresh
 
   const { data: empresa, isLoading: isLoadingEmpresa, error: erroEmpresa } = useEmpresa(empresaId);
   
@@ -163,7 +154,6 @@ const EmpresaDetalhes = () => {
     return <DashboardLoadingState />;
   }
 
-  // ESTADO 2: DADOS VÁLIDOS ENCONTRADOS (prioridade máxima)
   if (empresa && empresa.id && empresa.nome) {
     console.log('✅ [EmpresaDetalhes] Renderizando com dados válidos:', empresa.nome, 'ID:', empresa.id);
     

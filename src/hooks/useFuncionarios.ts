@@ -64,10 +64,31 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
 
   // Se temos empresaId, usar a nova RPC
   if (targetEmpresaId && !cnpj_id) {
+    // CORREÇÃO: Mapeamento completo para FuncionarioWithCnpj incluindo todas as propriedades obrigatórias
     const transformedData = empresaQuery.data ? {
       funcionarios: empresaQuery.data.funcionarios.map(f => ({
-        ...f,
+        // Propriedades da interface base Funcionario
         id: f.funcionario_id,
+        nome: f.nome,
+        cpf: f.cpf,
+        cargo: f.cargo,
+        salario: f.salario,
+        idade: f.idade,
+        status: f.status as any,
+        data_nascimento: f.data_nascimento,
+        estado_civil: f.estado_civil as any,
+        email: f.email,
+        created_at: f.created_at,
+        updated_at: f.updated_at,
+        cnpj_id: f.cnpj_id,
+        // Propriedades obrigatórias que faltavam
+        dados_pendentes: null,
+        data_exclusao: null,
+        data_solicitacao_exclusao: null,
+        motivo_exclusao: null,
+        usuario_executor: null,
+        usuario_solicitante: null,
+        // Propriedades adicionais da interface FuncionarioWithCnpj
         cnpj: {
           razao_social: f.cnpj_razao_social,
           cnpj: f.cnpj_numero,
@@ -76,7 +97,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
           seguradora: f.plano_seguradora,
           valor_mensal: f.plano_valor_mensal || 0,
           cobertura_morte: f.plano_cobertura_morte || 0
-        } : null
+        } : undefined
       })) as FuncionarioWithCnpj[],
       totalCount: empresaQuery.data.totalCount,
       totalPages: empresaQuery.data.totalPages,

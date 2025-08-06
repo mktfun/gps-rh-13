@@ -120,54 +120,19 @@ const CorretoraNav: React.FC = () => {
   const handleLinkHover = (href: string) => {
     if (!user?.id) return;
 
-    // Prefetch data based on the route being hovered
+    // Prefetch apenas com queryFn implementadas para evitar erros
     switch (href) {
-      case '/corretora/dashboard':
-        // Prefetch corretora dashboard metrics
-        queryClient.prefetchQuery({
-          queryKey: ['corretoraDashboardMetrics', user.id],
-          staleTime: 1000 * 60 * 2,
-        });
-        break;
-        
       case '/corretora/empresas':
-        // Prefetch empresas data
+        // Prefetch empresas data - esta funciona porque tem queryFn
         queryClient.prefetchQuery({
           queryKey: ['empresas-com-metricas', '', 1, 10, 'created_at', 'desc'],
           staleTime: 1000 * 60 * 5,
         });
         break;
-        
-      case '/corretora/seguros-de-vida':
-        // Prefetch seguros de vida empresas data
-        queryClient.prefetchQuery({
-          queryKey: ['empresas-com-metricas', '', 1, 10, 'created_at', 'desc'],
-          staleTime: 1000 * 60 * 5,
-        });
-        break;
-        
-      case '/corretora/relatorios/financeiro':
-        // Prefetch relatório financeiro data
-        queryClient.prefetchQuery({
-          queryKey: ['relatorio-financeiro-corretora', user.id],
-          staleTime: 1000 * 60 * 2,
-        });
-        break;
-        
-      case '/corretora/relatorios/funcionarios':
-        // Prefetch relatório funcionários data
-        queryClient.prefetchQuery({
-          queryKey: ['relatorio-funcionarios', user.id, '', 1, 25, 'nome', 'asc'],
-          staleTime: 1000 * 60 * 2,
-        });
-        break;
-        
-      case '/corretora/relatorios/movimentacao':
-        // Prefetch relatório movimentação data
-        queryClient.prefetchQuery({
-          queryKey: ['relatorio-movimentacao', user.id],
-          staleTime: 1000 * 60 * 2,
-        });
+      
+      // Outros casos removidos para evitar Missing queryFn errors
+      default:
+        // Não fazer prefetch para rotas sem queryFn implementadas
         break;
     }
   };
@@ -198,30 +163,15 @@ const EmpresaNav: React.FC = () => {
   const handleLinkHover = (href: string) => {
     if (!user?.id) return;
 
-    // Prefetch data based on the route being hovered
+    // Prefetch apenas com queryFn implementadas para evitar erros
     switch (href) {
-      case '/empresa/dashboard':
-        // Prefetch empresa dashboard metrics
-        queryClient.prefetchQuery({
-          queryKey: ['empresa-dashboard', user.id],
-          staleTime: 2 * 60 * 1000,
-        });
-        break;
-        
       case '/empresa/funcionarios':
-        // Prefetch empresa funcionários data
-        queryClient.prefetchQuery({
-          queryKey: ['empresa-funcionarios', user.id],
-          staleTime: 1000 * 60 * 5,
-        });
+        // Este pode funcionar se o hook tiver queryFn implementada
         break;
         
-      case '/empresa/planos':
-        // Prefetch empresa planos data
-        queryClient.prefetchQuery({
-          queryKey: ['empresa-planos-unificados', user.id],
-          staleTime: 1000 * 60 * 5,
-        });
+      // Outros casos removidos para evitar Missing queryFn errors
+      default:
+        // Não fazer prefetch para rotas sem queryFn implementadas
         break;
     }
   };
