@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
-import { useEmpresaEvolucao } from '@/hooks/useEmpresaEvolucao';
+import { useEmpresaEvolucaoMensal } from '@/hooks/useEmpresaEvolucaoMensal';
 import { useEmpresaDistCargos } from '@/hooks/useEmpresaDistCargos';
 import { 
   AlertTriangle, 
@@ -31,19 +31,12 @@ const EmpresaDashboard = () => {
   const { user } = useAuth();
   const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useEmpresaDashboard();
   const { data: metrics, isLoading: isMetricsLoading, error: metricsError } = useEmpresaDashboardMetrics();
-  const { data: evolucaoData, isLoading: isEvolucaoLoading } = useEmpresaEvolucao();
+  const { data: evolucaoMensalData, isLoading: isEvolucaoLoading } = useEmpresaEvolucaoMensal();
   const { data: cargosData, isLoading: isCargosLoading } = useEmpresaDistCargos();
   const [activeTab, setActiveTab] = useState('overview');
 
   const isLoading = isDashboardLoading || isMetricsLoading;
   const hasError = dashboardError || metricsError;
-
-  // Transform evolucao data for EvolucaoMensalChart
-  const evolucaoMensalData = evolucaoData?.map(item => ({
-    mes: item.mes,
-    funcionarios: item.novos_funcionarios,
-    custo: 0 // We don't have cost data from this function
-  })) || [];
 
   if (isLoading) {
     return (
@@ -198,9 +191,9 @@ const EmpresaDashboard = () => {
                     <DashboardCard
                       title="Evolução Mensal"
                       icon={TrendingUp}
-                      description="Crescimento de funcionários nos últimos meses"
+                      description="Funcionários e custos nos últimos meses"
                     >
-                      <EvolucaoMensalChart dados={evolucaoMensalData} />
+                      <EvolucaoMensalChart dados={evolucaoMensalData || []} />
                     </DashboardCard>
                   </div>
 

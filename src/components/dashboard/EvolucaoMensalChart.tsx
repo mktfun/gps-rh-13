@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { TrendingUp, BarChart3, TrendingUpIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 
 interface EvolucaoMensal {
@@ -15,7 +16,19 @@ interface EvolucaoMensalChartProps {
 }
 
 const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
-  // Custom tooltip para o gráfico de barras
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
+  const [visibleData, setVisibleData] = useState<string[]>(['funcionarios', 'custo']);
+
+  // Toggle visibility of data series
+  const toggleDataVisibility = (dataKey: string) => {
+    setVisibleData(prev => 
+      prev.includes(dataKey) 
+        ? prev.filter(key => key !== dataKey)
+        : [...prev, dataKey]
+    );
+  };
+
+  // Custom tooltip para ambos os tipos de gráfico
   const CustomTooltip = ({ 
     active, 
     payload, 
@@ -53,7 +66,7 @@ const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
 
   if (dados.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
+      <div className="flex flex-col items-center justify-center h-[350px] text-gray-500">
         <TrendingUp className="w-12 h-12 mb-4 opacity-50" />
         <p>Nenhum dado disponível</p>
       </div>
@@ -61,49 +74,159 @@ const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={dados} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" opacity={0.5} />
-        <XAxis 
-          dataKey="mes" 
-          className="text-xs fill-gray-600"
-          tick={{ fontSize: 12 }}
-          axisLine={{ stroke: '#E5E7EB' }}
-          tickLine={{ stroke: '#E5E7EB' }}
-        />
-        <YAxis 
-          className="text-xs fill-gray-600"
-          tick={{ fontSize: 12 }}
-          axisLine={{ stroke: '#E5E7EB' }}
-          tickLine={{ stroke: '#E5E7EB' }}
-          yAxisId="left"
-        />
-        <YAxis 
-          className="text-xs fill-gray-600"
-          tick={{ fontSize: 12 }}
-          axisLine={{ stroke: '#E5E7EB' }}
-          tickLine={{ stroke: '#E5E7EB' }}
-          yAxisId="right"
-          orientation="right"
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend />
-        <Bar 
-          dataKey="funcionarios" 
-          fill="#3B82F6"
-          name="Funcionários"
-          radius={[4, 4, 0, 0]}
-          yAxisId="left"
-        />
-        <Bar 
-          dataKey="custo" 
-          fill="#10B981" 
-          name="Custo (R$)"
-          radius={[4, 4, 0, 0]}
-          yAxisId="right"
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-4">
+      {/* Controles Interativos */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        {/* Grupo 1: Visualizar Dados */}
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-gray-700">Visualizar Dados:</span>
+          <div className="flex gap-2">
+            <Button
+              variant={visibleData.includes('funcionarios') ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => toggleDataVisibility('funcionarios')}
+              className="text-xs"
+            >
+              Funcionários
+            </Button>
+            <Button
+              variant={visibleData.includes('custo') ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => toggleDataVisibility('custo')}
+              className="text-xs"
+            >
+              Custo (R$)
+            </Button>
+          </div>
+        </div>
+
+        {/* Grupo 2: Tipo de Gráfico */}
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-gray-700">Tipo de Gráfico:</span>
+          <div className="flex gap-2">
+            <Button
+              variant={chartType === 'bar' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChartType('bar')}
+              className="flex items-center gap-1 text-xs"
+            >
+              <BarChart3 className="w-3 h-3" />
+              Barras
+            </Button>
+            <Button
+              variant={chartType === 'line' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChartType('line')}
+              className="flex items-center gap-1 text-xs"
+            >
+              <TrendingUpIcon className="w-3 h-3" />
+              Linhas
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Área do Gráfico */}
+      <ResponsiveContainer width="100%" height={300}>
+        {chartType === 'bar' ? (
+          <BarChart data={dados} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" opacity={0.5} />
+            <XAxis 
+              dataKey="mes" 
+              className="text-xs fill-gray-600"
+              tick={{ fontSize: 12 }}
+              axisLine={{ stroke: '#E5E7EB' }}
+              tickLine={{ stroke: '#E5E7EB' }}
+            />
+            <YAxis 
+              className="text-xs fill-gray-600"
+              tick={{ fontSize: 12 }}
+              axisLine={{ stroke: '#E5E7EB' }}
+              tickLine={{ stroke: '#E5E7EB' }}
+              yAxisId="left"
+            />
+            <YAxis 
+              className="text-xs fill-gray-600"
+              tick={{ fontSize: 12 }}
+              axisLine={{ stroke: '#E5E7EB' }}
+              tickLine={{ stroke: '#E5E7EB' }}
+              yAxisId="right"
+              orientation="right"
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {visibleData.includes('funcionarios') && (
+              <Bar 
+                dataKey="funcionarios" 
+                fill="#3B82F6"
+                name="Funcionários"
+                radius={[4, 4, 0, 0]}
+                yAxisId="left"
+              />
+            )}
+            {visibleData.includes('custo') && (
+              <Bar 
+                dataKey="custo" 
+                fill="#10B981" 
+                name="Custo (R$)"
+                radius={[4, 4, 0, 0]}
+                yAxisId="right"
+              />
+            )}
+          </BarChart>
+        ) : (
+          <LineChart data={dados} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" opacity={0.5} />
+            <XAxis 
+              dataKey="mes" 
+              className="text-xs fill-gray-600"
+              tick={{ fontSize: 12 }}
+              axisLine={{ stroke: '#E5E7EB' }}
+              tickLine={{ stroke: '#E5E7EB' }}
+            />
+            <YAxis 
+              className="text-xs fill-gray-600"
+              tick={{ fontSize: 12 }}
+              axisLine={{ stroke: '#E5E7EB' }}
+              tickLine={{ stroke: '#E5E7EB' }}
+              yAxisId="left"
+            />
+            <YAxis 
+              className="text-xs fill-gray-600"
+              tick={{ fontSize: 12 }}
+              axisLine={{ stroke: '#E5E7EB' }}
+              tickLine={{ stroke: '#E5E7EB' }}
+              yAxisId="right"
+              orientation="right"
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {visibleData.includes('funcionarios') && (
+              <Line 
+                type="monotone" 
+                dataKey="funcionarios" 
+                stroke="#3B82F6"
+                strokeWidth={3}
+                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                name="Funcionários"
+                yAxisId="left"
+              />
+            )}
+            {visibleData.includes('custo') && (
+              <Line 
+                type="monotone" 
+                dataKey="custo" 
+                stroke="#10B981"
+                strokeWidth={3}
+                dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                name="Custo (R$)"
+                yAxisId="right"
+              />
+            )}
+          </LineChart>
+        )}
+      </ResponsiveContainer>
+    </div>
   );
 };
 
