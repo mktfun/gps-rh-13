@@ -1,133 +1,290 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
+import React, { lazy, Suspense } from "react";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import RootLayout from "@/components/layout/RootLayout";
+import PublicLayout from "@/components/layout/PublicLayout";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { DashboardLoadingState, TableLoadingState, CardLoadingState } from "@/components/ui/loading-state";
+import { EnhancedTableSkeleton } from "@/components/ui/enhanced-loading";
 
-// Public Pages
-import LandingPage from '@/pages/LandingPage';
-import Login from '@/pages/Login';
-import NotFound from '@/pages/NotFound';
+// Debug React availability
+console.log('🔍 React availability check:', {
+  React: typeof React !== 'undefined' ? 'Available' : 'Not available',
+  Suspense: typeof Suspense !== 'undefined' ? 'Available' : 'Not available',
+  lazy: typeof lazy !== 'undefined' ? 'Available' : 'Not available'
+});
 
-// Layouts
-import PublicLayout from '@/layouts/PublicLayout';
-import RootLayout from '@/layouts/RootLayout';
+// PÁGINAS EXISTENTES
+const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const Login = lazy(() => import("@/pages/auth/Login"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
-// Protected Route
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+// Corretora pages - essenciais existentes
+const Dashboard = lazy(() => import("@/pages/corretora/Dashboard"));
+const Empresas = lazy(() => import("@/pages/corretora/Empresas"));
+const EmpresaDetalhes = lazy(() => import("@/pages/corretora/EmpresaDetalhes"));
 
-// Dashboard Pages
-import Index from '@/pages';
-import PerfilPage from '@/pages/PerfilPage';
-import ConfiguracoesPage from '@/pages/ConfiguracoesPage';
-import ChatPage from '@/pages/ChatPage';
+// ROTAS PARA CORRIGIR 404s - Relatórios existentes
+const RelatorioFuncionariosPage = lazy(() => import("@/pages/corretora/relatorios/RelatorioFuncionariosPage"));
+const RelatorioFinanceiroPage = lazy(() => import("@/pages/corretora/relatorios/RelatorioFinanceiroPage"));
+const RelatorioMovimentacaoPage = lazy(() => import("@/pages/corretora/relatorios/RelatorioMovimentacaoPage"));
 
-// Admin Pages
-import AdminDashboard from '@/pages/admin/AdminDashboard';
-import CorretoraspPage from '@/pages/admin/CorretoraspPage';
+// ROTAS - Seguros de Vida existentes
+const SegurosVidaEmpresasPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage"));
+const SegurosVidaCnpjsPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage"));
+const SegurosVidaPlanoPage = lazy(() => import("@/pages/corretora/seguros-vida/SegurosVidaPlanoPage"));
 
-// Corretora Pages
-import CorretoraDashboard from '@/pages/corretora/CorretoraDashboard';
-import Empresas from '@/pages/corretora/Empresas';
-import EmpresaDetalhes from '@/pages/corretora/EmpresaDetalhes';
-import FuncionariosPendentes from '@/pages/corretora/FuncionariosPendentes';
-import PendenciasExclusao from '@/pages/corretora/PendenciasExclusao';
-import AtivarFuncionario from '@/pages/corretora/AtivarFuncionario';
-import AuditoriaPage from '@/pages/corretora/AuditoriaPage';
-import RelatorioFinanceiroPage from '@/pages/corretora/RelatorioFinanceiroPage';
-import RelatorioFuncionariosPage from '@/pages/corretora/RelatorioFuncionariosPage';
-import RelatorioMovimentacaoPage from '@/pages/corretora/RelatorioMovimentacaoPage';
-import SegurosVidaEmpresasPage from '@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage';
-import SegurosVidaCnpjsPage from '@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage';
-import SegurosVidaPlanoPage from '@/pages/corretora/seguros-vida/SegurosVidaPlanoPage';
+// ROTA - Auditoria existente
+const AuditoriaPage = lazy(() => import("@/pages/corretora/AuditoriaPage"));
 
-// Empresa Pages
-import EmpresaDashboard from '@/pages/empresa/EmpresaDashboard';
-import EmpresaFuncionarios from '@/pages/empresa/EmpresaFuncionarios';
-import EmpresaPlanosPage from '@/pages/empresa/EmpresaPlanosPage';
-import PlanoDetalhesPage from '@/pages/empresa/PlanoDetalhesPage';
-import RelatorioFuncionariosEmpresaPage from '@/pages/empresa/RelatorioFuncionariosEmpresaPage';
-import RelatorioCustosEmpresaPage from '@/pages/empresa/RelatorioCustosEmpresaPage';
-import RelatorioPendenciasEmpresaPage from '@/pages/empresa/RelatorioPendenciasEmpresaPage';
+// Empresa pages - apenas as essenciais
+const EmpresaDashboard = lazy(() => import("@/pages/empresa/Dashboard"));
+const EmpresaFuncionarios = lazy(() => import("@/pages/empresa/Funcionarios"));
+const EmpresaPlanosPage = lazy(() => import("@/pages/empresa/EmpresaPlanosPage"));
+const EmpresaPlanoDetalhesPage = lazy(() => import("@/pages/empresa/PlanoDetalhesPage"));
 
-const queryClient = new QueryClient();
+// Shared pages - apenas as essenciais
+const PerfilPage = lazy(() => import("@/pages/PerfilPage"));
+const ConfiguracoesPage = lazy(() => import("@/pages/ConfiguracoesPage"));
+const ChatPage = lazy(() => import("@/pages/ChatPage"));
+
+// Create QueryClient with additional debugging
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error) => {
+        console.log('🔄 Query retry:', { failureCount, error: error?.message });
+        if (error?.message?.includes('JWT')) return false;
+        return failureCount < 3;
+      },
+    },
+  },
+});
+
+console.log('🔍 QueryClient created successfully:', !!queryClient);
 
 function App() {
+  console.log('🚀 App component rendering...');
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<PublicLayout />}>
-            <Route index element={<LandingPage />} />
-            <Route path="login" element={<Login />} />
-          </Route>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster position="top-right" />
+          <BrowserRouter>
+            <Suspense fallback={<DashboardLoadingState />}>
+              <Routes>
+                {/* --- ROTAS PÚBLICAS --- */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<Login />} />
+                </Route>
 
-          {/* Protected Routes */}
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <RootLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Dashboard routes based on user role */}
-            <Route path="dashboard" element={<Index />} />
-            <Route path="perfil" element={<PerfilPage />} />
-            <Route path="configuracoes" element={<ConfiguracoesPage />} />
-            <Route path="chat" element={<ChatPage />} />
+                {/* --- ROTAS PROTEGIDAS (ESTRUTURA CORRETA) --- */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={
+                    <ErrorBoundary>
+                      <RootLayout />
+                    </ErrorBoundary>
+                  }>
 
-            {/* Admin Routes */}
-            <Route path="admin">
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="corretoras" element={<CorretoraspPage />} />
-            </Route>
+                    {/* Grupo de Rotas da Corretora - ROTAS CORRIGIDAS COM SUSPENSE */}
+                    <Route path="/corretora">
+                      <Route index element={<Navigate to="/corretora/dashboard" replace />} />
+                      
+                      {/* Dashboard com esqueleto de cards */}
+                      <Route 
+                        path="dashboard" 
+                        element={
+                          <Suspense fallback={<DashboardLoadingState />}>
+                            <Dashboard />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* Empresas com esqueleto de tabela */}
+                      <Route 
+                        path="empresas" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={8} columns={6} />}>
+                            <Empresas />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* Detalhes da empresa com esqueleto de cards */}
+                      <Route 
+                        path="empresas/:id" 
+                        element={
+                          <Suspense fallback={<CardLoadingState />}>
+                            <EmpresaDetalhes />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* ROTAS DE SEGUROS DE VIDA - CORRIGIDAS COM SUSPENSE */}
+                      <Route 
+                        path="seguros-de-vida" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
+                            <SegurosVidaEmpresasPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* NOVA ROTA: Detalhes da empresa - CNPJs com planos */}
+                      <Route 
+                        path="seguros-de-vida/:empresaId" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
+                            <SegurosVidaCnpjsPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* NOVA ROTA: Detalhes do CNPJ específico */}
+                      <Route 
+                        path="seguros-de-vida/empresa/:empresaId/cnpj/:cnpjId" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
+                            <SegurosVidaCnpjsPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* NOVA ROTA: Página de detalhes do plano */}
+                      <Route 
+                        path="seguros-de-vida/plano/:cnpjId" 
+                        element={
+                          <Suspense fallback={<CardLoadingState />}>
+                            <SegurosVidaPlanoPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* ROTAS DE RELATÓRIOS - ADICIONADAS PARA CORRIGIR 404s COM SUSPENSE */}
+                      <Route 
+                        path="relatorios/funcionarios" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={10} columns={7} />}>
+                            <RelatorioFuncionariosPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      <Route 
+                        path="relatorios/financeiro" 
+                        element={
+                          <Suspense fallback={<DashboardLoadingState />}>
+                            <RelatorioFinanceiroPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      <Route 
+                        path="relatorios/movimentacao" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={8} columns={6} />}>
+                            <RelatorioMovimentacaoPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* ROTA DE AUDITORIA - ADICIONADA PARA CORRIGIR 404 COM SUSPENSE */}
+                      <Route 
+                        path="auditoria" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={12} columns={5} />}>
+                            <AuditoriaPage />
+                          </Suspense>
+                        } 
+                      />
+                    </Route>
 
-            {/* Corretora Routes */}
-            <Route path="corretora">
-              <Route index element={<Navigate to="/corretora/dashboard" replace />} />
-              <Route path="dashboard" element={<CorretoraDashboard />} />
-              <Route path="empresas" element={<Empresas />} />
-              <Route path="empresas/:id" element={<EmpresaDetalhes />} />
-              <Route path="funcionarios-pendentes" element={<FuncionariosPendentes />} />
-              <Route path="pendencias-exclusao" element={<PendenciasExclusao />} />
-              <Route path="ativar-funcionario" element={<AtivarFuncionario />} />
-              <Route path="auditoria" element={<AuditoriaPage />} />
-              
-              <Route path="relatorios">
-                <Route path="financeiro" element={<RelatorioFinanceiroPage />} />
-                <Route path="funcionarios" element={<RelatorioFuncionariosPage />} />
-                <Route path="movimentacao" element={<RelatorioMovimentacaoPage />} />
-              </Route>
-              
-              <Route path="seguros-de-vida">
-                <Route path="empresas" element={<SegurosVidaEmpresasPage />} />
-                <Route path="cnpjs" element={<SegurosVidaCnpjsPage />} />
-                <Route path="plano/:planoId" element={<SegurosVidaPlanoPage />} />
-              </Route>
-            </Route>
+                    {/* Grupo de Rotas da Empresa - APENAS AS ESSENCIAIS COM SUSPENSE */}
+                    <Route path="/empresa">
+                      <Route index element={<Navigate to="/empresa/dashboard" replace />} />
+                      
+                      <Route 
+                        path="dashboard" 
+                        element={
+                          <Suspense fallback={<DashboardLoadingState />}>
+                            <EmpresaDashboard />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      <Route 
+                        path="funcionarios" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={10} columns={8} />}>
+                            <EmpresaFuncionarios />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      <Route 
+                        path="planos" 
+                        element={
+                          <Suspense fallback={<CardLoadingState />}>
+                            <EmpresaPlanosPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      <Route 
+                        path="planos/:id" 
+                        element={
+                          <Suspense fallback={<CardLoadingState />}>
+                            <EmpresaPlanoDetalhesPage />
+                          </Suspense>
+                        } 
+                      />
+                    </Route>
 
-            {/* Empresa Routes */}
-            <Route path="empresa">
-              <Route index element={<Navigate to="/empresa/dashboard" replace />} />
-              <Route path="dashboard" element={<EmpresaDashboard />} />
-              <Route path="funcionarios" element={<EmpresaFuncionarios />} />
-              <Route path="planos" element={<EmpresaPlanosPage />} />
-              <Route path="planos/:id" element={<PlanoDetalhesPage />} />
-              
-              <Route path="relatorios">
-                <Route path="funcionarios" element={<RelatorioFuncionariosEmpresaPage />} />
-                <Route path="custos" element={<RelatorioCustosEmpresaPage />} />
-                <Route path="pendencias" element={<RelatorioPendenciasEmpresaPage />} />
-              </Route>
-            </Route>
-          </Route>
+                    {/* Rotas compartilhadas com suspense */}
+                    <Route 
+                      path="perfil" 
+                      element={
+                        <Suspense fallback={<CardLoadingState />}>
+                          <PerfilPage />
+                        </Suspense>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="configuracoes" 
+                      element={
+                        <Suspense fallback={<CardLoadingState />}>
+                          <ConfiguracoesPage />
+                        </Suspense>
+                      } 
+                    />
+                    
+                    <Route 
+                      path="chat" 
+                      element={
+                        <Suspense fallback={<div className="p-6"><div className="animate-pulse">Carregando chat...</div></div>}>
+                          <ChatPage />
+                        </Suspense>
+                      } 
+                    />
 
-          {/* 404 Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+                  </Route>
+                </Route>
+
+                {/* --- ROTA 404 --- */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
