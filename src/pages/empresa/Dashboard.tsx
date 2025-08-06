@@ -12,11 +12,12 @@ import {
   Building2, 
   DollarSign,
   FileText,
-  TrendingUp
+  TrendingUp,
+  BarChart3,
+  PieChart
 } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/StatCard';
 import ClickableStatCard from '@/components/dashboard/ClickableStatCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
@@ -25,6 +26,7 @@ import EvolucaoMensalChart from '@/components/dashboard/EvolucaoMensalChart';
 import DistribuicaoCargosChart from '@/components/dashboard/DistribuicaoCargosChart';
 import ActionPriorityCard from '@/components/dashboard/ActionPriorityCard';
 import StatusSolicitacoesSection from '@/components/dashboard/StatusSolicitacoesSection';
+import DashboardCard from '@/components/ui/DashboardCard';
 
 const EmpresaDashboard = () => {
   const { user } = useAuth();
@@ -47,7 +49,7 @@ const EmpresaDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex flex-1 flex-col gap-6 md:gap-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-4 mb-6">
             <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
             <div>
@@ -66,7 +68,7 @@ const EmpresaDashboard = () => {
   if (hasError || !dashboardData) {
     return (
       <div className="flex flex-1 flex-col gap-6 md:gap-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-4 mb-6">
             <div className="h-12 w-1 bg-gradient-to-b from-red-600 to-orange-600 rounded-full"></div>
             <div>
@@ -91,11 +93,11 @@ const EmpresaDashboard = () => {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 md:gap-8">
-      <div className="max-w-7xl mx-auto space-y-8 w-full">
+    <div className="flex flex-1 flex-col gap-8">
+      <div className="max-w-7xl mx-auto space-y-8 w-full px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="animate-fade-in opacity-0" style={{ animationFillMode: 'forwards' }}>
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-8">
             <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
             <div>
               <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
@@ -109,7 +111,7 @@ const EmpresaDashboard = () => {
           </div>
         </div>
 
-        {/* Seção Status das Suas Solicitações */}
+        {/* Status Banner - Largura Total */}
         <div className="animate-fade-in opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
           <StatusSolicitacoesSection 
             solicitacoesPendentes={dashboardData.solicitacoes_pendentes_count}
@@ -117,39 +119,7 @@ const EmpresaDashboard = () => {
           />
         </div>
 
-        {/* Seção Cards de Ação */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-1 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
-            <h2 className="text-2xl font-bold tracking-tight">Ações Prioritárias</h2>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-              <ActionPriorityCard
-                title="Solicitações Pendentes"
-                count={dashboardData.solicitacoes_pendentes_count}
-                description="Exclusões aguardando análise da corretora"
-                icon={FileText}
-                to="/empresa/relatorios/pendencias"
-                priority="high"
-              />
-            </div>
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
-              <ActionPriorityCard
-                title="Funcionários Travados"
-                count={dashboardData.funcionarios_travados_count}
-                description="Pendentes há mais de 5 dias"
-                icon={Clock}
-                to="/empresa/funcionarios"
-                state={{ filter: 'pendente' }}
-                priority="medium"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Indicadores Gerais e Gráficos */}
+        {/* Tabs Navigation */}
         {metrics && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className="grid w-full max-w-md grid-cols-2">
@@ -158,201 +128,223 @@ const EmpresaDashboard = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-8">
-              {/* Seção de KPIs */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold tracking-tight">Indicadores Principais</h2>
-                </div>
+              {/* KPIs Row - Grid de 4 Colunas */}
+              <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <DashboardCard
+                    title="Total de Funcionários"
+                    icon={Users}
+                    description="Clique para gerenciar"
+                    className="hover:scale-105 transition-transform cursor-pointer"
+                    onClick={() => window.location.href = '/empresa/funcionarios'}
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-primary mb-2">
+                        {metrics.totalFuncionarios}
+                      </div>
+                      <p className="text-sm text-muted-foreground">funcionários</p>
+                    </div>
+                  </DashboardCard>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <DashboardCard
+                    title="Funcionários Ativos"
+                    icon={Users}
+                    description="Com status ativo"
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        {metrics.funcionariosAtivos}
+                      </div>
+                      <p className="text-sm text-muted-foreground">ativos</p>
+                    </div>
+                  </DashboardCard>
+
+                  <DashboardCard
+                    title="Pendências"
+                    icon={AlertTriangle}
+                    description="Funcionários pendentes"
+                    className="border-orange-200 hover:border-orange-300"
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-orange-600 mb-2">
+                        {metrics.funcionariosPendentes}
+                      </div>
+                      <p className="text-sm text-muted-foreground">pendentes</p>
+                    </div>
+                  </DashboardCard>
+
+                  <DashboardCard
+                    title="Total CNPJs"
+                    icon={Building2}
+                    description="Clique para ver CNPJs"
+                    className="hover:scale-105 transition-transform cursor-pointer"
+                    onClick={() => setActiveTab('cnpjs')}
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-primary mb-2">
+                        {metrics.totalCnpjs}
+                      </div>
+                      <p className="text-sm text-muted-foreground">filiais</p>
+                    </div>
+                  </DashboardCard>
+                </div>
+              </div>
+
+              {/* Grid Principal - 2 Colunas */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Coluna Esquerda */}
+                <div className="space-y-8">
+                  {/* Análise Mensal */}
+                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+                    <DashboardCard
+                      title="Evolução Mensal"
+                      icon={TrendingUp}
+                      description="Crescimento de funcionários nos últimos meses"
+                    >
+                      <EvolucaoMensalChart dados={evolucaoMensalData} />
+                    </DashboardCard>
+                  </div>
+
+                  {/* Distribuição de Custos */}
                   <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                    <ClickableStatCard
-                      title="Total de Funcionários"
-                      value={metrics.totalFuncionarios}
-                      description="Clique para gerenciar funcionários"
-                      icon={Users}
-                      to="/empresa/funcionarios"
-                    />
-                  </div>
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
-                    <StatCard
-                      title="Funcionários Ativos"
-                      value={metrics.funcionariosAtivos}
-                      description="Funcionários com status ativo"
-                      icon={Users}
-                    />
-                  </div>
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
-                    <StatCard
-                      title="Pendências"
-                      value={metrics.funcionariosPendentes}
-                      description="Funcionários pendentes"
-                      icon={AlertTriangle}
-                      className="border-orange-200 hover:border-orange-300"
-                    />
-                  </div>
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '700ms', animationFillMode: 'forwards' }}>
-                    <ClickableStatCard
-                      title="Total CNPJs"
-                      value={metrics.totalCnpjs}
-                      description="Clique para ver CNPJs"
-                      icon={Building2}
-                      onClick={() => setActiveTab('cnpjs')}
-                    />
+                    <DashboardCard
+                      title="Distribuição de Custos por CNPJ"
+                      icon={BarChart3}
+                      description="Custos mensais distribuídos por filial"
+                    >
+                      <CustosPorCnpjChart dados={metrics.custosPorCnpj} />
+                    </DashboardCard>
                   </div>
                 </div>
-              </div>
 
-              {/* Seção de Gráficos Analíticos */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold tracking-tight">Análise Mensal</h2>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
-                    <EvolucaoMensalChart dados={evolucaoMensalData} />
-                  </div>
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '900ms', animationFillMode: 'forwards' }}>
-                    <DistribuicaoCargosChart dados={cargosData || []} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Seção de Custos */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
-                  <h2 className="text-2xl font-bold tracking-tight">Indicadores Financeiros</h2>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="lg:col-span-2 animate-fade-in opacity-0" style={{ animationDelay: '1000ms', animationFillMode: 'forwards' }}>
-                    <CustosPorCnpjChart dados={metrics.custosPorCnpj} />
+                {/* Coluna Direita */}
+                <div className="space-y-8">
+                  {/* Distribuição por Cargos */}
+                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
+                    <DashboardCard
+                      title="Distribuição por Cargos"
+                      icon={PieChart}
+                      description="Funcionários organizados por cargo"
+                    >
+                      <DistribuicaoCargosChart dados={cargosData || []} />
+                    </DashboardCard>
                   </div>
 
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '1100ms', animationFillMode: 'forwards' }}>
-                    {metrics.planoPrincipal ? (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-green-600" />
-                            Plano Principal
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-sm font-medium">Seguradora</h3>
-                              <p className="text-muted-foreground">{metrics.planoPrincipal.seguradora}</p>
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-medium">Empresa</h3>
-                              <p className="text-muted-foreground">{metrics.planoPrincipal.razao_social}</p>
-                            </div>
-                            <div className="pt-2 border-t">
-                              <h3 className="text-sm font-medium">Coberturas</h3>
-                              <div className="grid grid-cols-2 gap-2 mt-2">
-                                <div className="bg-muted/50 p-3 rounded-lg">
-                                  <p className="text-xs text-muted-foreground">Morte</p>
-                                  <p className="text-lg font-semibold">
-                                    {new Intl.NumberFormat('pt-BR', {
-                                      style: 'currency',
-                                      currency: 'BRL',
-                                    }).format(metrics.planoPrincipal.cobertura_morte)}
-                                  </p>
-                                </div>
-                                <div className="bg-muted/50 p-3 rounded-lg">
-                                  <p className="text-xs text-muted-foreground">Invalidez</p>
-                                  <p className="text-lg font-semibold">
-                                    {new Intl.NumberFormat('pt-BR', {
-                                      style: 'currency',
-                                      currency: 'BRL',
-                                    }).format(metrics.planoPrincipal.cobertura_invalidez)}
-                                  </p>
-                                </div>
+                  {/* Plano Principal */}
+                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
+                    <DashboardCard
+                      title="Plano Principal"
+                      icon={DollarSign}
+                      description="Informações do seu plano ativo"
+                    >
+                      {metrics.planoPrincipal ? (
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground">Seguradora</h4>
+                            <p className="text-lg font-semibold">{metrics.planoPrincipal.seguradora}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground">Empresa</h4>
+                            <p className="text-base">{metrics.planoPrincipal.razao_social}</p>
+                          </div>
+                          <div className="pt-2 border-t">
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3">Coberturas</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-muted/50 p-3 rounded-lg">
+                                <p className="text-xs text-muted-foreground">Morte</p>
+                                <p className="text-lg font-semibold">
+                                  {new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'BRL',
+                                  }).format(metrics.planoPrincipal.cobertura_morte)}
+                                </p>
+                              </div>
+                              <div className="bg-muted/50 p-3 rounded-lg">
+                                <p className="text-xs text-muted-foreground">Invalidez</p>
+                                <p className="text-lg font-semibold">
+                                  {new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'BRL',
+                                  }).format(metrics.planoPrincipal.cobertura_invalidez)}
+                                </p>
                               </div>
                             </div>
-                            <div className="pt-2 border-t">
-                              <h3 className="text-sm font-medium">Valor Mensal</h3>
-                              <p className="text-2xl font-bold text-green-600">
-                                {new Intl.NumberFormat('pt-BR', {
-                                  style: 'currency',
-                                  currency: 'BRL',
-                                }).format(metrics.planoPrincipal.valor_mensal)}
-                              </p>
-                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-muted-foreground" />
-                            Plano Principal
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="py-8 text-center">
-                            <p className="text-muted-foreground">
-                              Nenhum plano principal configurado
+                          <div className="pt-2 border-t">
+                            <h4 className="text-sm font-medium text-muted-foreground">Valor Mensal</h4>
+                            <p className="text-2xl font-bold text-green-600">
+                              {new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              }).format(metrics.planoPrincipal.valor_mensal)}
                             </p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    )}
+                        </div>
+                      ) : (
+                        <div className="py-8 text-center">
+                          <p className="text-muted-foreground">
+                            Nenhum plano principal configurado
+                          </p>
+                        </div>
+                      )}
+                    </DashboardCard>
                   </div>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="cnpjs" className="space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold tracking-tight">CNPJs da Empresa</h2>
-                </div>
+              {/* KPIs CNPJs - 3 Colunas */}
+              <div className="animate-fade-in opacity-0" style={{ animationFillMode: 'forwards' }}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <DashboardCard
+                    title="Total de CNPJs"
+                    icon={Building2}
+                    description="Filiais cadastradas"
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-primary mb-2">
+                        {metrics.totalCnpjs || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">filiais</p>
+                    </div>
+                  </DashboardCard>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
-                    <StatCard
-                      title="Total de CNPJs"
-                      value={metrics.totalCnpjs || 0}
-                      description="Filiais cadastradas"
-                      icon={Building2}
-                    />
-                  </div>
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-                    <StatCard
-                      title="Funcionários"
-                      value={metrics.totalFuncionarios || 0}
-                      description="Em todos os CNPJs"
-                      icon={Users}
-                    />
-                  </div>
-                  <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-                    <ClickableStatCard
-                      title="Relatório de Custos"
-                      value="Ver"
-                      description="Clique para ver custos por CNPJ"
-                      icon={DollarSign}
-                      to="/empresa/relatorios/custos"
-                    />
-                  </div>
+                  <DashboardCard
+                    title="Funcionários"
+                    icon={Users}
+                    description="Em todos os CNPJs"
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        {metrics.totalFuncionarios || 0}
+                      </div>
+                      <p className="text-sm text-muted-foreground">funcionários</p>
+                    </div>
+                  </DashboardCard>
+
+                  <DashboardCard
+                    title="Relatório de Custos"
+                    icon={DollarSign}
+                    description="Clique para ver custos"
+                    className="hover:scale-105 transition-transform cursor-pointer"
+                    onClick={() => window.location.href = '/empresa/relatorios/custos'}
+                  >
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-primary mb-2">Ver</div>
+                      <p className="text-sm text-muted-foreground">relatório</p>
+                    </div>
+                  </DashboardCard>
                 </div>
               </div>
 
-              <Card className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Funcionários por CNPJ
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              {/* Lista de CNPJs */}
+              <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+                <DashboardCard
+                  title="Funcionários por CNPJ"
+                  icon={Building2}
+                  description="Distribuição de funcionários por filial"
+                >
                   {!metrics.custosPorCnpj || metrics.custosPorCnpj.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -383,8 +375,8 @@ const EmpresaDashboard = () => {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </DashboardCard>
+              </div>
             </TabsContent>
           </Tabs>
         )}

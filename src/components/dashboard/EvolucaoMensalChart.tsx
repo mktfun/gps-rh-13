@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
@@ -52,67 +51,59 @@ const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
     return null;
   };
 
+  if (dados.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
+        <TrendingUp className="w-12 h-12 mb-4 opacity-50" />
+        <p>Nenhum dado disponível</p>
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-blue-600" />
-          Evolução Mensal
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {dados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
-            <TrendingUp className="w-12 h-12 mb-4 opacity-50" />
-            <p>Nenhum dado disponível</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={dados} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" opacity={0.5} />
-              <XAxis 
-                dataKey="mes" 
-                className="text-xs fill-gray-600"
-                tick={{ fontSize: 12 }}
-                axisLine={{ stroke: '#E5E7EB' }}
-                tickLine={{ stroke: '#E5E7EB' }}
-              />
-              <YAxis 
-                className="text-xs fill-gray-600"
-                tick={{ fontSize: 12 }}
-                axisLine={{ stroke: '#E5E7EB' }}
-                tickLine={{ stroke: '#E5E7EB' }}
-                yAxisId="left"
-              />
-              <YAxis 
-                className="text-xs fill-gray-600"
-                tick={{ fontSize: 12 }}
-                axisLine={{ stroke: '#E5E7EB' }}
-                tickLine={{ stroke: '#E5E7EB' }}
-                yAxisId="right"
-                orientation="right"
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar 
-                dataKey="funcionarios" 
-                fill="#3B82F6"
-                name="Funcionários"
-                radius={[4, 4, 0, 0]}
-                yAxisId="left"
-              />
-              <Bar 
-                dataKey="custo" 
-                fill="#10B981" 
-                name="Custo (R$)"
-                radius={[4, 4, 0, 0]}
-                yAxisId="right"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </CardContent>
-    </Card>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={dados} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" opacity={0.5} />
+        <XAxis 
+          dataKey="mes" 
+          className="text-xs fill-gray-600"
+          tick={{ fontSize: 12 }}
+          axisLine={{ stroke: '#E5E7EB' }}
+          tickLine={{ stroke: '#E5E7EB' }}
+        />
+        <YAxis 
+          className="text-xs fill-gray-600"
+          tick={{ fontSize: 12 }}
+          axisLine={{ stroke: '#E5E7EB' }}
+          tickLine={{ stroke: '#E5E7EB' }}
+          yAxisId="left"
+        />
+        <YAxis 
+          className="text-xs fill-gray-600"
+          tick={{ fontSize: 12 }}
+          axisLine={{ stroke: '#E5E7EB' }}
+          tickLine={{ stroke: '#E5E7EB' }}
+          yAxisId="right"
+          orientation="right"
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend />
+        <Bar 
+          dataKey="funcionarios" 
+          fill="#3B82F6"
+          name="Funcionários"
+          radius={[4, 4, 0, 0]}
+          yAxisId="left"
+        />
+        <Bar 
+          dataKey="custo" 
+          fill="#10B981" 
+          name="Custo (R$)"
+          radius={[4, 4, 0, 0]}
+          yAxisId="right"
+        />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 

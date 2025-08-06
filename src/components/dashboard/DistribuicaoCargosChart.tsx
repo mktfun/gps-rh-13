@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 
 interface DistribuicaoCargo {
@@ -47,52 +46,44 @@ const DistribuicaoCargosChart = ({ dados }: DistribuicaoCargosChartProps) => {
     return null;
   };
 
+  if (dados.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
+        <Users className="w-12 h-12 mb-4 opacity-50" />
+        <p>Nenhum dado disponível</p>
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Users className="h-5 w-5 text-purple-600" />
-          Distribuição por Cargos
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {dados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-gray-500">
-            <Users className="w-12 h-12 mb-4 opacity-50" />
-            <p>Nenhum dado disponível</p>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={dados}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                innerRadius={40}
-                outerRadius={80}
-                paddingAngle={2}
-                dataKey="count"
-                nameKey="cargo"
-                stroke="#FFFFFF"
-                strokeWidth={3}
-              >
-                {dados.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                layout="vertical" 
-                verticalAlign="middle" 
-                align="right" 
-                formatter={(value) => <span className="text-sm">{value}</span>}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        )}
-      </CardContent>
-    </Card>
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie
+          data={dados}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          innerRadius={40}
+          outerRadius={80}
+          paddingAngle={2}
+          dataKey="count"
+          nameKey="cargo"
+          stroke="#FFFFFF"
+          strokeWidth={3}
+        >
+          {dados.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip content={<CustomTooltip />} />
+        <Legend 
+          layout="vertical" 
+          verticalAlign="middle" 
+          align="right" 
+          formatter={(value) => <span className="text-sm">{value}</span>}
+        />
+      </PieChart>
+    </ResponsiveContainer>
   );
 };
 
