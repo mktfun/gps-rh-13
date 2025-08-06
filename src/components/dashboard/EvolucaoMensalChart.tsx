@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp, BarChart3, TrendingUpIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
 
 interface EvolucaoMensal {
   mes: string;
@@ -18,6 +17,8 @@ interface EvolucaoMensalChartProps {
 const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [visibleData, setVisibleData] = useState<string[]>(['funcionarios', 'custo']);
+
+  console.log('📊 [EvolucaoMensalChart] Dados recebidos:', dados);
 
   // Toggle visibility of data series
   const toggleDataVisibility = (dataKey: string) => {
@@ -52,7 +53,10 @@ const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
               </div>
               <span className="font-medium text-gray-900">
                 {entry.dataKey === 'custo' 
-                  ? formatCurrency(entry.value as number)
+                  ? new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    }).format(Number(entry.value))
                   : entry.value
                 }
               </span>
@@ -64,11 +68,12 @@ const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
     return null;
   };
 
-  if (dados.length === 0) {
+  if (!dados || dados.length === 0) {
+    console.log('⚠️ [EvolucaoMensalChart] Nenhum dado para exibir');
     return (
       <div className="flex flex-col items-center justify-center h-[350px] text-gray-500">
         <TrendingUp className="w-12 h-12 mb-4 opacity-50" />
-        <p>Nenhum dado disponível</p>
+        <p>Nenhum dado de evolução disponível</p>
       </div>
     );
   }
@@ -226,6 +231,15 @@ const EvolucaoMensalChart = ({ dados }: EvolucaoMensalChartProps) => {
           </LineChart>
         )}
       </ResponsiveContainer>
+
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+          <strong>Debug EvolucaoMensal:</strong>
+          <br />
+          {JSON.stringify(dados, null, 2)}
+        </div>
+      )}
     </div>
   );
 };
