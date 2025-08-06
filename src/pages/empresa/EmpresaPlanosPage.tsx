@@ -4,21 +4,51 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Users, DollarSign, Eye, ExternalLink } from 'lucide-react';
+import { 
+  Shield, 
+  Users, 
+  DollarSign, 
+  ExternalLink, 
+  MoreVertical, 
+  UserPlus, 
+  FileText, 
+  Settings, 
+  History 
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { useEmpresaPlanos } from '@/hooks/useEmpresaPlanos';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PlanoDetalhesModal } from '@/components/planos/PlanoDetalhesModal';
+import { AddFuncionarioModal } from '@/components/seguros-vida/AddFuncionarioModal';
+import { SolicitarAlteracaoCoberturasModal } from '@/components/empresa/SolicitarAlteracaoCoberturasModal';
+import { toast } from 'sonner';
 
 const EmpresaPlanosPage = () => {
   const { data: planos, isLoading, error } = useEmpresaPlanos();
-  const [planoSelecionadoId, setPlanoSelecionadoId] = useState<string | null>(null);
+  const [funcionarioModalPlanoId, setFuncionarioModalPlanoId] = useState<string | null>(null);
+  const [alteracaoCoberturasPlano, setAlteracaoCoberturasPlano] = useState<any | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  const handleExportarRelatorio = (plano: any) => {
+    // TODO: Implementar exportação de relatório do plano
+    toast.info(`Exportando relatório do plano ${plano.seguradora}...`);
+  };
+
+  const handleVisualizarHistorico = (plano: any) => {
+    // TODO: Implementar visualização de histórico
+    toast.info(`Visualizando histórico do plano ${plano.seguradora}...`);
   };
 
   if (isLoading) {
@@ -111,15 +141,37 @@ const EmpresaPlanosPage = () => {
                       </Link>
                     </Button>
                     
-                    {/* Botão secundário - modal rápido */}
-                    <Button 
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setPlanoSelecionadoId(plano.id)}
-                      className="shrink-0"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    {/* Botão de Ações Rápidas - substitui o botão Eye */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="icon"
+                          className="shrink-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem onClick={() => setFuncionarioModalPlanoId(plano.id)}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Adicionar Funcionário
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setAlteracaoCoberturasPlano(plano)}>
+                          <Settings className="mr-2 h-4 w-4" />
+                          Solicitar Alteração
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleExportarRelatorio(plano)}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Exportar Relatório
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleVisualizarHistorico(plano)}>
+                          <History className="mr-2 h-4 w-4" />
+                          Ver Histórico
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>
@@ -128,16 +180,29 @@ const EmpresaPlanosPage = () => {
         </div>
       )}
 
-      {/* Modal para visualização rápida (mantido como opção secundária) */}
-      <PlanoDetalhesModal
-        planoId={planoSelecionadoId}
-        open={!!planoSelecionadoId}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setPlanoSelecionadoId(null);
-          }
+      {/* Modal para adicionar funcionário */}
+      <AddFuncionarioModal
+        isOpen={!!funcionarioModalPlanoId}
+        onClose={() => setFuncionarioModalPlanoId(null)}
+        planoId={funcionarioModalPlanoId || undefined}
+        onFuncionarioCreated={() => {
+          setFuncionarioModalPlanoId(null);
+          toast.success('Funcionário adicionado com sucesso!');
         }}
       />
+
+      {/* Modal para solicitar alteração de coberturas */}
+      {alteracaoCoberturasPlano && (
+        <SolicitarAlteracaoCoberturasModal
+          plano={alteracaoCoberturasPlano}
+          open={!!alteracaoCoberturasPlano}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setAlteracaoCoberturasPlano(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
