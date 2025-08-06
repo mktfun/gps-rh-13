@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -140,6 +139,16 @@ function App() {
                       {/* NOVA ROTA: Detalhes da empresa - CNPJs com planos */}
                       <Route 
                         path="seguros-de-vida/:empresaId" 
+                        element={
+                          <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
+                            <SegurosVidaCnpjsPage />
+                          </Suspense>
+                        } 
+                      />
+                      
+                      {/* NOVA ROTA: Detalhes do CNPJ específico */}
+                      <Route 
+                        path="seguros-de-vida/empresa/:empresaId/cnpj/:cnpjId" 
                         element={
                           <Suspense fallback={<EnhancedTableSkeleton rows={6} columns={5} />}>
                             <SegurosVidaCnpjsPage />
