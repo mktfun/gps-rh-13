@@ -1,16 +1,23 @@
+
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
+import { useAuth } from '@/hooks/useAuth';
 
 export const SmartBreadcrumbs: React.FC = () => {
   const location = useLocation();
   const params = useParams();
+  const { empresaId: authEmpresaId } = useAuth();
   const { id: empresaId, funcionarioId, planoId, cnpjId } = params;
 
-  // Hooks condicionais baseados na rota
-  const { data: empresa } = useEmpresa(empresaId);
+  // Determinar qual empresaId usar baseado na rota
+  const isEmpresaRoute = location.pathname.startsWith('/empresa');
+  const effectiveEmpresaId = isEmpresaRoute ? authEmpresaId : empresaId;
+
+  // Hooks condicionais baseados na rota - só chamar quando necessário
+  const { data: empresa } = useEmpresa(effectiveEmpresaId);
   const { data: plano } = usePlanoDetalhes(planoId || cnpjId || '');
 
   const generateBreadcrumbs = () => {
@@ -74,10 +81,26 @@ export const SmartBreadcrumbs: React.FC = () => {
     }
 
     if (pathSegments.includes('plano') && planoId) {
-      breadcrumbs.push({
-        label: 'Detalhes do Plano',
-        href: `/corretora/plano/${planoId}`,
-      });
+      // Para rotas de corretora
+      if (pathSegments[0] === 'corretora') {
+        breadcrumbs.push({
+          label: 'Detalhes do Plano',
+          href: `/corretora/plano/${planoId}`,
+        });
+      } else if (pathSegments[0] === 'empresa') {
+        // Para rotas de empresa, adicionar breadcrumb de planos
+        breadcrumbs.push({
+          label: 'Planos',
+          href: '/empresa/planos',
+        });
+        
+        if (plano) {
+          breadcrumbs.push({
+            label: `${plano.seguradora}`,
+            href: `/empresa/planos/${planoId}`,
+          });
+        }
+      }
     }
 
     if (pathSegments.includes('ativar-funcionario') && funcionarioId) {
@@ -95,7 +118,7 @@ export const SmartBreadcrumbs: React.FC = () => {
     }
 
     // Breadcrumbs para planos da empresa
-    if (pathSegments.includes('planos') && pathSegments[0] === 'empresa') {
+    if (pathSegments.includes('planos') && pathSegments[0] === 'empresa' && !planoId) {
       breadcrumbs.push({
         label: 'Planos',
         href: '/empresa/planos',
