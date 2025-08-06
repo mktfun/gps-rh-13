@@ -8,25 +8,23 @@ interface DistribuicaoCargoData {
   count: number;
 }
 
-export const useEmpresaDistCargos = (timePeriod: number = 6) => {
+export const useEmpresaDistCargos = () => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dist-cargos', empresaId, timePeriod],
+    queryKey: ['empresa-dist-cargos', empresaId],
     queryFn: async (): Promise<DistribuicaoCargoData[]> => {
-      console.log('🔍 [useEmpresaDistCargos] Buscando distribuição de cargos da empresa:', empresaId, 'período:', timePeriod);
+      console.log('🔍 [useEmpresaDistCargos] Buscando distribuição de cargos da empresa:', empresaId);
 
       if (!empresaId) {
         console.error('❌ [useEmpresaDistCargos] Empresa ID não encontrado');
         throw new Error('Empresa ID não encontrado');
       }
 
+      // CORREÇÃO: Usar a função principal que já tem a lógica de distribuição de cargos
       const { data, error } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
-        { 
-          p_empresa_id: empresaId,
-          p_months: timePeriod 
-        }
+        { p_empresa_id: empresaId }
       );
 
       if (error) {
@@ -36,10 +34,12 @@ export const useEmpresaDistCargos = (timePeriod: number = 6) => {
 
       console.log('📊 [useEmpresaDistCargos] Dashboard data raw:', data);
 
+      // CORREÇÃO: Extrair os dados de distribuição de cargos da resposta principal
       const typedData = data as any;
       const distribuicaoCargos = typedData?.distribuicaoCargos || [];
       console.log('👥 [useEmpresaDistCargos] Distribuição de cargos extraída:', distribuicaoCargos);
 
+      // CORREÇÃO: Garantir que os dados estão no formato correto
       const dadosFormatados = Array.isArray(distribuicaoCargos) 
         ? distribuicaoCargos.map((item: any) => ({
             cargo: String(item.cargo || ''),
@@ -53,7 +53,7 @@ export const useEmpresaDistCargos = (timePeriod: number = 6) => {
     },
     enabled: !!empresaId,
     retry: 1,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
     refetchOnWindowFocus: false,
   });
 };

@@ -36,24 +36,22 @@ interface EmpresaDashboardMetrics {
   } | null;
 }
 
-export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
+export const useEmpresaDashboardMetrics = () => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId, timePeriod],
+    queryKey: ['empresa-dashboard-metrics', empresaId],
     queryFn: async (): Promise<EmpresaDashboardMetrics> => {
       if (!empresaId) {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 [useEmpresaDashboardMetrics] Buscando métricas para empresa:', empresaId, 'período:', timePeriod);
+      console.log('🔍 [useEmpresaDashboardMetrics] Buscando métricas para empresa:', empresaId);
 
+      // CORREÇÃO: Chamar a função SQL com o parâmetro correto
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
-        { 
-          p_empresa_id: empresaId,
-          p_months: timePeriod 
-        }
+        { p_empresa_id: empresaId }
       );
 
       if (dashboardError) {
@@ -63,8 +61,10 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
 
       console.log('📊 [useEmpresaDashboardMetrics] Dados retornados da SQL:', dashboardData);
 
+      // CORREÇÃO: Processar corretamente o JSON retornado pela função
       const typedData = dashboardData as any;
 
+      // CORREÇÃO: Processar evolução mensal com a nova estrutura
       const evolucaoMensal = Array.isArray(typedData?.evolucaoMensal) 
         ? typedData.evolucaoMensal.map((item: any) => ({
             mes: String(item.mes || ''),
@@ -73,6 +73,9 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
           }))
         : [];
 
+      console.log('📈 [useEmpresaDashboardMetrics] Evolução mensal processada:', evolucaoMensal);
+
+      // CORREÇÃO: Processar custos por CNPJ
       const custosPorCnpj = Array.isArray(typedData?.custosPorCnpj) 
         ? typedData.custosPorCnpj.map((item: any) => ({
             cnpj: String(item.cnpj || ''),
@@ -82,6 +85,9 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
           }))
         : [];
 
+      console.log('💰 [useEmpresaDashboardMetrics] Custos por CNPJ processados:', custosPorCnpj);
+
+      // CORREÇÃO: Processar distribuição de cargos
       const distribuicaoCargos = Array.isArray(typedData?.distribuicaoCargos) 
         ? typedData.distribuicaoCargos.map((item: any) => ({
             cargo: String(item.cargo || ''),
@@ -89,6 +95,7 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
           }))
         : [];
 
+      // CORREÇÃO: Processar plano principal
       const planoPrincipal = typedData?.planoPrincipal ? {
         id: String(typedData.planoPrincipal.id || ''),
         seguradora: String(typedData.planoPrincipal.seguradora || ''),
@@ -117,7 +124,7 @@ export const useEmpresaDashboardMetrics = (timePeriod: number = 6) => {
       return resultado;
     },
     enabled: !!empresaId,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
   });
 };

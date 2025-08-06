@@ -9,25 +9,23 @@ interface EvolucaoMensalData {
   custo: number;
 }
 
-export const useEmpresaEvolucaoMensal = (timePeriod: number = 6) => {
+export const useEmpresaEvolucaoMensal = () => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-evolucao-mensal', empresaId, timePeriod],
+    queryKey: ['empresa-evolucao-mensal', empresaId],
     queryFn: async (): Promise<EvolucaoMensalData[]> => {
-      console.log('🔍 [useEmpresaEvolucaoMensal] Buscando evolução mensal da empresa:', empresaId, 'período:', timePeriod);
+      console.log('🔍 [useEmpresaEvolucaoMensal] Buscando evolução mensal da empresa:', empresaId);
 
       if (!empresaId) {
         console.error('❌ [useEmpresaEvolucaoMensal] Empresa ID não encontrado');
         throw new Error('Empresa ID não encontrado');
       }
 
+      // CORREÇÃO: Usar a função principal que já tem a lógica de evolução mensal corrigida
       const { data, error } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
-        { 
-          p_empresa_id: empresaId,
-          p_months: timePeriod 
-        }
+        { p_empresa_id: empresaId }
       );
 
       if (error) {
@@ -37,10 +35,12 @@ export const useEmpresaEvolucaoMensal = (timePeriod: number = 6) => {
 
       console.log('📊 [useEmpresaEvolucaoMensal] Dashboard data raw:', data);
 
+      // CORREÇÃO: Extrair os dados de evolução mensal da resposta principal
       const typedData = data as any;
       const evolucaoMensal = typedData?.evolucaoMensal || [];
       console.log('📈 [useEmpresaEvolucaoMensal] Evolução mensal extraída:', evolucaoMensal);
 
+      // CORREÇÃO: Garantir que os dados estão no formato correto
       const dadosFormatados = Array.isArray(evolucaoMensal) 
         ? evolucaoMensal.map((item: any) => ({
             mes: String(item.mes || ''),
@@ -55,7 +55,7 @@ export const useEmpresaEvolucaoMensal = (timePeriod: number = 6) => {
     },
     enabled: !!empresaId,
     retry: 1,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
     refetchOnWindowFocus: false,
   });
 };
