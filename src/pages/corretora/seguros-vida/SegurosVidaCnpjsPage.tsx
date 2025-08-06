@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Search, Building2, Shield, Grid3X3, List, MapPin } from 'lucide-react';
@@ -7,18 +8,20 @@ import { Button } from '@/components/ui/button';
 import { useCnpjsComPlanos } from '@/hooks/useCnpjsComPlanos';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
-import { useNavigate } from 'react-router-dom';
 import { CnpjsCardView } from '@/components/seguros-vida/CnpjsCardView';
 import { CnpjsListView } from '@/components/seguros-vida/CnpjsListView';
 import { BulkImportModal } from '@/components/import/BulkImportModal';
+import { PlanoDetalhesModal } from '@/components/planos/PlanoDetalhesModal';
 
 const SegurosVidaCnpjsPage = () => {
   const { empresaId } = useParams<{ empresaId: string }>();
-  const navigate = useNavigate();
   const [search, setSearch] = React.useState('');
   const [viewMode, setViewMode] = React.useState<'cards' | 'list'>('cards');
   const [selectedCnpj, setSelectedCnpj] = React.useState<any>(null);
   const [showImportModal, setShowImportModal] = React.useState(false);
+  
+  // Estado para controlar o modal de detalhes do plano
+  const [planoSelecionadoId, setPlanoSelecionadoId] = React.useState<string | null>(null);
   
   const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId);
   const { data: cnpjs, isLoading: isLoadingCnpjs } = useCnpjsComPlanos({ 
@@ -27,9 +30,8 @@ const SegurosVidaCnpjsPage = () => {
   });
 
   const handleCnpjClick = (cnpj: any) => {
-    console.log('🔗 Navegando para página de detalhes do plano:', cnpj.id);
-    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/plano/${cnpj.id}`);
-    navigate(`/corretora/seguros-de-vida/plano/${cnpj.id}`);
+    console.log('🔗 Abrindo modal de detalhes do plano:', cnpj.id);
+    setPlanoSelecionadoId(cnpj.id);
   };
 
   const handleImportClick = (cnpj: any) => {
@@ -187,6 +189,17 @@ const SegurosVidaCnpjsPage = () => {
           }}
         />
       )}
+
+      {/* Modal de Detalhes do Plano */}
+      <PlanoDetalhesModal
+        planoId={planoSelecionadoId}
+        open={!!planoSelecionadoId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setPlanoSelecionadoId(null);
+          }
+        }}
+      />
     </div>
   );
 };
