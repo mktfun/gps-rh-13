@@ -10,7 +10,6 @@ import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import { CoberturasTab } from '@/components/planos/CoberturasTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
@@ -81,18 +80,8 @@ const PlanoDetalhesPage: React.FC = () => {
     );
   }
 
-  const breadcrumbItems = [
-    { label: 'Planos', href: '/empresa/planos', icon: Shield },
-    { label: `Detalhes: ${plano.seguradora}` }
-  ];
-
   return (
     <div className="container mx-auto py-6">
-      {/* Breadcrumbs */}
-      <div className="mb-6">
-        <Breadcrumbs items={breadcrumbItems} />
-      </div>
-
       {/* Layout Principal - Duas Colunas */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
         {/* Coluna Esquerda - Fixa/Sticky (30%) */}
