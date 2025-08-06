@@ -3,17 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-// Este é o "contrato" que diz ao TypeScript como são os dados de DENTRO do objeto retornado pela RPC
 interface EvolucaoMensalData {
   mes: string;
   funcionarios: number;
   custo: number;
-}
-
-// Este é o "contrato" para a RESPOSTA COMPLETA da sua função RPC
-interface DashboardMetricsResponse {
-  evolucaoMensal: EvolucaoMensalData[];
-  // Adicione aqui outras propriedades que sua RPC retorna, se houver
 }
 
 export const useEmpresaEvolucaoMensal = () => {
@@ -29,7 +22,7 @@ export const useEmpresaEvolucaoMensal = () => {
         throw new Error('Empresa ID não encontrado');
       }
 
-      // CORREÇÃO: Remover genérico da chamada RPC para evitar erro de tipo
+      // CORREÇÃO: Usar a função principal que já tem a lógica de evolução mensal corrigida
       const { data, error } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { p_empresa_id: empresaId }
@@ -42,8 +35,8 @@ export const useEmpresaEvolucaoMensal = () => {
 
       console.log('📊 [useEmpresaEvolucaoMensal] Dashboard data raw:', data);
 
-      // CAST MANUAL PARA O TIPO CORRETO - SOLUÇÃO PROFISSIONAL
-      const typedData = data as unknown as DashboardMetricsResponse;
+      // CORREÇÃO: Extrair os dados de evolução mensal da resposta principal
+      const typedData = data as any;
       const evolucaoMensal = typedData?.evolucaoMensal || [];
       console.log('📈 [useEmpresaEvolucaoMensal] Evolução mensal extraída:', evolucaoMensal);
 
