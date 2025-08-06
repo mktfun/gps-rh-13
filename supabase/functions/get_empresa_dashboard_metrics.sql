@@ -48,13 +48,13 @@ BEGIN
     WHERE c.empresa_id = p_empresa_id
     AND c.status = 'ativo';
 
-    -- Buscar custos por CNPJ
+    -- CORREÇÃO: Buscar custos por CNPJ usando alias correto
     SELECT json_agg(
         json_build_object(
             'cnpj', c.cnpj,
             'razao_social', c.razao_social,
-            'valor_mensal', COALESCE(dp.valor_mensal, 0),
-            'funcionarios_count', COALESCE(funcionarios_count, 0)
+            'valor_mensal', COALESCE(c.valor_mensal, 0),
+            'funcionarios_count', COALESCE(c.funcionarios_count, 0)
         )
     ) INTO custos_por_cnpj
     FROM (
@@ -72,35 +72,34 @@ BEGIN
         GROUP BY c.id, c.cnpj, c.razao_social, dp.valor_mensal
     ) c;
 
-    -- Evolução mensal dos últimos 6 meses (CORRIGIDA)
+    -- CORREÇÃO: Evolução mensal dos últimos 6 meses
     SELECT json_agg(
         json_build_object(
             'mes', TO_CHAR(mes_ano, 'Mon YY'),
-            'funcionarios', COALESCE(funcionarios, 0),
-            'custo', COALESCE(custo, 0)
+            'funcionarios', COALESCE(funcionarios_mes, 0),
+            'custo', COALESCE(custo_mes, 0)
         ) ORDER BY mes_ano
     ) INTO evolucao_mensal
     FROM (
         SELECT 
-            DATE_TRUNC('month', meses.mes) as mes_ano,
-            COUNT(DISTINCT CASE WHEN f.created_at >= DATE_TRUNC('month', meses.mes) 
-                                AND f.created_at < DATE_TRUNC('month', meses.mes) + INTERVAL '1 month' 
-                                THEN f.id END) as funcionarios,
-            COALESCE(SUM(CASE WHEN f.created_at >= DATE_TRUNC('month', meses.mes) 
-                             AND f.created_at < DATE_TRUNC('month', meses.mes) + INTERVAL '1 month' 
-                             THEN COALESCE(dp.valor_mensal, 0) ELSE 0 END), 0) as custo
+            meses.mes_ano,
+            COUNT(DISTINCT f.id) as funcionarios_mes,
+            COALESCE(SUM(DISTINCT dp.valor_mensal), 0) as custo_mes
         FROM (
             SELECT generate_series(
                 DATE_TRUNC('month', CURRENT_DATE - INTERVAL '5 months'),
                 DATE_TRUNC('month', CURRENT_DATE),
                 INTERVAL '1 month'
-            ) as mes
+            ) as mes_ano
         ) meses
-        CROSS JOIN cnpjs c
-        LEFT JOIN funcionarios f ON f.cnpj_id = c.id
+        LEFT JOIN cnpjs c ON c.empresa_id = p_empresa_id AND c.status = 'ativo'
+        LEFT JOIN funcionarios f ON f.cnpj_id = c.id 
+            AND f.status IN ('ativo', 'pendente')
+            AND DATE_TRUNC('month', f.created_at) <= meses.mes_ano
         LEFT JOIN dados_planos dp ON dp.cnpj_id = c.id
-        WHERE c.empresa_id = p_empresa_id
-        GROUP BY DATE_TRUNC('month', meses.mes)
+            AND DATE_TRUNC('month', dp.created_at) <= meses.mes_ano
+        GROUP BY meses.mes_ano
+        ORDER BY meses.mes_ano
     ) monthly_stats;
 
     -- Distribuição por cargos
@@ -123,7 +122,7 @@ BEGIN
         LIMIT 5
     ) cargo_counts;
 
-    -- Buscar plano principal (maior valor ou mais recente) - CORRIGIDO
+    -- Buscar plano principal
     SELECT json_build_object(
         'seguradora', dp.seguradora,
         'valor_mensal', dp.valor_mensal,
