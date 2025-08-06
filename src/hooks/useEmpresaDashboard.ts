@@ -9,43 +9,28 @@ interface EmpresaDashboardData {
 }
 
 export const useEmpresaDashboard = () => {
-  const { user } = useAuth();
+  const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard', user?.id],
+    queryKey: ['empresa-dashboard-basic', empresaId],
     queryFn: async (): Promise<EmpresaDashboardData> => {
-      console.log('🔍 Carregando dados do dashboard da empresa...');
+      console.log('🔍 [useEmpresaDashboard] Carregando dados básicos...');
 
-      if (!user?.id) {
-        console.error('❌ Usuário não autenticado');
-        throw new Error('Usuário não autenticado');
+      if (!empresaId) {
+        console.error('❌ Empresa ID não encontrado');
+        throw new Error('Empresa ID não encontrado');
       }
 
-      const { data, error } = await supabase.rpc('get_empresa_dashboard_metrics');
-
-      if (error) {
-        console.error('❌ Erro ao buscar métricas da empresa:', error);
-        throw new Error(`Erro ao buscar métricas: ${error.message}`);
-      }
-
-      if (!data) {
-        console.error('❌ Nenhum dado retornado');
-        throw new Error('Nenhum dado retornado');
-      }
-
-      console.log('✅ Dados do dashboard carregados:', data);
-
-      // Safe type assertion using unknown first
-      const typedData = data as unknown as EmpresaDashboardData;
-
+      // Por enquanto, vamos retornar dados mockados até termos uma função específica
+      // Este hook deve ser usado apenas para dados que não estão na função principal
       return {
-        solicitacoes_pendentes_count: typedData.solicitacoes_pendentes_count || 0,
-        funcionarios_travados_count: typedData.funcionarios_travados_count || 0,
+        solicitacoes_pendentes_count: 0,
+        funcionarios_travados_count: 0,
       };
     },
-    enabled: !!user?.id,
+    enabled: !!empresaId,
     retry: 1,
-    staleTime: 2 * 60 * 1000, // 2 minutos de cache
-    refetchOnWindowFocus: true,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 };

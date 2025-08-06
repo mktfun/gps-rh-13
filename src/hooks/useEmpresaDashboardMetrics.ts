@@ -34,74 +34,47 @@ interface EmpresaDashboardMetrics {
   } | null;
 }
 
-export const useEmpresaDashboardMetrics = () => {
+export const useEmpresaDashboardMetrics = (months: number = 6) => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId],
+    queryKey: ['empresa-dashboard-metrics', empresaId, months],
     queryFn: async (): Promise<EmpresaDashboardMetrics> => {
       if (!empresaId) {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 [useEmpresaDashboardMetrics] Buscando métricas para empresa:', empresaId);
+      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com parâmetros:', { empresaId, months });
 
+      // CHAMADA CORRETA: usando a nova função com 2 parâmetros
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
-        { p_empresa_id: empresaId }
+        { 
+          p_empresa_id: empresaId,
+          p_months: months 
+        }
       );
 
       if (dashboardError) {
-        console.error('❌ [useEmpresaDashboardMetrics] Erro ao buscar dados do dashboard:', dashboardError);
+        console.error('❌ [useEmpresaDashboardMetrics] Erro ao chamar função:', dashboardError);
         throw dashboardError;
       }
 
       if (!dashboardData) {
-        console.error('❌ [useEmpresaDashboardMetrics] Nenhum dado retornado');
-        throw new Error('Nenhum dado retornado');
+        console.error('❌ [useEmpresaDashboardMetrics] Dados nulos retornados');
+        throw new Error('Nenhum dado retornado da função');
       }
 
-      console.log('📊 [useEmpresaDashboardMetrics] Dados retornados da SQL:', dashboardData);
+      console.log('📊 [useEmpresaDashboardMetrics] Dados brutos da SQL:', dashboardData);
+
+      // Verificar se há erro na resposta
+      if (dashboardData.error) {
+        console.error('❌ [useEmpresaDashboardMetrics] Erro retornado pela função:', dashboardData.error);
+        throw new Error(`Erro na função SQL: ${dashboardData.error}`);
+      }
 
       // Processar dados com segurança
       const typedData = dashboardData as any;
-
-      // Processar evolução mensal
-      const evolucaoMensal = Array.isArray(typedData?.evolucaoMensal) 
-        ? typedData.evolucaoMensal.map((item: any) => ({
-            mes: String(item.mes || ''),
-            funcionarios: Number(item.funcionarios || 0),
-            custo: Number(item.custo || 0)
-          }))
-        : [];
-
-      // Processar custos por CNPJ
-      const custosPorCnpj = Array.isArray(typedData?.custosPorCnpj) 
-        ? typedData.custosPorCnpj.map((item: any) => ({
-            cnpj: String(item.cnpj || ''),
-            razao_social: String(item.razao_social || ''),
-            valor_mensal: Number(item.valor_mensal || 0),
-            funcionarios_count: Number(item.funcionarios_count || 0)
-          }))
-        : [];
-
-      // Processar distribuição de cargos
-      const distribuicaoCargos = Array.isArray(typedData?.distribuicaoCargos) 
-        ? typedData.distribuicaoCargos.map((item: any) => ({
-            cargo: String(item.cargo || ''),
-            count: Number(item.count || 0)
-          }))
-        : [];
-
-      // Processar plano principal
-      const planoPrincipal = typedData?.planoPrincipal ? {
-        seguradora: String(typedData.planoPrincipal.seguradora || ''),
-        valor_mensal: Number(typedData.planoPrincipal.valor_mensal || 0),
-        cobertura_morte: Number(typedData.planoPrincipal.cobertura_morte || 0),
-        cobertura_morte_acidental: Number(typedData.planoPrincipal.cobertura_morte_acidental || 0),
-        cobertura_invalidez_acidente: Number(typedData.planoPrincipal.cobertura_invalidez_acidente || 0),
-        razao_social: String(typedData.planoPrincipal.razao_social || ''),
-      } : null;
 
       const resultado = {
         custoMensalTotal: Number(typedData?.custoMensalTotal || 0),
@@ -109,10 +82,35 @@ export const useEmpresaDashboardMetrics = () => {
         totalFuncionarios: Number(typedData?.totalFuncionarios || 0),
         funcionariosAtivos: Number(typedData?.funcionariosAtivos || 0),
         funcionariosPendentes: Number(typedData?.funcionariosPendentes || 0),
-        custosPorCnpj,
-        evolucaoMensal,
-        distribuicaoCargos,
-        planoPrincipal,
+        custosPorCnpj: Array.isArray(typedData?.custosPorCnpj) 
+          ? typedData.custosPorCnpj.map((item: any) => ({
+              cnpj: String(item.cnpj || ''),
+              razao_social: String(item.razao_social || ''),
+              valor_mensal: Number(item.valor_mensal || 0),
+              funcionarios_count: Number(item.funcionarios_count || 0)
+            }))
+          : [],
+        evolucaoMensal: Array.isArray(typedData?.evolucaoMensal) 
+          ? typedData.evolucaoMensal.map((item: any) => ({
+              mes: String(item.mes || ''),
+              funcionarios: Number(item.funcionarios || 0),
+              custo: Number(item.custo || 0)
+            }))
+          : [],
+        distribuicaoCargos: Array.isArray(typedData?.distribuicaoCargos) 
+          ? typedData.distribuicaoCargos.map((item: any) => ({
+              cargo: String(item.cargo || ''),
+              count: Number(item.count || 0)
+            }))
+          : [],
+        planoPrincipal: typedData?.planoPrincipal ? {
+          seguradora: String(typedData.planoPrincipal.seguradora || ''),
+          valor_mensal: Number(typedData.planoPrincipal.valor_mensal || 0),
+          cobertura_morte: Number(typedData.planoPrincipal.cobertura_morte || 0),
+          cobertura_morte_acidental: Number(typedData.planoPrincipal.cobertura_morte_acidental || 0),
+          cobertura_invalidez_acidente: Number(typedData.planoPrincipal.cobertura_invalidez_acidente || 0),
+          razao_social: String(typedData.planoPrincipal.razao_social || ''),
+        } : null,
       };
 
       console.log('✅ [useEmpresaDashboardMetrics] Resultado final processado:', resultado);

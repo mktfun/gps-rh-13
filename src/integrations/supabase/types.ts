@@ -732,7 +732,6 @@ export type Database = {
       get_empresa_dashboard_metrics: {
         Args:
           | Record<PropertyKey, never>
-          | { p_empresa_id: string }
           | { p_empresa_id: string; p_months?: number }
         Returns: Json
       }
