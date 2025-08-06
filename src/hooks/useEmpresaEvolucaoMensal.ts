@@ -29,8 +29,8 @@ export const useEmpresaEvolucaoMensal = () => {
         throw new Error('Empresa ID não encontrado');
       }
 
-      // AGORA VOCÊ USA O CONTRATO, PASSANDO ELE COMO UM GENÉRICO PARA A FUNÇÃO RPC
-      const { data, error } = await supabase.rpc<DashboardMetricsResponse>(
+      // CORREÇÃO: Remover genérico da chamada RPC para evitar erro de tipo
+      const { data, error } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { p_empresa_id: empresaId }
       );
@@ -42,9 +42,9 @@ export const useEmpresaEvolucaoMensal = () => {
 
       console.log('📊 [useEmpresaEvolucaoMensal] Dashboard data raw:', data);
 
-      // COM O TIPO CORRETO, O TYPESCRIPT SABE QUE 'data.evolucaoMensal' EXISTE E É UM ARRAY.
-      // CHEGA DE ERROS.
-      const evolucaoMensal = data?.evolucaoMensal || [];
+      // CAST MANUAL PARA O TIPO CORRETO - SOLUÇÃO PROFISSIONAL
+      const typedData = data as DashboardMetricsResponse;
+      const evolucaoMensal = typedData?.evolucaoMensal || [];
       console.log('📈 [useEmpresaEvolucaoMensal] Evolução mensal extraída:', evolucaoMensal);
 
       // CORREÇÃO: Garantir que os dados estão no formato correto
