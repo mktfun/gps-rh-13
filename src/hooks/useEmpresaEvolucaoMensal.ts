@@ -43,7 +43,7 @@ export const useEmpresaEvolucaoMensal = () => {
       console.log('📊 [useEmpresaEvolucaoMensal] Dashboard data raw:', data);
 
       // CAST MANUAL PARA O TIPO CORRETO - SOLUÇÃO PROFISSIONAL
-      const typedData = data as DashboardMetricsResponse;
+      const typedData = data as unknown as DashboardMetricsResponse;
       const evolucaoMensal = typedData?.evolucaoMensal || [];
       console.log('📈 [useEmpresaEvolucaoMensal] Evolução mensal extraída:', evolucaoMensal);
 
