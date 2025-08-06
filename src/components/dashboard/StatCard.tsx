@@ -9,9 +9,10 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   variant?: 'default' | 'success' | 'warning' | 'destructive';
+  description?: string;
 }
 
-const StatCard = ({ title, value, icon: Icon, variant = 'default' }: StatCardProps) => {
+const StatCard = ({ title, value, icon: Icon, variant = 'default', description }: StatCardProps) => {
   const variantStyles = {
     default: "text-blue-600",
     success: "text-green-600",
@@ -29,6 +30,11 @@ const StatCard = ({ title, value, icon: Icon, variant = 'default' }: StatCardPro
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {description}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
