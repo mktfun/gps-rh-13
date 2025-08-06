@@ -875,6 +875,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_planos_por_empresa: {
+        Args: { p_empresa_id: string }
+        Returns: {
+          id: string
+          seguradora: string
+          valor_mensal: number
+          cobertura_morte: number
+          cobertura_morte_acidental: number
+          cobertura_invalidez_acidente: number
+          cobertura_auxilio_funeral: number
+          cnpj_id: string
+          cnpj_numero: string
+          cnpj_razao_social: string
+        }[]
+      }
       get_pulse_financeiro_corretor: {
         Args: Record<PropertyKey, never>
         Returns: Json
