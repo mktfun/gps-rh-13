@@ -833,6 +833,36 @@ export type Database = {
         Args: { p_cnpj_id: string }
         Returns: number
       }
+      get_funcionarios_empresa_completo: {
+        Args: {
+          p_empresa_id: string
+          p_search_term?: string
+          p_status_filter?: string
+          p_page_size?: number
+          p_page_num?: number
+        }
+        Returns: {
+          funcionario_id: string
+          nome: string
+          cpf: string
+          cargo: string
+          salario: number
+          status: string
+          idade: number
+          data_nascimento: string
+          estado_civil: string
+          email: string
+          created_at: string
+          updated_at: string
+          cnpj_id: string
+          cnpj_razao_social: string
+          cnpj_numero: string
+          plano_seguradora: string
+          plano_valor_mensal: number
+          plano_cobertura_morte: number
+          total_count: number
+        }[]
+      }
       get_my_empresa_id: {
         Args: Record<PropertyKey, never>
         Returns: string

@@ -6,8 +6,6 @@ import { Database } from '@/integrations/supabase/types';
 type Empresa = Database['public']['Tables']['empresas']['Row'];
 
 export const useEmpresa = (empresaId: string | undefined) => {
-  const queryClient = useQueryClient();
-
   return useQuery({
     queryKey: ['empresa', empresaId],
     queryFn: async () => {
@@ -30,8 +28,6 @@ export const useEmpresa = (empresaId: string | undefined) => {
 
       if (error) {
         console.error('❌ [useEmpresa] Erro na query:', error);
-        // Invalidar cache em caso de erro para forçar nova tentativa
-        queryClient.invalidateQueries({ queryKey: ['empresa', empresaId] });
         throw error;
       }
       
@@ -44,14 +40,14 @@ export const useEmpresa = (empresaId: string | undefined) => {
       return data;
     },
     enabled: !!empresaId,
-    retry: 3, // Tentar 3 vezes em caso de erro
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Backoff exponencial
-    staleTime: 0, // Dados sempre considerados stale para forçar refetch
-    gcTime: 0, // Não manter cache por muito tempo
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
   });
 };
 
-// Hook utilitário para invalidar o cache da empresa
+// Hook utilitário para invalidar o cache da empresa (uso manual apenas)
 export const useInvalidateEmpresa = () => {
   const queryClient = useQueryClient();
   
