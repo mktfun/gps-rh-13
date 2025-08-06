@@ -99,7 +99,6 @@ export const EmpresaDashboardWithFilter = () => {
         <div className="lg:col-span-2">
           <CustoTotalCard 
             valor={metrics?.custoMensalTotal || 0}
-            periodo={`${timePeriod} meses`}
           />
         </div>
         
