@@ -33,20 +33,23 @@ export const CostsDistributionChart = ({ data }: CostsDistributionChartProps) =>
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(value);
+    }).format(value || 0);
   };
 
   const chartData = data.map((item, index) => ({
     name: item.razao_social,
-    value: item.valor_mensal,
-    funcionarios: item.funcionarios_ativos,
-    percentual: item.percentual_total,
+    value: item.valor_mensal || 0,
+    funcionarios: item.funcionarios_ativos || 0,
+    percentual: item.percentual_total || 0,
     fill: COLORS[index % COLORS.length]
   }));
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      // Garantir que percentual seja um número válido
+      const safePercentual = data.percentual || 0;
+      
       return (
         <div className="bg-background border rounded-lg p-3 shadow-lg">
           <p className="font-medium">{data.name}</p>
@@ -57,11 +60,11 @@ export const CostsDistributionChart = ({ data }: CostsDistributionChartProps) =>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Funcionários:</span>
-              <span className="font-semibold">{data.funcionarios}</span>
+              <span className="font-semibold">{data.funcionarios || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Percentual:</span>
-              <span className="font-semibold">{data.percentual.toFixed(1)}%</span>
+              <span className="font-semibold">{safePercentual.toFixed(1)}%</span>
             </div>
           </div>
         </div>
