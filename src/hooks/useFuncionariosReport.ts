@@ -67,6 +67,15 @@ interface UseFuncionariosReportParams {
   searchTerm?: string;
 }
 
+interface RpcParams {
+  p_empresa_id: string;
+  p_start_date?: string;
+  p_end_date?: string;
+  p_status_filter?: string;
+  p_cnpj_filter?: string;
+  p_search_term?: string;
+}
+
 export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) => {
   const { data: empresaId } = useEmpresaId();
   
@@ -98,8 +107,8 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         searchTerm: params.searchTerm
       });
 
-      // Construir payload limpo sem campos undefined
-      const rpcPayload: Record<string, any> = {
+      // Construir payload com tipo específico garantindo p_empresa_id obrigatório
+      const rpcParams: RpcParams = {
         p_empresa_id: empresaId,
         p_start_date: format(startDate, 'yyyy-MM-dd'),
         p_end_date: format(endDate, 'yyyy-MM-dd'),
@@ -107,20 +116,20 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
 
       // Só adicionar parâmetros opcionais se eles tiverem valores válidos
       if (params.statusFilter && params.statusFilter !== 'all' && params.statusFilter.trim()) {
-        rpcPayload.p_status_filter = params.statusFilter;
+        rpcParams.p_status_filter = params.statusFilter;
       }
 
       if (params.cnpjFilter && params.cnpjFilter !== 'all' && params.cnpjFilter.trim()) {
-        rpcPayload.p_cnpj_filter = params.cnpjFilter;
+        rpcParams.p_cnpj_filter = params.cnpjFilter;
       }
 
       if (params.searchTerm && params.searchTerm.trim()) {
-        rpcPayload.p_search_term = params.searchTerm;
+        rpcParams.p_search_term = params.searchTerm;
       }
 
-      console.log('🔍 [useFuncionariosReport] Payload limpo enviado:', rpcPayload);
+      console.log('🔍 [useFuncionariosReport] Payload tipado enviado:', rpcParams);
 
-      const { data, error } = await supabase.rpc('get_funcionarios_report', rpcPayload);
+      const { data, error } = await supabase.rpc('get_funcionarios_report', rpcParams);
 
       if (error) {
         console.error('❌ [useFuncionariosReport] Erro ao buscar relatório:', error);
@@ -132,7 +141,6 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
       // Safely parse the JSON data
       const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
       
-      // Transform the data to ensure it matches our interface
       const transformedData: FuncionariosReportData = {
         kpis: parsedData?.kpis || {
           total_funcionarios: 0,

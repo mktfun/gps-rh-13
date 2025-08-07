@@ -1,204 +1,81 @@
 
--- Esta função corrige o erro de GROUP BY na evolução temporal
-CREATE OR REPLACE FUNCTION public.get_funcionarios_report(
-    p_empresa_id uuid, 
-    p_start_date date DEFAULT NULL::date, 
-    p_end_date date DEFAULT NULL::date, 
-    p_status_filter text DEFAULT NULL::text, 
-    p_cnpj_filter uuid DEFAULT NULL::uuid, 
-    p_search_term text DEFAULT NULL::text
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $function$
-DECLARE
-    v_result jsonb;
-    v_total_funcionarios int := 0;
-    v_funcionarios_ativos int := 0;
-    v_funcionarios_inativos int := 0;
-    v_taxa_cobertura numeric := 0;
-BEGIN
-    -- Definir período padrão se não fornecido
-    IF p_start_date IS NULL THEN
-        p_start_date := date_trunc('year', CURRENT_DATE);
-    END IF;
-    
-    IF p_end_date IS NULL THEN
-        p_end_date := CURRENT_DATE;
-    END IF;
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-    -- KPIs básicos com cast explícito para comparação enum/text
-    SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN f.status::text = 'ativo' THEN 1 END) as ativos,
-        COUNT(CASE WHEN f.status::text != 'ativo' THEN 1 END) as inativos
-    INTO v_total_funcionarios, v_funcionarios_ativos, v_funcionarios_inativos
-    FROM funcionarios f
-    INNER JOIN cnpjs c ON f.cnpj_id = c.id
-    WHERE c.empresa_id = p_empresa_id
-    AND (p_cnpj_filter IS NULL OR c.id = p_cnpj_filter)
-    AND (p_status_filter IS NULL OR f.status::text = p_status_filter)
-    AND (p_search_term IS NULL OR f.nome ILIKE '%' || p_search_term || '%' OR f.cpf ILIKE '%' || p_search_term || '%');
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
-    -- Taxa de cobertura (funcionários ativos com plano)
-    IF v_total_funcionarios > 0 THEN
-        v_taxa_cobertura := (v_funcionarios_ativos::numeric / v_total_funcionarios::numeric) * 100;
-    END IF;
+interface FuncionariosReportParams {
+  p_empresa_id: string;
+  p_start_date?: string;
+  p_end_date?: string;
+  p_status_filter?: string;
+  p_cnpj_filter?: string;
+  p_search_term?: string;
+}
 
-    -- Montar resultado JSON completo com ORDER BY corrigido
-    WITH evolucao_temporal AS (
-        SELECT 
-            to_char(date_series, 'YYYY-MM') as mes,
-            to_char(date_series, 'Mon YYYY') as mes_nome,
-            date_series
-        FROM generate_series(
-            date_trunc('month', p_start_date), 
-            date_trunc('month', p_end_date), 
-            '1 month'::interval
-        ) as date_series
-        ORDER BY date_series
-    ),
-    funcionarios_por_mes AS (
-        SELECT 
-            to_char(date_trunc('month', f.created_at), 'YYYY-MM') as mes,
-            COUNT(CASE WHEN f.status::text = 'ativo' THEN 1 END) as funcionarios_ativos,
-            COUNT(CASE WHEN f.status::text != 'ativo' THEN 1 END) as funcionarios_inativos,
-            COUNT(*) as novas_contratacoes,
-            0 as desligamentos -- Placeholder para desligamentos
-        FROM funcionarios f
-        INNER JOIN cnpjs c ON f.cnpj_id = c.id
-        WHERE c.empresa_id = p_empresa_id
-        AND f.created_at >= p_start_date
-        AND f.created_at <= p_end_date
-        AND (p_cnpj_filter IS NULL OR c.id = p_cnpj_filter)
-        GROUP BY to_char(date_trunc('month', f.created_at), 'YYYY-MM')
-    ),
-    distribuicao_status AS (
-        SELECT 
-            f.status::text as status,
-            COUNT(*) as quantidade,
-            CASE 
-                WHEN v_total_funcionarios > 0 THEN ROUND((COUNT(*)::numeric / v_total_funcionarios::numeric) * 100, 2)
-                ELSE 0
-            END as percentual
-        FROM funcionarios f
-        INNER JOIN cnpjs c ON f.cnpj_id = c.id
-        WHERE c.empresa_id = p_empresa_id
-        AND (p_cnpj_filter IS NULL OR c.id = p_cnpj_filter)
-        GROUP BY f.status::text
-    ),
-    funcionarios_por_cnpj AS (
-        SELECT 
-            c.cnpj,
-            c.razao_social,
-            COUNT(CASE WHEN f.status::text = 'ativo' THEN 1 END) as funcionarios_ativos,
-            COUNT(CASE WHEN f.status::text != 'ativo' THEN 1 END) as funcionarios_inativos,
-            COUNT(*) as total
-        FROM cnpjs c
-        LEFT JOIN funcionarios f ON c.id = f.cnpj_id
-        WHERE c.empresa_id = p_empresa_id
-        AND (p_cnpj_filter IS NULL OR c.id = p_cnpj_filter)
-        GROUP BY c.id, c.cnpj, c.razao_social
-    ),
-    tabela_detalhada AS (
-        SELECT 
-            f.id,
-            f.nome as nome_completo,
-            f.cpf,
-            c.cnpj,
-            c.razao_social,
-            f.status::text as status,
-            f.created_at::date as data_admissao,
-            f.created_at::date as data_ativacao_seguro, -- Placeholder
-            COALESCE(dp.valor_mensal, 0) as valor_individual,
-            0 as total_dependentes -- Placeholder
-        FROM funcionarios f
-        INNER JOIN cnpjs c ON f.cnpj_id = c.id
-        LEFT JOIN dados_planos dp ON dp.cnpj_id = c.id
-        WHERE c.empresa_id = p_empresa_id
-        AND (p_cnpj_filter IS NULL OR c.id = p_cnpj_filter)
-        AND (p_status_filter IS NULL OR f.status::text = p_status_filter)
-        AND (p_search_term IS NULL OR f.nome ILIKE '%' || p_search_term || '%' OR f.cpf ILIKE '%' || p_search_term || '%')
-        ORDER BY f.nome
-    ),
-    evolucao_ordenada AS (
-        SELECT 
-            et.mes,
-            et.mes_nome,
-            COALESCE(fpm.funcionarios_ativos, 0) as funcionarios_ativos,
-            COALESCE(fpm.funcionarios_inativos, 0) as funcionarios_inativos,
-            COALESCE(fpm.novas_contratacoes, 0) as novas_contratacoes,
-            COALESCE(fpm.desligamentos, 0) as desligamentos
-        FROM evolucao_temporal et
-        LEFT JOIN funcionarios_por_mes fpm ON et.mes = fpm.mes
-        ORDER BY et.date_series
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
-    SELECT jsonb_build_object(
-        'kpis', jsonb_build_object(
-            'total_funcionarios', v_total_funcionarios,
-            'funcionarios_ativos', v_funcionarios_ativos,
-            'funcionarios_inativos', v_funcionarios_inativos,
-            'taxa_cobertura', v_taxa_cobertura
-        ),
-        'evolucao_temporal', COALESCE((
-            SELECT jsonb_agg(
-                jsonb_build_object(
-                    'mes', eo.mes,
-                    'mes_nome', eo.mes_nome,
-                    'funcionarios_ativos', eo.funcionarios_ativos,
-                    'funcionarios_inativos', eo.funcionarios_inativos,
-                    'novas_contratacoes', eo.novas_contratacoes,
-                    'desligamentos', eo.desligamentos
-                )
-            )
-            FROM evolucao_ordenada eo
-        ), '[]'::jsonb),
-        'distribuicao_status', COALESCE((
-            SELECT jsonb_agg(
-                jsonb_build_object(
-                    'status', ds.status,
-                    'quantidade', ds.quantidade,
-                    'percentual', ds.percentual
-                )
-            )
-            FROM distribuicao_status ds
-        ), '[]'::jsonb),
-        'funcionarios_por_cnpj', COALESCE((
-            SELECT jsonb_agg(
-                jsonb_build_object(
-                    'cnpj', fpc.cnpj,
-                    'razao_social', fpc.razao_social,
-                    'funcionarios_ativos', fpc.funcionarios_ativos,
-                    'funcionarios_inativos', fpc.funcionarios_inativos,
-                    'total', fpc.total
-                )
-            )
-            FROM funcionarios_por_cnpj fpc
-        ), '[]'::jsonb),
-        'tabela_detalhada', COALESCE((
-            SELECT jsonb_agg(
-                jsonb_build_object(
-                    'id', td.id,
-                    'nome_completo', td.nome_completo,
-                    'cpf', td.cpf,
-                    'cnpj', td.cnpj,
-                    'razao_social', td.razao_social,
-                    'status', td.status,
-                    'data_admissao', td.data_admissao,
-                    'data_ativacao_seguro', td.data_ativacao_seguro,
-                    'valor_individual', td.valor_individual,
-                    'total_dependentes', td.total_dependentes
-                )
-            )
-            FROM tabela_detalhada td
-        ), '[]'::jsonb),
-        'periodo', jsonb_build_object(
-            'inicio', p_start_date,
-            'fim', p_end_date
-        )
-    ) INTO v_result;
 
-    RETURN v_result;
-END;
-$function$;
+    const { p_empresa_id, p_start_date, p_end_date, p_status_filter, p_cnpj_filter, p_search_term }: FuncionariosReportParams = await req.json()
+
+    // Validate required parameters
+    if (!p_empresa_id) {
+      return new Response(
+        JSON.stringify({ error: 'p_empresa_id is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('🔍 [get_funcionarios_report_fixed] Chamando função com parâmetros:', {
+      p_empresa_id,
+      p_start_date,
+      p_end_date,
+      p_status_filter,
+      p_cnpj_filter,
+      p_search_term
+    });
+
+    // Call the database function
+    const { data, error } = await supabaseClient.rpc('get_funcionarios_report', {
+      p_empresa_id,
+      p_start_date: p_start_date || null,
+      p_end_date: p_end_date || null,
+      p_status_filter: p_status_filter || null,
+      p_cnpj_filter: p_cnpj_filter || null,
+      p_search_term: p_search_term || null
+    });
+
+    if (error) {
+      console.error('❌ [get_funcionarios_report_fixed] Erro na função SQL:', error);
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('✅ [get_funcionarios_report_fixed] Dados retornados com sucesso');
+    
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    console.error('❌ [get_funcionarios_report_fixed] Erro geral:', error);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+})
