@@ -89,18 +89,38 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
 
       console.log('✅ [useCostsReport] Relatório carregado:', data);
       
+      // Safely parse the JSON data
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      
       // Transform the data to ensure it matches our interface
-      const transformedData = {
-        ...data,
-        evolucao_temporal: data.evolucao_temporal?.map((item: any) => ({
-          mes: item.mes,
-          mes_nome: item.mes_nome,
-          custo_total: item.custo_total || 0,
-          funcionarios: item.funcionarios || 0
-        })) || []
+      const transformedData: CostsReportData = {
+        kpis: parsedData?.kpis || {
+          custo_total_periodo: 0,
+          custo_medio_funcionario: 0,
+          variacao_percentual: 0,
+          total_funcionarios_ativos: 0
+        },
+        evolucao_temporal: Array.isArray(parsedData?.evolucao_temporal) 
+          ? parsedData.evolucao_temporal.map((item: any) => ({
+              mes: item.mes || '',
+              mes_nome: item.mes_nome || '',
+              custo_total: item.custo_total || 0,
+              funcionarios: item.funcionarios || 0
+            }))
+          : [],
+        distribuicao_cnpjs: Array.isArray(parsedData?.distribuicao_cnpjs) 
+          ? parsedData.distribuicao_cnpjs 
+          : [],
+        tabela_detalhada: Array.isArray(parsedData?.tabela_detalhada) 
+          ? parsedData.tabela_detalhada 
+          : [],
+        periodo: parsedData?.periodo || {
+          inicio: format(startDate, 'yyyy-MM-dd'),
+          fim: format(endDate, 'yyyy-MM-dd')
+        }
       };
 
-      return transformedData as CostsReportData;
+      return transformedData;
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 2, // 2 minutos
