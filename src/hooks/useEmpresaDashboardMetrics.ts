@@ -44,14 +44,13 @@ export const useEmpresaDashboardMetrics = (months: number = 6) => {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com parâmetros:', { empresaId, months });
+      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com parâmetros:', { empresaId });
 
-      // CHAMADA CORRETA: usando a nova função com 2 parâmetros
+      // CORREÇÃO: Chamando a função com apenas um parâmetro
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { 
-          p_empresa_id: empresaId,
-          p_months: months 
+          p_empresa_id: empresaId
         }
       );
 
