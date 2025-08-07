@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
@@ -40,7 +39,7 @@ const RelatorioFuncionariosPage = () => {
     searchTerm: searchTerm || undefined
   });
 
-  const { data: cnpjsList = [] } = useAllCnpjs();
+  const { cnpjs: cnpjsList = [] } = useAllCnpjs();
 
   // Hook de exportação
   const {
