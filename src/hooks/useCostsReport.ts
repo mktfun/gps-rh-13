@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
@@ -14,6 +15,7 @@ interface EvolucaoTemporal {
   mes: string;
   mes_nome: string;
   custo_total: number;
+  funcionarios: number;
 }
 
 interface DistribuicaoCNPJ {
@@ -86,7 +88,19 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
       }
 
       console.log('✅ [useCostsReport] Relatório carregado:', data);
-      return data as unknown as CostsReportData;
+      
+      // Transform the data to ensure it matches our interface
+      const transformedData = {
+        ...data,
+        evolucao_temporal: data.evolucao_temporal?.map((item: any) => ({
+          mes: item.mes,
+          mes_nome: item.mes_nome,
+          custo_total: item.custo_total || 0,
+          funcionarios: item.funcionarios || 0
+        })) || []
+      };
+
+      return transformedData as CostsReportData;
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 2, // 2 minutos
