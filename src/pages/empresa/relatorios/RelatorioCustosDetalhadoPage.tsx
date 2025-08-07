@@ -41,11 +41,12 @@ const RelatorioCustosDetalhadoPage = () => {
     );
   }
 
-  const kpis = reportData?.kpis || {
-    custo_total_periodo: 0,
-    custo_medio_funcionario: 0,
-    variacao_percentual: 0,
-    total_funcionarios_ativos: 0
+  // Garantir valores padrão para evitar erros de undefined
+  const kpis = {
+    custo_total_periodo: reportData?.kpis?.custo_total_periodo || 0,
+    custo_medio_funcionario: reportData?.kpis?.custo_medio_funcionario || 0,
+    variacao_percentual: reportData?.kpis?.variacao_percentual || 0,
+    total_funcionarios_ativos: reportData?.kpis?.total_funcionarios_ativos || 0
   };
 
   const evolucaoTemporal = reportData?.evolucao_temporal || [];

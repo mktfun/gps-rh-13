@@ -20,10 +20,12 @@ export const CostsKPICards = ({
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(value);
+    }).format(value || 0);
   };
 
-  const isPositiveVariation = variacaoPercentual >= 0;
+  // Garantir que variacaoPercentual tenha um valor padrão
+  const safeVariacaoPercentual = variacaoPercentual || 0;
+  const isPositiveVariation = safeVariacaoPercentual >= 0;
 
   return (
     <div className="grid gap-4 md:grid-cols-4">
@@ -33,7 +35,7 @@ export const CostsKPICards = ({
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(custoTotalPeriodo)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(custoTotalPeriodo || 0)}</div>
           <p className="text-xs text-muted-foreground">
             Soma de todos os planos ativos
           </p>
@@ -46,9 +48,9 @@ export const CostsKPICards = ({
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(custoMedioFuncionario)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(custoMedioFuncionario || 0)}</div>
           <p className="text-xs text-muted-foreground">
-            Baseado em {totalFuncionariosAtivos} funcionários ativos
+            Baseado em {totalFuncionariosAtivos || 0} funcionários ativos
           </p>
         </CardContent>
       </Card>
@@ -64,7 +66,7 @@ export const CostsKPICards = ({
         </CardHeader>
         <CardContent>
           <div className={`text-2xl font-bold ${isPositiveVariation ? 'text-green-600' : 'text-red-600'}`}>
-            {isPositiveVariation ? '+' : ''}{variacaoPercentual.toFixed(1)}%
+            {isPositiveVariation ? '+' : ''}{safeVariacaoPercentual.toFixed(1)}%
           </div>
           <p className="text-xs text-muted-foreground">
             Comparação com período anterior
@@ -78,7 +80,7 @@ export const CostsKPICards = ({
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalFuncionariosAtivos}</div>
+          <div className="text-2xl font-bold">{totalFuncionariosAtivos || 0}</div>
           <p className="text-xs text-muted-foreground">
             Funcionários com plano ativo
           </p>
