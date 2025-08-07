@@ -722,6 +722,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_detailed_costs_report: {
+        Args: { p_empresa_id: string; p_start_date: string; p_end_date: string }
+        Returns: Json
+      }
       get_distribuicao_status_funcionarios: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -732,7 +736,6 @@ export type Database = {
       get_empresa_dashboard_metrics: {
         Args:
           | Record<PropertyKey, never>
-          | { p_empresa_id: string }
           | { p_empresa_id: string; p_months?: number }
           | { p_empresa_id: string; p_start_date: string; p_end_date: string }
         Returns: Json
