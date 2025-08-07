@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 // Configuração CORRIGIDA para Corretora - Links agora apontam para rotas que EXISTEM
 const corretoraNavItems = [
-  { href: '/corretora/dashboard', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta diretamente para dashboard
+  { href: '/corretora', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta para index da corretora
   { href: '/corretora/empresas', label: 'Empresas', icon: Building2 },
 ];
 
@@ -31,9 +31,9 @@ const corretoraConfiguracao = [
   { href: '/configuracoes', label: 'Configurações', icon: Settings }, // CORRIGIDO: rota compartilhada existe
 ];
 
-// Configuração centralizada para Empresa
+// Configuração CORRIGIDA para Empresa - rotas agora apontam para as que existem
 const empresaNavItems = [
-  { href: '/empresa/dashboard', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta diretamente para dashboard
+  { href: '/empresa', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta para index da empresa
   { href: '/empresa/funcionarios', label: 'Funcionários', icon: Users },
 ];
 
@@ -113,7 +113,7 @@ const CorretoraNav: React.FC = () => {
   const { user } = useAuth();
   
   const isActive = (path: string) => {
-    if (path === '/corretora/dashboard') return location.pathname === '/corretora/dashboard';
+    if (path === '/corretora') return location.pathname === '/corretora' || location.pathname === '/corretora/';
     return location.pathname.startsWith(path);
   };
 
@@ -156,7 +156,7 @@ const EmpresaNav: React.FC = () => {
   const { user } = useAuth();
   
   const isActive = (path: string) => {
-    if (path === '/empresa/dashboard') return location.pathname === '/empresa/dashboard';
+    if (path === '/empresa') return location.pathname === '/empresa' || location.pathname === '/empresa/';
     return location.pathname.startsWith(path);
   };
 
