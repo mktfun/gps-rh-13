@@ -1,215 +1,245 @@
 
 import React, { useState } from 'react';
-import { Download, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ExportModal } from '@/components/ui/export-modal';
+import { DataTable } from '@/components/ui/data-table';
 import { TableLoadingState } from '@/components/ui/loading-state';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
-import { useRelatorioFuncionariosEmpresa } from '@/hooks/useRelatorioFuncionariosEmpresa';
-import { useCnpjs } from '@/hooks/useCnpjs';
-import { useEmpresaId } from '@/hooks/useEmpresaId';
-import { useExportData } from '@/hooks/useExportData';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Download, Search, Filter } from 'lucide-react';
+import { DateRangePicker } from '@/components/relatorios/DateRangePicker';
+import { FuncionariosKPICards } from '@/components/relatorios/FuncionariosKPICards';
+import { FuncionariosEvolutionChart } from '@/components/relatorios/FuncionariosEvolutionChart';
+import { FuncionariosStatusChart } from '@/components/relatorios/FuncionariosStatusChart';
+import { FuncionariosByCNPJChart } from '@/components/relatorios/FuncionariosByCNPJChart';
+import { createFuncionariosDetailedTableColumns } from '@/components/relatorios/funcionariosDetailedTableColumns';
+import { useFuncionariosReport } from '@/hooks/useFuncionariosReport';
+import { useAllCnpjs } from '@/hooks/useAllCnpjs';
+import { DateRange } from 'react-day-picker';
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { useExportData, ExportField } from '@/hooks/useExportData';
+import { ExportModal } from '@/components/ui/export-modal';
 
 const RelatorioFuncionariosPage = () => {
-  const [selectedCnpjId, setSelectedCnpjId] = useState<string>('all');
-  
-  const { data: empresaId } = useEmpresaId();
-  const { cnpjs, isLoading: loadingCnpjs } = useCnpjs({ 
-    empresaId: empresaId || '',
-    page: 1,
-    pageSize: 100
+  // Estados para filtros
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfMonth(subMonths(new Date(), 5)),
+    to: endOfMonth(new Date())
   });
-  const { data: funcionarios, isLoading: loadingFuncionarios } = useRelatorioFuncionariosEmpresa({
-    cnpjId: selectedCnpjId === 'all' ? undefined : selectedCnpjId
+  
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [cnpjFilter, setCnpjFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // Buscar dados
+  const { data: reportData, isLoading } = useFuncionariosReport({
+    startDate: dateRange?.from,
+    endDate: dateRange?.to,
+    statusFilter: statusFilter || undefined,
+    cnpjFilter: cnpjFilter || undefined,
+    searchTerm: searchTerm || undefined
   });
 
+  const { data: cnpjsList = [] } = useAllCnpjs();
+
+  // Hook de exportação
   const {
-    isExporting,
-    isPreviewOpen,
-    exportOptions,
     openExportPreview,
-    executeExport,
+    isPreviewOpen,
+    setIsPreviewOpen,
+    exportOptions,
     updateExportOptions,
     toggleField,
     selectAllFields,
     deselectAllFields,
-    setIsPreviewOpen,
+    executeExport,
+    isExporting,
     formatCurrency,
-    formatCPF,
     formatDate
   } = useExportData();
 
-  const handleExport = () => {
-    const exportFields = [
-      { key: 'nome', label: 'Nome', selected: true },
-      { key: 'cpf', label: 'CPF', selected: true, format: formatCPF },
-      { key: 'cargo', label: 'Cargo', selected: true },
-      { key: 'salario', label: 'Salário', selected: true, format: formatCurrency },
-      { key: 'status', label: 'Status', selected: true },
-      { key: 'cnpj_razao_social', label: 'CNPJ/Razão Social', selected: true },
-      { key: 'data_contratacao', label: 'Data Contratação', selected: true, format: formatDate },
-    ];
+  const columns = createFuncionariosDetailedTableColumns();
 
-    openExportPreview(funcionarios || [], exportFields, 'relatorio_funcionarios_empresa');
+  const formatCPF = (cpf: string) => {
+    if (!cpf) return '';
+    const digits = cpf.replace(/\D/g, '');
+    return `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6,9)}-${digits.slice(9,11)}`;
   };
 
-  const breadcrumbItems = [
-    { label: 'Empresa', href: '/empresa' },
-    { label: 'Relatórios' },
-    { label: 'Funcionários' }
+  // Campos de exportação
+  const exportFields: ExportField[] = [
+    { key: 'nome_completo', label: 'Nome Completo', selected: true },
+    { key: 'cpf', label: 'CPF', selected: true, format: formatCPF },
+    { key: 'razao_social', label: 'Empresa', selected: true },
+    { key: 'cnpj', label: 'CNPJ', selected: true },
+    { key: 'status', label: 'Status', selected: true },
+    { key: 'data_admissao', label: 'Data Admissão', selected: true, format: formatDate },
+    { key: 'data_ativacao_seguro', label: 'Ativação Seguro', selected: true, format: formatDate },
+    { key: 'valor_individual', label: 'Valor Individual', selected: true, format: formatCurrency },
+    { key: 'total_dependentes', label: 'Total Dependentes', selected: true },
   ];
 
-  if (loadingCnpjs || loadingFuncionarios || !empresaId) {
+  const handleExport = () => {
+    if (!reportData?.tabela_detalhada || reportData.tabela_detalhada.length === 0) {
+      return;
+    }
+
+    openExportPreview(
+      reportData.tabela_detalhada,
+      exportFields,
+      'relatorio_funcionarios_detalhado'
+    );
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter('');
+    setCnpjFilter('');
+    setSearchTerm('');
+  };
+
+  if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
         <TableLoadingState rows={10} columns={7} showHeader />
       </div>
     );
   }
 
+  // Dados seguros com fallbacks
+  const kpis = reportData?.kpis || {
+    total_funcionarios: 0,
+    funcionarios_ativos: 0,
+    funcionarios_inativos: 0,
+    taxa_cobertura: 0
+  };
+
+  const evolucaoTemporal = reportData?.evolucao_temporal || [];
+  const distribuicaoStatus = reportData?.distribuicao_status || [];
+  const funcionariosPorCNPJ = reportData?.funcionarios_por_cnpj || [];
+  const tabelaDetalhada = reportData?.tabela_detalhada || [];
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Breadcrumbs items={breadcrumbItems} />
-      
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Relatório de Funcionários</h1>
           <p className="text-muted-foreground">
-            Visualize e exporte dados dos funcionários da empresa
+            Análise completa da movimentação e status dos funcionários
           </p>
         </div>
-        <Button onClick={handleExport} className="gap-2">
-          <Download className="h-4 w-4" />
-          Exportar Relatório
-        </Button>
+        <div className="flex items-center gap-4">
+          <DateRangePicker 
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
+          <Button onClick={handleExport} className="gap-2">
+            <Download className="h-4 w-4" />
+            Exportar
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-          <CardDescription>
-            Selecione um CNPJ específico ou visualize todos os funcionários
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Select value={selectedCnpjId} onValueChange={setSelectedCnpjId}>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar CNPJ" />
+                <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os CNPJs</SelectItem>
-                {cnpjs?.map((cnpj) => (
+                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="desativado">Desativado</SelectItem>
+                <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
+                <SelectItem value="arquivado">Arquivado</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* CNPJ Filter */}
+            <Select value={cnpjFilter} onValueChange={setCnpjFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todas as empresas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas as empresas</SelectItem>
+                {cnpjsList.map((cnpj) => (
                   <SelectItem key={cnpj.id} value={cnpj.id}>
                     {cnpj.razao_social}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome ou CPF..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* Clear Filters */}
+            <Button 
+              variant="outline" 
+              onClick={handleClearFilters}
+              disabled={!statusFilter && !cnpjFilter && !searchTerm}
+            >
+              Limpar Filtros
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Resumo */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Funcionários</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{funcionarios?.length || 0}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CNPJs Ativos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Set(funcionarios?.map(f => f.cnpj_razao_social)).size || 0}
-            </div>
-          </CardContent>
-        </Card>
+      {/* KPIs */}
+      <FuncionariosKPICards
+        totalFuncionarios={kpis.total_funcionarios}
+        funcionariosAtivos={kpis.funcionarios_ativos}
+        funcionariosInativos={kpis.funcionarios_inativos}
+        taxaCobertura={kpis.taxa_cobertura}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Funcionários Ativos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {funcionarios?.filter(f => f.status === 'ativo').length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendências</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {funcionarios?.filter(f => f.status === 'pendente').length || 0}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Gráficos */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <FuncionariosEvolutionChart data={evolucaoTemporal} />
+        </div>
+        <FuncionariosStatusChart data={distribuicaoStatus} />
       </div>
 
-      {/* Tabela */}
+      <FuncionariosByCNPJChart data={funcionariosPorCNPJ} />
+
+      {/* Tabela Detalhada */}
       <Card>
         <CardHeader>
-          <CardTitle>Funcionários</CardTitle>
+          <CardTitle>Funcionários Detalhados</CardTitle>
           <CardDescription>
-            Lista completa de funcionários {selectedCnpjId === 'all' ? 'de todos os CNPJs' : 'do CNPJ selecionado'}
+            Lista completa dos funcionários com informações detalhadas ({tabelaDetalhada.length} registros)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>CPF</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Salário</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>CNPJ</TableHead>
-                <TableHead>Data Contratação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {funcionarios?.map((funcionario) => (
-                <TableRow key={funcionario.funcionario_id}>
-                  <TableCell className="font-medium">{funcionario.nome}</TableCell>
-                  <TableCell>{formatCPF(funcionario.cpf)}</TableCell>
-                  <TableCell>{funcionario.cargo}</TableCell>
-                  <TableCell>{formatCurrency(funcionario.salario)}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      funcionario.status === 'ativo' ? 'bg-green-100 text-green-800' :
-                      funcionario.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {funcionario.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{funcionario.cnpj_razao_social}</TableCell>
-                  <TableCell>{formatDate(funcionario.data_contratacao)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            columns={columns}
+            data={tabelaDetalhada}
+            isLoading={isLoading}
+            emptyStateTitle="Nenhum funcionário encontrado"
+            emptyStateDescription="Não há funcionários que atendam aos filtros selecionados."
+          />
         </CardContent>
       </Card>
 
+      {/* Export Modal */}
       <ExportModal
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
@@ -220,7 +250,7 @@ const RelatorioFuncionariosPage = () => {
         onDeselectAll={deselectAllFields}
         onExecuteExport={executeExport}
         isExporting={isExporting}
-        dataCount={funcionarios?.length || 0}
+        dataCount={tabelaDetalhada.length}
       />
     </div>
   );

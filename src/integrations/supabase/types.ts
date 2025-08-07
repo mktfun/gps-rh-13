@@ -870,6 +870,17 @@ export type Database = {
           total_count: number
         }[]
       }
+      get_funcionarios_report: {
+        Args: {
+          p_empresa_id: string
+          p_start_date?: string
+          p_end_date?: string
+          p_status_filter?: string
+          p_cnpj_filter?: string
+          p_search_term?: string
+        }
+        Returns: Json
+      }
       get_my_empresa_id: {
         Args: Record<PropertyKey, never>
         Returns: string
