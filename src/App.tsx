@@ -29,90 +29,80 @@ import AppLayout from '@/components/layout/RootLayout';
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
+      <RootLayout>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
 
-        {/* Admin routes */}
-        <Route path="/admin" element={
-          <RootLayout>
+          {/* Admin routes */}
+          <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AppLayout />
             </ProtectedRoute>
-          </RootLayout>
-        }>
-          <Route index element={<Dashboard />} />
-          <Route path="corretoras" element={<CorretoraspPage />} />
-        </Route>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="corretoras" element={<CorretoraspPage />} />
+          </Route>
 
-        {/* Corretora routes */}
-        <Route path="/corretora" element={
-          <RootLayout>
+          {/* Corretora routes */}
+          <Route path="/corretora" element={
             <ProtectedCorretoraRoute>
               <AppLayout />
             </ProtectedCorretoraRoute>
-          </RootLayout>
-        }>
-          <Route index element={<CorretoraDashboard />} />
-          <Route path="empresas" element={<CorretoraEmpresas />} />
-          <Route path="funcionarios" element={<FuncionariosPendentes />} />
-        </Route>
+          }>
+            <Route index element={<CorretoraDashboard />} />
+            <Route path="empresas" element={<CorretoraEmpresas />} />
+            <Route path="funcionarios" element={<FuncionariosPendentes />} />
+          </Route>
 
-        {/* Empresa routes */}
-        <Route path="/empresa" element={
-          <RootLayout>
+          {/* Empresa routes */}
+          <Route path="/empresa" element={
             <ProtectedRoute allowedRoles={['empresa']}>
               <AppLayout />
             </ProtectedRoute>
-          </RootLayout>
-        }>
-          <Route index element={<EmpresaDashboard />} />
-          <Route path="funcionarios" element={<EmpresaFuncionarios />} />
-          <Route path="planos" element={<EmpresaPlanosPage />} />
-          <Route path="planos/:planoId" element={<PlanoDetalhesPage />} />
-          
-          {/* Relatórios */}
-          <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
-          <Route path="relatorios/funcionarios-detalhado" element={<RelatorioFuncionariosEmpresaPage />} />
-          <Route path="relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
-          <Route path="relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
-          <Route path="relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
-        </Route>
+          }>
+            <Route index element={<EmpresaDashboard />} />
+            <Route path="funcionarios" element={<EmpresaFuncionarios />} />
+            <Route path="planos" element={<EmpresaPlanosPage />} />
+            <Route path="planos/:planoId" element={<PlanoDetalhesPage />} />
+            
+            {/* Relatórios */}
+            <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
+            <Route path="relatorios/funcionarios-detalhado" element={<RelatorioFuncionariosEmpresaPage />} />
+            <Route path="relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
+            <Route path="relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
+            <Route path="relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
+          </Route>
 
-        {/* Shared routes */}
-        <Route path="/perfil" element={
-          <RootLayout>
+          {/* Shared routes */}
+          <Route path="/perfil" element={
             <ProtectedRoute>
               <AppLayout />
             </ProtectedRoute>
-          </RootLayout>
-        }>
-          <Route index element={<PerfilPage />} />
-        </Route>
+          }>
+            <Route index element={<PerfilPage />} />
+          </Route>
 
-        <Route path="/configuracoes" element={
-          <RootLayout>
+          <Route path="/configuracoes" element={
             <ProtectedRoute>
               <AppLayout />
             </ProtectedRoute>
-          </RootLayout>
-        }>
-          <Route index element={<ConfiguracoesPage />} />
-        </Route>
+          }>
+            <Route index element={<ConfiguracoesPage />} />
+          </Route>
 
-        <Route path="/chat" element={
-          <RootLayout>
+          <Route path="/chat" element={
             <ProtectedRoute>
               <AppLayout />
             </ProtectedRoute>
-          </RootLayout>
-        }>
-          <Route index element={<ChatPage />} />
-        </Route>
+          }>
+            <Route index element={<ChatPage />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </RootLayout>
     </BrowserRouter>
   );
 }
