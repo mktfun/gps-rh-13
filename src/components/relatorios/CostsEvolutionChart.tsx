@@ -3,22 +3,17 @@ import React, { useState } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, BarChart3, TrendingUpIcon } from 'lucide-react';
+import { TrendingUp, BarChart3, TrendingUpIcon, Info } from 'lucide-react';
 
 interface EvolucaoTemporal {
   mes: string;
   mes_nome: string;
   custo_total: number;
+  funcionarios: number;
 }
 
 interface CostsEvolutionChartProps {
   data: EvolucaoTemporal[];
-}
-
-interface ProcessedData {
-  mes: string;
-  funcionarios: number;
-  custo: number;
 }
 
 export const CostsEvolutionChart = ({ data }: CostsEvolutionChartProps) => {
@@ -32,12 +27,11 @@ export const CostsEvolutionChart = ({ data }: CostsEvolutionChartProps) => {
     setVisibleData(prev => prev.includes(dataKey) ? prev.filter(key => key !== dataKey) : [...prev, dataKey]);
   };
 
-  // Process data to include mock funcionarios data for demonstration
-  // In real implementation, this would come from the backend
-  const processedData: ProcessedData[] = data?.map((item, index) => ({
+  // Usar dados reais sem modificação - não inventar dados
+  const processedData = data?.map((item) => ({
     mes: item.mes_nome,
-    funcionarios: Math.floor(item.custo_total / 1000) || (index + 1), // Mock data based on cost
-    custo: item.custo_total
+    funcionarios: item.funcionarios || 0,
+    custo: item.custo_total || 0
   })) || [];
 
   const formatCurrency = (value: number) => {
@@ -79,6 +73,7 @@ export const CostsEvolutionChart = ({ data }: CostsEvolutionChartProps) => {
     return null;
   };
 
+  // Se não há dados ou há poucos dados
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -92,6 +87,57 @@ export const CostsEvolutionChart = ({ data }: CostsEvolutionChartProps) => {
           <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
             <TrendingUp className="h-12 w-12 opacity-50 mb-4" />
             <p>Nenhum dado de evolução disponível</p>
+            <p className="text-sm text-center mt-2">
+              Não há planos ativos no período selecionado
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Se há poucos dados (apenas 1 mês), mostrar aviso
+  if (data.length === 1) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Evolução dos Custos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="text-blue-800 font-medium mb-1">
+                  Dados insuficientes para evolução temporal
+                </h4>
+                <p className="text-blue-700 text-sm">
+                  Plano ativo apenas desde {data[0].mes_nome}. 
+                  Aguarde mais alguns meses para visualizar a evolução histórica.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <span className="text-sm font-medium text-gray-700">Funcionários Ativos</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{data[0].funcionarios}</p>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-sm font-medium text-gray-700">Custo Mensal</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(data[0].custo_total)}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
