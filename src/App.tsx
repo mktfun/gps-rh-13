@@ -22,7 +22,7 @@ import ChatPage from '@/pages/ChatPage';
 import NotFound from '@/pages/NotFound';
 import CorretoraDashboard from '@/pages/corretora/Dashboard';
 import CorretoraEmpresas from '@/pages/corretora/Empresas';
-import CorretoraFuncionarios from '@/pages/corretora/CorretoraFuncionarios';
+import FuncionariosPendentes from '@/pages/corretora/FuncionariosPendentes';
 import RelatorioCustosDetalhadoPage from "@/pages/empresa/relatorios/RelatorioCustosDetalhadoPage";
 import AppLayout from '@/components/layout/RootLayout';
 
@@ -56,7 +56,7 @@ function App() {
         }>
           <Route index element={<CorretoraDashboard />} />
           <Route path="empresas" element={<CorretoraEmpresas />} />
-          <Route path="funcionarios" element={<CorretoraFuncionarios />} />
+          <Route path="funcionarios" element={<FuncionariosPendentes />} />
         </Route>
 
         {/* Empresa routes */}
