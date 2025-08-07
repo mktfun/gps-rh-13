@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
@@ -26,16 +27,16 @@ const RelatorioFuncionariosPage = () => {
     to: endOfMonth(new Date())
   });
   
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [cnpjFilter, setCnpjFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [cnpjFilter, setCnpjFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Buscar dados
   const { data: reportData, isLoading } = useFuncionariosReport({
     startDate: dateRange?.from,
     endDate: dateRange?.to,
-    statusFilter: statusFilter || undefined,
-    cnpjFilter: cnpjFilter || undefined,
+    statusFilter: statusFilter === 'all' ? undefined : statusFilter,
+    cnpjFilter: cnpjFilter === 'all' ? undefined : cnpjFilter,
     searchTerm: searchTerm || undefined
   });
 
@@ -91,8 +92,8 @@ const RelatorioFuncionariosPage = () => {
   };
 
   const handleClearFilters = () => {
-    setStatusFilter('');
-    setCnpjFilter('');
+    setStatusFilter('all');
+    setCnpjFilter('all');
     setSearchTerm('');
   };
 
@@ -154,7 +155,7 @@ const RelatorioFuncionariosPage = () => {
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="ativo">Ativo</SelectItem>
                 <SelectItem value="pendente">Pendente</SelectItem>
                 <SelectItem value="desativado">Desativado</SelectItem>
@@ -169,7 +170,7 @@ const RelatorioFuncionariosPage = () => {
                 <SelectValue placeholder="Todas as empresas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as empresas</SelectItem>
+                <SelectItem value="all">Todas as empresas</SelectItem>
                 {cnpjsList.map((cnpj) => (
                   <SelectItem key={cnpj.id} value={cnpj.id}>
                     {cnpj.razao_social}
@@ -193,7 +194,7 @@ const RelatorioFuncionariosPage = () => {
             <Button 
               variant="outline" 
               onClick={handleClearFilters}
-              disabled={!statusFilter && !cnpjFilter && !searchTerm}
+              disabled={statusFilter === 'all' && cnpjFilter === 'all' && !searchTerm}
             >
               Limpar Filtros
             </Button>
