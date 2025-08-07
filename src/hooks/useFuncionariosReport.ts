@@ -98,14 +98,29 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         searchTerm: params.searchTerm
       });
 
-      const { data, error } = await supabase.rpc('get_funcionarios_report', {
+      // Construir payload limpo sem campos undefined
+      const rpcPayload: Record<string, any> = {
         p_empresa_id: empresaId,
         p_start_date: format(startDate, 'yyyy-MM-dd'),
         p_end_date: format(endDate, 'yyyy-MM-dd'),
-        p_status_filter: params.statusFilter || null,
-        p_cnpj_filter: params.cnpjFilter || null,
-        p_search_term: params.searchTerm || null
-      });
+      };
+
+      // Só adicionar parâmetros opcionais se eles tiverem valores válidos
+      if (params.statusFilter && params.statusFilter !== 'all' && params.statusFilter.trim()) {
+        rpcPayload.p_status_filter = params.statusFilter;
+      }
+
+      if (params.cnpjFilter && params.cnpjFilter !== 'all' && params.cnpjFilter.trim()) {
+        rpcPayload.p_cnpj_filter = params.cnpjFilter;
+      }
+
+      if (params.searchTerm && params.searchTerm.trim()) {
+        rpcPayload.p_search_term = params.searchTerm;
+      }
+
+      console.log('🔍 [useFuncionariosReport] Payload limpo enviado:', rpcPayload);
+
+      const { data, error } = await supabase.rpc('get_funcionarios_report', rpcPayload);
 
       if (error) {
         console.error('❌ [useFuncionariosReport] Erro ao buscar relatório:', error);
