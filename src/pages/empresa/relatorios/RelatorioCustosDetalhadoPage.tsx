@@ -5,7 +5,6 @@ import { DataTable } from '@/components/ui/data-table';
 import { TableLoadingState } from '@/components/ui/loading-state';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
 import { DateRangePicker } from '@/components/relatorios/DateRangePicker';
 import { CostsKPICards } from '@/components/relatorios/CostsKPICards';
 import { CostsEvolutionChart } from '@/components/relatorios/CostsEvolutionChart';
@@ -27,12 +26,6 @@ const RelatorioCustosDetalhadoPage = () => {
     endDate: dateRange?.to
   });
 
-  const breadcrumbItems = [
-    { label: 'Empresa', href: '/empresa' },
-    { label: 'Relatórios' },
-    { label: 'Custos Detalhado' }
-  ];
-
   const columns = createCostsDetailedTableColumns();
 
   const handleExport = () => {
@@ -43,7 +36,6 @@ const RelatorioCustosDetalhadoPage = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
         <TableLoadingState rows={10} columns={6} showHeader />
       </div>
     );
@@ -62,8 +54,6 @@ const RelatorioCustosDetalhadoPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Breadcrumbs items={breadcrumbItems} />
-      
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Relatório de Custos Detalhado</h1>
