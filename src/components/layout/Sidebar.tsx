@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -43,7 +44,7 @@ const empresaPlanos = [
 ];
 
 const empresaRelatorios = [
-  { href: '/empresa/relatorios/funcionarios', label: 'Funcionários', icon: Users, disabled: true },
+  { href: '/empresa/relatorios/funcionarios', label: 'Funcionários', icon: Users }, // REMOVIDO: disabled flag
   { href: '/empresa/relatorios/custos-detalhado', label: 'Custos Detalhado', icon: DollarSign },
   { href: '/empresa/relatorios/pendencias', label: 'Pendências', icon: FileText, disabled: true },
 ];
