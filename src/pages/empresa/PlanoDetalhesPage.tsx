@@ -41,6 +41,15 @@ const PlanoDetalhesPage: React.FC = () => {
     plano?.valor_mensal || 0
   );
 
+  // Debugging detalhado no componente
+  console.log('🏠 DEBUGGING PlanoDetalhesPage:', {
+    id,
+    isLoading,
+    error: error?.message,
+    plano,
+    hasPlano: !!plano
+  });
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -52,11 +61,15 @@ const PlanoDetalhesPage: React.FC = () => {
     toast.info('Funcionalidade de exportação em desenvolvimento');
   };
 
+  // Loading state - mostrar enquanto está carregando
   if (isLoading) {
+    console.log('🔄 Mostrando loading state...');
     return <DashboardLoadingState />;
   }
 
-  if (error) {
+  // Error state - só mostrar se houve erro E não está carregando
+  if (error && !isLoading) {
+    console.log('❌ Mostrando error state:', error.message);
     return (
       <div className="container mx-auto py-6">
         <EmptyState
@@ -68,7 +81,9 @@ const PlanoDetalhesPage: React.FC = () => {
     );
   }
 
-  if (!plano) {
+  // Not found state - só mostrar se NÃO está carregando E NÃO há plano E NÃO há erro
+  if (!isLoading && !plano && !error) {
+    console.log('🔍 Mostrando not found state...');
     return (
       <div className="container mx-auto py-6">
         <EmptyState
@@ -79,6 +94,14 @@ const PlanoDetalhesPage: React.FC = () => {
       </div>
     );
   }
+
+  // Success state - só renderizar se temos plano
+  if (!plano) {
+    console.log('⚠️ Plano ainda é null/undefined, aguardando...');
+    return <DashboardLoadingState />;
+  }
+
+  console.log('✅ Renderizando plano com sucesso!', plano.seguradora);
 
   return (
     <div className="container mx-auto py-6">
@@ -247,7 +270,6 @@ const PlanoDetalhesPage: React.FC = () => {
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         onFuncionarioAdded={() => {
-          // Refresh será feito automaticamente pelo React Query
           toast.success('Funcionário adicionado com sucesso!');
         }}
       />

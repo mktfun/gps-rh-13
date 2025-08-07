@@ -35,14 +35,51 @@ export const usePlanoDetalhes = (planoId: string) => {
         throw error;
       }
 
-      if (!data || data.length === 0) {
-        console.warn('⚠️ Plano não encontrado:', planoId);
+      // Debugging detalhado
+      console.log('🔍 DEBUGGING - Resposta raw da função RPC:', {
+        data,
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        length: data?.length,
+        firstItem: data?.[0]
+      });
+
+      // Validação mais robusta
+      if (!data) {
+        console.warn('⚠️ Data é null/undefined:', data);
         throw new Error('Plano não encontrado');
       }
 
-      console.log('✅ Detalhes do plano encontrados:', data[0]);
-      return data[0];
+      if (!Array.isArray(data)) {
+        console.warn('⚠️ Data não é um array:', data);
+        throw new Error('Formato de dados inválido');
+      }
+
+      if (data.length === 0) {
+        console.warn('⚠️ Array de dados está vazio para plano:', planoId);
+        throw new Error('Plano não encontrado');
+      }
+
+      const planoData = data[0];
+      
+      // Validação do primeiro item do array
+      if (!planoData || typeof planoData !== 'object') {
+        console.warn('⚠️ Primeiro item do array é inválido:', planoData);
+        throw new Error('Dados do plano inválidos');
+      }
+
+      // Verificar se tem as propriedades essenciais
+      if (!planoData.id || !planoData.seguradora) {
+        console.warn('⚠️ Dados do plano incompletos:', planoData);
+        throw new Error('Dados do plano incompletos');
+      }
+
+      console.log('✅ Detalhes do plano validados e encontrados:', planoData);
+      return planoData;
     },
     enabled: !!planoId,
+    // Adicionar configurações para evitar refetch desnecessário
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
   });
 };
