@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
@@ -9,15 +8,14 @@ import {
   Building2, 
   DollarSign,
   TrendingUp,
-  BarChart3,
-  PieChart
+  BarChart3
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import CustosPorCnpjChart from '@/components/dashboard/CustosPorCnpjChart';
 import EvolucaoMensalChart from '@/components/dashboard/EvolucaoMensalChart';
-import DistribuicaoCargosChart from '@/components/dashboard/DistribuicaoCargosChart';
+import DistributionChartsCard from '@/components/dashboard/DistributionChartsCard';
 import StatusSolicitacoesSection from '@/components/dashboard/StatusSolicitacoesSection';
 import DashboardCard from '@/components/ui/DashboardCard';
 
@@ -206,30 +204,16 @@ const EmpresaDashboard = () => {
                 </DashboardCard>
               </div>
 
-              {/* Distribuição por Cargos */}
+              {/* Distribuição Unificada (Cargos + CNPJs) */}
               <div className="animate-fade-in opacity-0" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
-                <DashboardCard
-                  title="Distribuição por Cargos"
-                  icon={PieChart}
-                  description="Funcionários organizados por cargo"
-                >
-                  <DistribuicaoCargosChart dados={metrics.distribuicaoCargos} />
-                </DashboardCard>
-              </div>
-
-              {/* Custos por CNPJ */}
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                <DashboardCard
-                  title="Custos por CNPJ"
-                  icon={BarChart3}
-                  description="Distribuição de custos por filial"
-                >
-                  <CustosPorCnpjChart dados={metrics.custosPorCnpj} />
-                </DashboardCard>
+                <DistributionChartsCard 
+                  distribuicaoCargos={metrics.distribuicaoCargos}
+                  custosPorCnpj={metrics.custosPorCnpj}
+                />
               </div>
 
               {/* Plano Principal */}
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
+              <div className="animate-fade-in opacity-0 lg:col-span-2" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                 <DashboardCard
                   title="Plano Principal"
                   icon={DollarSign}
