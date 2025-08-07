@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { format } from 'date-fns';
 
 interface EmpresaDashboardMetrics {
   custoMensalTotal: number;
@@ -35,33 +34,24 @@ interface EmpresaDashboardMetrics {
   } | null;
 }
 
-interface DateRangeParams {
-  startDate: Date;
-  endDate: Date;
-}
-
-export const useEmpresaDashboardMetrics = ({ startDate, endDate }: DateRangeParams) => {
+export const useEmpresaDashboardMetrics = (months: number = 6) => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId, startDate.toISOString(), endDate.toISOString()],
+    queryKey: ['empresa-dashboard-metrics', empresaId, months],
     queryFn: async (): Promise<EmpresaDashboardMetrics> => {
       if (!empresaId) {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com parâmetros:', { 
-        empresaId, 
-        startDate: format(startDate, 'yyyy-MM-dd'),
-        endDate: format(endDate, 'yyyy-MM-dd')
-      });
+      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com parâmetros:', { empresaId, months });
 
+      // CHAMADA CORRETA: usando a nova função com 2 parâmetros
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { 
           p_empresa_id: empresaId,
-          p_start_date: format(startDate, 'yyyy-MM-dd'),
-          p_end_date: format(endDate, 'yyyy-MM-dd')
+          p_months: months 
         }
       );
 
