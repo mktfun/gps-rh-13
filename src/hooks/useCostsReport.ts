@@ -1,8 +1,7 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
 interface CostsReportKPIs {
   custo_total_periodo: number;
@@ -57,8 +56,8 @@ interface UseCostsReportParams {
 export const useCostsReport = (params: UseCostsReportParams = {}) => {
   const { data: empresaId } = useEmpresaId();
   
-  // Usar mês atual como padrão
-  const defaultStartDate = startOfMonth(new Date());
+  // Expandir para últimos 6 meses para melhor visualização histórica
+  const defaultStartDate = startOfMonth(subMonths(new Date(), 5)); // 6 meses atrás
   const defaultEndDate = endOfMonth(new Date());
   
   const startDate = params.startDate || defaultStartDate;

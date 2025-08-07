@@ -12,12 +12,12 @@ import { CostsDistributionChart } from '@/components/relatorios/CostsDistributio
 import { createCostsDetailedTableColumns } from '@/components/relatorios/costsDetailedTableColumns';
 import { useCostsReport } from '@/hooks/useCostsReport';
 import { DateRange } from 'react-day-picker';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 const RelatorioCustosDetalhadoPage = () => {
-  // Mês atual como padrão
+  // Últimos 6 meses como padrão para melhor visualização histórica
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: startOfMonth(new Date()),
+    from: startOfMonth(subMonths(new Date(), 5)),
     to: endOfMonth(new Date())
   });
 
