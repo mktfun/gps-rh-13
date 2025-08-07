@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
@@ -8,29 +7,43 @@ import {
   Users, 
   Building2, 
   DollarSign,
-  TrendingUp,
-  BarChart3,
-  PieChart
+  TrendingUp
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
-import CustosPorCnpjChart from '@/components/dashboard/CustosPorCnpjChart';
+import { DateRange } from 'react-day-picker';
+import { startOfMonth, endOfMonth } from 'date-fns';
 import EvolucaoMensalChart from '@/components/dashboard/EvolucaoMensalChart';
-import DistribuicaoCargosChart from '@/components/dashboard/DistribuicaoCargosChart';
+import DistributionChartsCard from '@/components/dashboard/DistributionChartsCard';
+import DateRangePicker from '@/components/dashboard/DateRangePicker';
 import StatusSolicitacoesSection from '@/components/dashboard/StatusSolicitacoesSection';
 import DashboardCard from '@/components/ui/DashboardCard';
 
 const EmpresaDashboard = () => {
   const { user } = useAuth();
   const { data: dashboardData } = useEmpresaDashboard();
-  const { data: metrics, isLoading, error } = useEmpresaDashboardMetrics(6);
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Estado para controlar o intervalo de datas - padrão: mês atual
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date())
+  });
+
+  // Converter DateRange para parâmetros do hook
+  const dateParams = useMemo(() => ({
+    startDate: dateRange?.from || startOfMonth(new Date()),
+    endDate: dateRange?.to || endOfMonth(new Date())
+  }), [dateRange]);
+
+  const { data: metrics, isLoading, error } = useEmpresaDashboardMetrics(dateParams);
 
   console.log('🔍 [EmpresaDashboard] Estado atual:', { 
     metrics, 
     isLoading,
-    error: error?.message
+    error: error?.message,
+    dateRange
   });
 
   if (isLoading) {
@@ -99,16 +112,31 @@ const EmpresaDashboard = () => {
       <div className="max-w-7xl mx-auto space-y-8 w-full px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="animate-fade-in opacity-0" style={{ animationFillMode: 'forwards' }}>
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Painel da Empresa
-              </h1>
-              <p className="text-lg text-gray-600 mt-2">
-                Bem-vindo, <span className="font-medium text-blue-600">{user?.email}</span>! 
-                Acompanhe o status das suas solicitações e indicadores.
-              </p>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Painel da Empresa
+                </h1>
+                <p className="text-lg text-gray-600 mt-2">
+                  Bem-vindo, <span className="font-medium text-blue-600">{user?.email}</span>! 
+                  Acompanhe o status das suas solicitações e indicadores.
+                </p>
+              </div>
+            </div>
+            
+            {/* Date Range Picker */}
+            <div className="flex items-center gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Período de análise
+                </label>
+                <DateRangePicker
+                  dateRange={dateRange}
+                  onDateRangeChange={setDateRange}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -194,42 +222,28 @@ const EmpresaDashboard = () => {
             </div>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Evolução Mensal */}
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Evolução Mensal - Now takes full width */}
+              <div className="animate-fade-in opacity-0 lg:col-span-3" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
                 <DashboardCard
                   title="Evolução Mensal"
                   icon={TrendingUp}
-                  description="Funcionários e custos nos últimos meses"
+                  description="Funcionários e custos no período selecionado"
                 >
                   <EvolucaoMensalChart dados={metrics.evolucaoMensal} />
                 </DashboardCard>
               </div>
 
-              {/* Distribuição por Cargos */}
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
-                <DashboardCard
-                  title="Distribuição por Cargos"
-                  icon={PieChart}
-                  description="Funcionários organizados por cargo"
-                >
-                  <DistribuicaoCargosChart dados={metrics.distribuicaoCargos} />
-                </DashboardCard>
-              </div>
-
-              {/* Custos por CNPJ */}
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                <DashboardCard
-                  title="Custos por CNPJ"
-                  icon={BarChart3}
-                  description="Distribuição de custos por filial"
-                >
-                  <CustosPorCnpjChart dados={metrics.custosPorCnpj} />
-                </DashboardCard>
+              {/* Unified Distribution Charts Card */}
+              <div className="animate-fade-in opacity-0 lg:col-span-2" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
+                <DistributionChartsCard 
+                  distribuicaoCargos={metrics.distribuicaoCargos}
+                  custosPorCnpj={metrics.custosPorCnpj}
+                />
               </div>
 
               {/* Plano Principal */}
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
+              <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                 <DashboardCard
                   title="Plano Principal"
                   icon={DollarSign}
