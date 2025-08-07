@@ -87,7 +87,7 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
       }
 
       console.log('✅ [useCostsReport] Relatório carregado:', data);
-      return data as CostsReportData;
+      return data as unknown as CostsReportData;
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 2, // 2 minutos
