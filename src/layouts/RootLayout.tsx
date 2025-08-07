@@ -10,7 +10,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="dark bg-background text-foreground min-h-screen">
+        <div className="min-h-screen bg-background">
           {children}
         </div>
         <Toaster />
