@@ -44,7 +44,7 @@ const empresaPlanos = [
 
 const empresaRelatorios = [
   { href: '/empresa/relatorios/funcionarios', label: 'Funcionários', icon: Users, disabled: true },
-  { href: '/empresa/relatorios/custos', label: 'Custos Detalhado', icon: DollarSign, disabled: true },
+  { href: '/empresa/relatorios/custos-detalhado', label: 'Custos Detalhado', icon: DollarSign },
   { href: '/empresa/relatorios/pendencias', label: 'Pendências', icon: FileText, disabled: true },
 ];
 
