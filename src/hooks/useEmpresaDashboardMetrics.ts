@@ -67,12 +67,6 @@ export const useEmpresaDashboardMetrics = (months: number = 6) => {
 
       console.log('📊 [useEmpresaDashboardMetrics] Dados brutos da SQL:', dashboardData);
 
-      // Verificar se há erro na resposta
-      if (dashboardData.error) {
-        console.error('❌ [useEmpresaDashboardMetrics] Erro retornado pela função:', dashboardData.error);
-        throw new Error(`Erro na função SQL: ${dashboardData.error}`);
-      }
-
       // Processar dados com segurança
       const typedData = dashboardData as any;
 
