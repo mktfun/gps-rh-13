@@ -1,13 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: React.ElementType;
   description?: string;
+  variant?: 'default' | 'success' | 'warning' | 'destructive';
   trend?: {
     value: number;
     isPositive: boolean;
@@ -15,9 +15,24 @@ interface StatCardProps {
   className?: string;
 }
 
-export const StatCard = ({ title, value, icon: Icon, description, trend, className }: StatCardProps) => {
+export const StatCard = ({ 
+  title, 
+  value, 
+  icon: Icon, 
+  description, 
+  variant = 'default',
+  trend, 
+  className 
+}: StatCardProps) => {
+  const variantStyles = {
+    default: "hover:shadow-md transition-shadow",
+    success: "hover:shadow-md transition-shadow border-green-200 bg-green-50/50",
+    warning: "hover:shadow-md transition-shadow border-orange-200 bg-orange-50/50", 
+    destructive: "hover:shadow-md transition-shadow border-red-200 bg-red-50/50"
+  };
+
   return (
-    <Card className={cn("hover:shadow-md transition-shadow", className)}>
+    <Card className={cn(variantStyles[variant], className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
