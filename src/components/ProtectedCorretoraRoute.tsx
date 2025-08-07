@@ -4,7 +4,11 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 
-const ProtectedCorretoraRoute: React.FC = () => {
+interface ProtectedCorretoraRouteProps {
+  children?: React.ReactNode;
+}
+
+const ProtectedCorretoraRoute: React.FC<ProtectedCorretoraRouteProps> = ({ children }) => {
   const { isAuthenticated, role, isLoading } = useAuth();
 
   if (isLoading) {
@@ -27,7 +31,7 @@ const ProtectedCorretoraRoute: React.FC = () => {
     }
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedCorretoraRoute;

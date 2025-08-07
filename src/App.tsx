@@ -24,6 +24,7 @@ import CorretoraDashboard from '@/pages/corretora/Dashboard';
 import CorretoraEmpresas from '@/pages/corretora/Empresas';
 import CorretoraFuncionarios from '@/pages/corretora/CorretoraFuncionarios';
 import RelatorioCustosDetalhadoPage from "@/pages/empresa/relatorios/RelatorioCustosDetalhadoPage";
+import AppLayout from '@/components/layout/RootLayout';
 
 function App() {
   return (
@@ -35,9 +36,11 @@ function App() {
 
         {/* Admin routes */}
         <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <RootLayout />
-          </ProtectedRoute>
+          <RootLayout>
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AppLayout />
+            </ProtectedRoute>
+          </RootLayout>
         }>
           <Route index element={<Dashboard />} />
           <Route path="corretoras" element={<CorretoraspPage />} />
@@ -45,9 +48,11 @@ function App() {
 
         {/* Corretora routes */}
         <Route path="/corretora" element={
-          <ProtectedCorretoraRoute>
-            <RootLayout />
-          </ProtectedCorretoraRoute>
+          <RootLayout>
+            <ProtectedCorretoraRoute>
+              <AppLayout />
+            </ProtectedCorretoraRoute>
+          </RootLayout>
         }>
           <Route index element={<CorretoraDashboard />} />
           <Route path="empresas" element={<CorretoraEmpresas />} />
@@ -56,9 +61,11 @@ function App() {
 
         {/* Empresa routes */}
         <Route path="/empresa" element={
-          <ProtectedRoute allowedRoles={['empresa']}>
-            <RootLayout />
-          </ProtectedRoute>
+          <RootLayout>
+            <ProtectedRoute allowedRoles={['empresa']}>
+              <AppLayout />
+            </ProtectedRoute>
+          </RootLayout>
         }>
           <Route index element={<EmpresaDashboard />} />
           <Route path="funcionarios" element={<EmpresaFuncionarios />} />
@@ -75,25 +82,31 @@ function App() {
 
         {/* Shared routes */}
         <Route path="/perfil" element={
-          <ProtectedRoute>
-            <RootLayout />
-          </ProtectedRoute>
+          <RootLayout>
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          </RootLayout>
         }>
           <Route index element={<PerfilPage />} />
         </Route>
 
         <Route path="/configuracoes" element={
-          <ProtectedRoute>
-            <RootLayout />
-          </ProtectedRoute>
+          <RootLayout>
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          </RootLayout>
         }>
           <Route index element={<ConfiguracoesPage />} />
         </Route>
 
         <Route path="/chat" element={
-          <ProtectedRoute>
-            <RootLayout />
-          </ProtectedRoute>
+          <RootLayout>
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          </RootLayout>
         }>
           <Route index element={<ChatPage />} />
         </Route>
