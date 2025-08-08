@@ -114,7 +114,11 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
 
       // 3. Aplicar filtros dinamicamente
       if (params.statusFilter && params.statusFilter !== 'all') {
-        query = query.eq('status', params.statusFilter);
+        // Corrigir o tipo - usar o tipo correto do status
+        const statusValues = ['ativo', 'pendente', 'desativado', 'exclusao_solicitada', 'pendente_exclusao', 'arquivado', 'edicao_solicitada'] as const;
+        if (statusValues.includes(params.statusFilter as any)) {
+          query = query.eq('status', params.statusFilter);
+        }
       }
       if (params.cnpjFilter && params.cnpjFilter !== 'all') {
         query = query.eq('cnpj_id', params.cnpjFilter);
@@ -182,18 +186,29 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
       const funcionarios_por_cnpj: FuncionariosPorCNPJ[] = Object.values(cnpjGroups);
 
       // 8. Preparar tabela detalhada
-      const tabela_detalhada: TabelaDetalhada[] = data.map(f => ({
-        id: f.id,
-        nome_completo: f.nome,
-        cpf: f.cpf,
-        cnpj: f.cnpjs?.cnpj || '',
-        razao_social: f.cnpjs?.razao_social || '',
-        status: f.status,
-        data_admissao: format(new Date(f.created_at), 'yyyy-MM-dd'),
-        data_ativacao_seguro: format(new Date(f.created_at), 'yyyy-MM-dd'),
-        valor_individual: f.cnpj_id?.dados_planos?.[0]?.valor_mensal || 0,
-        total_dependentes: 0
-      }));
+      const tabela_detalhada: TabelaDetalhada[] = data.map(f => {
+        // Corrigir o acesso ao valor_mensal - acessar corretamente a estrutura aninhada
+        let valorMensal = 0;
+        if (f.cnpj_id && typeof f.cnpj_id === 'object' && 'dados_planos' in f.cnpj_id) {
+          const dadosPlanos = (f.cnpj_id as any).dados_planos;
+          if (Array.isArray(dadosPlanos) && dadosPlanos.length > 0) {
+            valorMensal = dadosPlanos[0]?.valor_mensal || 0;
+          }
+        }
+
+        return {
+          id: f.id,
+          nome_completo: f.nome,
+          cpf: f.cpf,
+          cnpj: f.cnpjs?.cnpj || '',
+          razao_social: f.cnpjs?.razao_social || '',
+          status: f.status,
+          data_admissao: format(new Date(f.created_at), 'yyyy-MM-dd'),
+          data_ativacao_seguro: format(new Date(f.created_at), 'yyyy-MM-dd'),
+          valor_individual: valorMensal,
+          total_dependentes: 0
+        };
+      });
 
       // 9. Calcular evolução temporal (simplificada por enquanto)
       const evolucao_temporal: EvolucaoTemporal[] = [];
