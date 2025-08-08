@@ -1,8 +1,8 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
+import type { Database } from '@/integrations/supabase/types';
 
 interface FuncionariosReportKPIs {
   total_funcionarios: number;
@@ -98,33 +98,46 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         throw cnpjsError;
       }
 
+      if (!cnpjsData || cnpjsData.length === 0) {
+        console.log('⚠️ [useFuncionariosReport] Nenhum CNPJ encontrado para a empresa');
+        return {
+          kpis: { total_funcionarios: 0, funcionarios_ativos: 0, funcionarios_inativos: 0, taxa_cobertura: 0 },
+          evolucao_temporal: [],
+          distribuicao_status: [],
+          funcionarios_por_cnpj: [],
+          tabela_detalhada: [],
+          periodo: { inicio: format(startDate, 'yyyy-MM-dd'), fim: format(endDate, 'yyyy-MM-dd') }
+        };
+      }
+
       const cnpjIds = cnpjsData.map(c => c.id);
 
-      // 2. Base da query: buscar funcionários da empresa
+      // 2. Base da query: buscar funcionários da empresa com dados dos planos
       let query = supabase
         .from('funcionarios')
         .select(`
           *,
-          cnpjs ( razao_social, cnpj ),
-          cnpj_id!inner(
-            dados_planos ( seguradora, valor_mensal )
-          )
+          cnpjs ( razao_social, cnpj, dados_planos ( seguradora, valor_mensal ) )
         `)
         .in('cnpj_id', cnpjIds);
 
       // 3. Aplicar filtros dinamicamente
       if (params.statusFilter && params.statusFilter !== 'all') {
-        // Corrigir o tipo - usar o tipo correto do status
-        const statusValues = ['ativo', 'pendente', 'desativado', 'exclusao_solicitada', 'pendente_exclusao', 'arquivado', 'edicao_solicitada'] as const;
-        if (statusValues.includes(params.statusFilter as any)) {
-          query = query.eq('status', params.statusFilter);
+        // Definir os valores válidos do enum de status
+        const validStatuses: Database['public']['Enums']['funcionario_status'][] = [
+          'ativo', 'pendente', 'desativado', 'exclusao_solicitada', 
+          'pendente_exclusao', 'arquivado', 'edicao_solicitada'
+        ];
+        
+        // Verificar se o filtro é um status válido
+        if (validStatuses.includes(params.statusFilter as Database['public']['Enums']['funcionario_status'])) {
+          query = query.eq('status', params.statusFilter as Database['public']['Enums']['funcionario_status']);
         }
       }
       if (params.cnpjFilter && params.cnpjFilter !== 'all') {
         query = query.eq('cnpj_id', params.cnpjFilter);
       }
       if (params.searchTerm) {
-        // CORREÇÃO DO 'OR': É assim que se faz um OR seguro no Supabase
         query = query.or(`nome.ilike.%${params.searchTerm}%,cpf.ilike.%${params.searchTerm}%`);
       }
 
@@ -187,13 +200,10 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
 
       // 8. Preparar tabela detalhada
       const tabela_detalhada: TabelaDetalhada[] = data.map(f => {
-        // Corrigir o acesso ao valor_mensal - acessar corretamente a estrutura aninhada
+        // Corrigir o acesso ao valor_mensal - verificar se cnpj_id não é null
         let valorMensal = 0;
-        if (f.cnpj_id && typeof f.cnpj_id === 'object' && 'dados_planos' in f.cnpj_id) {
-          const dadosPlanos = (f.cnpj_id as any).dados_planos;
-          if (Array.isArray(dadosPlanos) && dadosPlanos.length > 0) {
-            valorMensal = dadosPlanos[0]?.valor_mensal || 0;
-          }
+        if (f.cnpjs && Array.isArray(f.cnpjs.dados_planos) && f.cnpjs.dados_planos.length > 0) {
+          valorMensal = f.cnpjs.dados_planos[0]?.valor_mensal || 0;
         }
 
         return {
