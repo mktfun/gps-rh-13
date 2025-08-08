@@ -774,20 +774,17 @@ export type Database = {
         }[]
       }
       get_empresas_com_metricas: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { p_corretora_id: string }
         Returns: {
           id: string
           nome: string
           responsavel: string
           email: string
           telefone: string
-          corretora_id: string
-          created_at: string
-          updated_at: string
-          primeiro_acesso: boolean
+          total_cnpjs: number
           total_funcionarios: number
-          total_pendencias: number
-          status_geral: string
+          total_funcionarios_ativos: number
+          custo_mensal_total: number
         }[]
       }
       get_funcionarios_arquivados: {
@@ -870,17 +867,6 @@ export type Database = {
           total_count: number
         }[]
       }
-      get_funcionarios_report: {
-        Args: {
-          p_empresa_id: string
-          p_start_date?: string
-          p_end_date?: string
-          p_status_filter?: string
-          p_cnpj_filter?: string
-          p_search_term?: string
-        }
-        Returns: Json
-      }
       get_my_empresa_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -929,19 +915,19 @@ export type Database = {
         Returns: Json
       }
       get_relatorio_custos_empresa: {
-        Args:
-          | { p_empresa_id: string }
-          | {
-              p_empresa_id: string
-              p_page_size?: number
-              p_page_offset?: number
-            }
+        Args: {
+          p_empresa_id: string
+          p_page_size?: number
+          p_page_offset?: number
+        }
         Returns: {
           cnpj_razao_social: string
           funcionario_nome: string
           funcionario_cpf: string
           valor_individual: number
           status: string
+          total_cnpj: number
+          total_count: number
         }[]
       }
       get_relatorio_financeiro_corretora: {

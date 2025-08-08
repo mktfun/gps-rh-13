@@ -23,7 +23,8 @@ export const useTopEmpresasReceita = () => {
 
       console.log('🔍 Buscando top empresas por receita...');
 
-      const { data, error } = await supabase.rpc('get_top_empresas_receita');
+      // Compatível com a função consolidada que retorna JSONB (array)
+      const { data, error } = await (supabase as any).rpc('get_top_empresas_receita');
 
       if (error) {
         console.error('❌ Erro ao buscar top empresas:', error);
@@ -32,7 +33,7 @@ export const useTopEmpresasReceita = () => {
 
       console.log('✅ Dados retornados pela RPC:', data);
 
-      // A função RPC agora retorna um array JSON diretamente
+      // A função RPC retorna um array JSON diretamente
       if (!data || !Array.isArray(data)) {
         console.warn('⚠️ Dados não são um array válido:', data);
         return [];
