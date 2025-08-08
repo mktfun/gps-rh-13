@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
-import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { startOfMonth, endOfMonth, format } from 'date-fns';
 
 interface FuncionariosReportKPIs {
   total_funcionarios: number;
@@ -67,35 +67,15 @@ interface UseFuncionariosReportParams {
   searchTerm?: string;
 }
 
-interface RpcParams {
-  p_empresa_id: string;
-  p_start_date?: string;
-  p_end_date?: string;
-  p_status_filter?: string;
-  p_cnpj_filter?: string;
-  p_search_term?: string;
-}
-
 export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) => {
   const { data: empresaId } = useEmpresaId();
-  
-  const defaultStartDate = startOfMonth(subMonths(new Date(), 5));
-  const defaultEndDate = endOfMonth(new Date());
-  
-  const startDate = params.startDate || defaultStartDate;
-  const endDate = params.endDate || defaultEndDate;
+
+  const startDate = params.startDate || startOfMonth(new Date());
+  const endDate = params.endDate || endOfMonth(new Date());
 
   return useQuery({
-    queryKey: [
-      'funcionarios-report', 
-      empresaId, 
-      format(startDate, 'yyyy-MM-dd'), 
-      format(endDate, 'yyyy-MM-dd'),
-      params.statusFilter,
-      params.cnpjFilter,
-      params.searchTerm
-    ],
-    queryFn: async (): Promise<FuncionariosReportData> => {
+    queryKey: ['funcionarios-report', empresaId, params],
+    queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
       console.log('🔍 [useFuncionariosReport] Buscando relatório de funcionários:', {
@@ -107,73 +87,131 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         searchTerm: params.searchTerm
       });
 
-      // Construir payload com tipo específico garantindo p_empresa_id obrigatório
-      const rpcParams: RpcParams = {
-        p_empresa_id: empresaId,
-        p_start_date: format(startDate, 'yyyy-MM-dd'),
-        p_end_date: format(endDate, 'yyyy-MM-dd'),
-      };
+      // 1. Primeiro, buscar todos os CNPJs da empresa
+      const { data: cnpjsData, error: cnpjsError } = await supabase
+        .from('cnpjs')
+        .select('id')
+        .eq('empresa_id', empresaId);
 
-      // Só adicionar parâmetros opcionais se eles tiverem valores válidos
-      if (params.statusFilter && params.statusFilter !== 'all' && params.statusFilter.trim()) {
-        rpcParams.p_status_filter = params.statusFilter;
+      if (cnpjsError) {
+        console.error('❌ [useFuncionariosReport] Erro ao buscar CNPJs:', cnpjsError);
+        throw cnpjsError;
       }
 
-      if (params.cnpjFilter && params.cnpjFilter !== 'all' && params.cnpjFilter.trim()) {
-        rpcParams.p_cnpj_filter = params.cnpjFilter;
+      const cnpjIds = cnpjsData.map(c => c.id);
+
+      // 2. Base da query: buscar funcionários da empresa
+      let query = supabase
+        .from('funcionarios')
+        .select(`
+          *,
+          cnpjs ( razao_social, cnpj ),
+          cnpj_id!inner(
+            dados_planos ( seguradora, valor_mensal )
+          )
+        `)
+        .in('cnpj_id', cnpjIds);
+
+      // 3. Aplicar filtros dinamicamente
+      if (params.statusFilter && params.statusFilter !== 'all') {
+        query = query.eq('status', params.statusFilter);
+      }
+      if (params.cnpjFilter && params.cnpjFilter !== 'all') {
+        query = query.eq('cnpj_id', params.cnpjFilter);
+      }
+      if (params.searchTerm) {
+        // CORREÇÃO DO 'OR': É assim que se faz um OR seguro no Supabase
+        query = query.or(`nome.ilike.%${params.searchTerm}%,cpf.ilike.%${params.searchTerm}%`);
       }
 
-      if (params.searchTerm && params.searchTerm.trim()) {
-        rpcParams.p_search_term = params.searchTerm;
-      }
-
-      console.log('🔍 [useFuncionariosReport] Payload tipado enviado:', rpcParams);
-
-      const { data, error } = await supabase.rpc('get_funcionarios_report', rpcParams);
+      // 4. Executar a query
+      const { data, error } = await query;
 
       if (error) {
         console.error('❌ [useFuncionariosReport] Erro ao buscar relatório:', error);
         throw error;
       }
 
-      console.log('✅ [useFuncionariosReport] Relatório carregado:', data);
-      
-      // Safely parse the JSON data
-      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-      
-      const transformedData: FuncionariosReportData = {
-        kpis: parsedData?.kpis || {
-          total_funcionarios: 0,
-          funcionarios_ativos: 0,
-          funcionarios_inativos: 0,
-          taxa_cobertura: 0
-        },
-        evolucao_temporal: Array.isArray(parsedData?.evolucao_temporal) 
-          ? parsedData.evolucao_temporal.map((item: any) => ({
-              mes: item.mes || '',
-              mes_nome: item.mes_nome || '',
-              funcionarios_ativos: item.funcionarios_ativos || 0,
-              funcionarios_inativos: item.funcionarios_inativos || 0,
-              novas_contratacoes: item.novas_contratacoes || 0,
-              desligamentos: item.desligamentos || 0
-            }))
-          : [],
-        distribuicao_status: Array.isArray(parsedData?.distribuicao_status) 
-          ? parsedData.distribuicao_status 
-          : [],
-        funcionarios_por_cnpj: Array.isArray(parsedData?.funcionarios_por_cnpj) 
-          ? parsedData.funcionarios_por_cnpj 
-          : [],
-        tabela_detalhada: Array.isArray(parsedData?.tabela_detalhada) 
-          ? parsedData.tabela_detalhada 
-          : [],
-        periodo: parsedData?.periodo || {
+      console.log('✅ [useFuncionariosReport] Dados brutos carregados:', data);
+
+      // 5. Calcular KPIs
+      const kpis: FuncionariosReportKPIs = {
+        total_funcionarios: data.length,
+        funcionarios_ativos: data.filter(f => f.status === 'ativo').length,
+        funcionarios_inativos: data.filter(f => f.status !== 'ativo').length,
+        taxa_cobertura: data.length > 0 ? (data.filter(f => f.status === 'ativo').length / data.length) * 100 : 0
+      };
+
+      // 6. Calcular distribuição por status
+      const statusCounts = data.reduce((acc, f) => {
+        acc[f.status] = (acc[f.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const distribuicao_status: DistribuicaoStatus[] = Object.entries(statusCounts).map(([status, quantidade]) => ({
+        status,
+        quantidade,
+        percentual: data.length > 0 ? (quantidade / data.length) * 100 : 0
+      }));
+
+      // 7. Agrupar por CNPJ
+      const cnpjGroups = data.reduce((acc, f) => {
+        const cnpj = f.cnpjs?.cnpj || '';
+        const razao_social = f.cnpjs?.razao_social || '';
+        
+        if (!acc[cnpj]) {
+          acc[cnpj] = {
+            cnpj,
+            razao_social,
+            funcionarios_ativos: 0,
+            funcionarios_inativos: 0,
+            total: 0
+          };
+        }
+        
+        acc[cnpj].total += 1;
+        if (f.status === 'ativo') {
+          acc[cnpj].funcionarios_ativos += 1;
+        } else {
+          acc[cnpj].funcionarios_inativos += 1;
+        }
+        
+        return acc;
+      }, {} as Record<string, FuncionariosPorCNPJ>);
+
+      const funcionarios_por_cnpj: FuncionariosPorCNPJ[] = Object.values(cnpjGroups);
+
+      // 8. Preparar tabela detalhada
+      const tabela_detalhada: TabelaDetalhada[] = data.map(f => ({
+        id: f.id,
+        nome_completo: f.nome,
+        cpf: f.cpf,
+        cnpj: f.cnpjs?.cnpj || '',
+        razao_social: f.cnpjs?.razao_social || '',
+        status: f.status,
+        data_admissao: format(new Date(f.created_at), 'yyyy-MM-dd'),
+        data_ativacao_seguro: format(new Date(f.created_at), 'yyyy-MM-dd'),
+        valor_individual: f.cnpj_id?.dados_planos?.[0]?.valor_mensal || 0,
+        total_dependentes: 0
+      }));
+
+      // 9. Calcular evolução temporal (simplificada por enquanto)
+      const evolucao_temporal: EvolucaoTemporal[] = [];
+
+      const result: FuncionariosReportData = {
+        kpis,
+        evolucao_temporal,
+        distribuicao_status,
+        funcionarios_por_cnpj,
+        tabela_detalhada,
+        periodo: {
           inicio: format(startDate, 'yyyy-MM-dd'),
           fim: format(endDate, 'yyyy-MM-dd')
         }
       };
 
-      return transformedData;
+      console.log('✅ [useFuncionariosReport] Relatório processado:', result);
+      return result;
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 2, // 2 minutos
