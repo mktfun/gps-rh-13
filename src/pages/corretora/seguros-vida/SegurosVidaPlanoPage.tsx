@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Dialog } from '@headlessui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,11 +50,15 @@ const SegurosVidaPlanoPage = () => {
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
 
+  console.log('🔍 SegurosVidaPlanoPage - CNPJ ID recebido:', cnpjId);
+
   const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano } = useQuery({
     queryKey: ['plano-detalhes-cnpj', cnpjId],
     queryFn: async (): Promise<PlanoDetalhes> => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
       if (!user?.id) throw new Error('Usuário não autenticado');
+
+      console.log('🔍 Buscando plano para CNPJ:', cnpjId);
 
       const { data, error } = await supabase
         .from('dados_planos')
@@ -75,14 +78,16 @@ const SegurosVidaPlanoPage = () => {
         .single();
 
       if (error) {
-        console.error('Erro ao buscar detalhes do plano:', error);
+        console.error('❌ Erro ao buscar detalhes do plano:', error);
         throw new Error('Erro ao buscar detalhes do plano');
       }
 
       if (!data) {
-        console.error('Plano não encontrado');
+        console.error('❌ Plano não encontrado para CNPJ:', cnpjId);
         throw new Error('Plano não encontrado');
       }
+
+      console.log('✅ Plano encontrado:', data);
 
       return {
         id: data.id,
@@ -99,6 +104,7 @@ const SegurosVidaPlanoPage = () => {
         tipo_seguro: data.tipo_seguro || 'vida'
       };
     },
+    enabled: !!cnpjId && !!user?.id,
   });
 
   const { data: funcionarios, isLoading: isLoadingFuncionarios, error: errorFuncionarios } = useQuery({
@@ -131,6 +137,7 @@ const SegurosVidaPlanoPage = () => {
         idade: funcionario.idade
       }));
     },
+    enabled: !!cnpjId && !!user?.id,
   });
 
   const handleAddFuncionario = () => {
@@ -180,7 +187,7 @@ const SegurosVidaPlanoPage = () => {
         <Card>
           <CardContent>
             <p className="text-center text-muted-foreground">
-              Erro ao carregar detalhes do plano.
+              Erro ao carregar detalhes do plano: {errorPlano?.message || errorFuncionarios?.message}
             </p>
           </CardContent>
         </Card>

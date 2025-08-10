@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Building2, Shield, Grid3X3, List, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,17 +10,14 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { CnpjsCardView } from '@/components/seguros-vida/CnpjsCardView';
 import { CnpjsListView } from '@/components/seguros-vida/CnpjsListView';
 import { BulkImportModal } from '@/components/import/BulkImportModal';
-import { PlanoDetalhesModal } from '@/components/planos/PlanoDetalhesModal';
 
 const SegurosVidaCnpjsPage = () => {
   const { empresaId } = useParams<{ empresaId: string }>();
+  const navigate = useNavigate();
   const [search, setSearch] = React.useState('');
   const [viewMode, setViewMode] = React.useState<'cards' | 'list'>('cards');
   const [selectedCnpj, setSelectedCnpj] = React.useState<any>(null);
   const [showImportModal, setShowImportModal] = React.useState(false);
-  
-  // Estado para controlar o modal de detalhes do plano
-  const [planoSelecionadoId, setPlanoSelecionadoId] = React.useState<string | null>(null);
   
   const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId);
   const { data: cnpjs, isLoading: isLoadingCnpjs } = useCnpjsComPlanos({ 
@@ -30,8 +26,8 @@ const SegurosVidaCnpjsPage = () => {
   });
 
   const handleCnpjClick = (cnpj: any) => {
-    console.log('🔗 Abrindo modal de detalhes do plano:', cnpj.id);
-    setPlanoSelecionadoId(cnpj.id);
+    console.log('🔗 Navegando para CNPJ:', cnpj.id);
+    navigate(`/corretora/seguros-de-vida/${cnpj.id}`);
   };
 
   const handleImportClick = (cnpj: any) => {
@@ -81,7 +77,6 @@ const SegurosVidaCnpjsPage = () => {
         </div>
       </div>
 
-      {/* Informações da Empresa */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -107,7 +102,6 @@ const SegurosVidaCnpjsPage = () => {
         </CardContent>
       </Card>
 
-      {/* Controles de Busca e Visualização */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -142,7 +136,6 @@ const SegurosVidaCnpjsPage = () => {
         </div>
       </div>
 
-      {/* Lista de CNPJs */}
       {!cnpjs || cnpjs.length === 0 ? (
         <div className="text-center py-12">
           <MapPin className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -189,17 +182,6 @@ const SegurosVidaCnpjsPage = () => {
           }}
         />
       )}
-
-      {/* Modal de Detalhes do Plano */}
-      <PlanoDetalhesModal
-        planoId={planoSelecionadoId}
-        open={!!planoSelecionadoId}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setPlanoSelecionadoId(null);
-          }
-        }}
-      />
     </div>
   );
 };
