@@ -20,12 +20,12 @@ const ProtectedCorretoraRoute: React.FC<ProtectedCorretoraRouteProps> = ({ child
   }
 
   if (role !== 'corretora') {
-    // Redirect to appropriate dashboard based on role
+    // ✅ CORREÇÃO: Redirect to valid index routes that exist
     switch (role) {
       case 'admin':
-        return <Navigate to="/admin/dashboard" replace />;
+        return <Navigate to="/admin" replace />;
       case 'empresa':
-        return <Navigate to="/empresa/dashboard" replace />;
+        return <Navigate to="/empresa" replace />;
       default:
         return <Navigate to="/login" replace />;
     }

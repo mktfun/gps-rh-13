@@ -24,14 +24,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
 
   // Check if user has one of the allowed roles
   if (allowedRoles && !allowedRoles.includes(role || '')) {
-    // Redirect to appropriate dashboard based on role
+    // ✅ CORREÇÃO: Redirect to valid index routes that exist
     switch (role) {
       case 'admin':
-        return <Navigate to="/admin/dashboard" replace />;
+        return <Navigate to="/admin" replace />;
       case 'corretora':
-        return <Navigate to="/corretora/dashboard" replace />;
+        return <Navigate to="/corretora" replace />;
       case 'empresa':
-        return <Navigate to="/empresa/dashboard" replace />;
+        return <Navigate to="/empresa" replace />;
       default:
         return <Navigate to="/login" replace />;
     }

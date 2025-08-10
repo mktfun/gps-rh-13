@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -7,7 +8,10 @@ import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
 export const SmartBreadcrumbs: React.FC = () => {
   const location = useLocation();
   const params = useParams();
-  const { id: empresaId, funcionarioId, planoId, cnpjId } = params;
+  
+  // ✅ CORREÇÃO: Fazer o componente mais resiliente a diferentes nomes de parâmetros
+  const empresaId = params.id || params.empresaId;
+  const { funcionarioId, planoId, cnpjId } = params;
 
   // Hooks condicionais baseados na rota
   const { data: empresa } = useEmpresa(empresaId);
@@ -54,14 +58,14 @@ export const SmartBreadcrumbs: React.FC = () => {
       if (empresaId && empresa) {
         breadcrumbs.push({
           label: empresa.nome,
-          href: `/corretora/seguros-de-vida/empresa/${empresaId}`,
+          href: `/corretora/seguros-de-vida/${empresaId}`,
         });
       }
 
       if (cnpjId && plano) {
         breadcrumbs.push({
           label: `Plano ${plano.seguradora}`,
-          href: `/corretora/seguros-de-vida/empresa/${empresaId}/cnpj/${cnpjId}`,
+          href: `/corretora/seguros-de-vida/${empresaId}/cnpj/${cnpjId}`,
         });
       }
     }

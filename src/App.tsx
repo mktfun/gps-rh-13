@@ -25,6 +25,13 @@ import CorretoraEmpresas from '@/pages/corretora/Empresas';
 import EmpresaDetalhes from '@/pages/corretora/EmpresaDetalhes';
 import FuncionariosPendentes from '@/pages/corretora/FuncionariosPendentes';
 import RelatorioCustosDetalhadoPage from "@/pages/empresa/relatorios/RelatorioCustosDetalhadoPage";
+import SegurosVidaEmpresasPage from '@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage';
+import SegurosVidaCnpjsPage from '@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage';
+import SegurosVidaPlanoPage from '@/pages/corretora/seguros-vida/SegurosVidaPlanoPage';
+import RelatorioFinanceiroPage from '@/pages/corretora/relatorios/RelatorioFinanceiroPage';
+import RelatorioFuncionariosPageCorretora from '@/pages/corretora/relatorios/RelatorioFuncionariosPage';
+import RelatorioMovimentacaoPage from '@/pages/corretora/relatorios/RelatorioMovimentacaoPage';
+import AuditoriaPage from '@/pages/corretora/AuditoriaPage';
 import AppLayout from '@/components/layout/RootLayout';
 
 function App() {
@@ -56,6 +63,19 @@ function App() {
             <Route path="empresas" element={<CorretoraEmpresas />} />
             <Route path="empresas/:id" element={<EmpresaDetalhes />} />
             <Route path="funcionarios" element={<FuncionariosPendentes />} />
+            
+            {/* Seguros de Vida nested routes */}
+            <Route path="seguros-de-vida" element={<SegurosVidaEmpresasPage />} />
+            <Route path="seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
+            <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
+            
+            {/* Relatórios nested routes */}
+            <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPageCorretora />} />
+            <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
+            <Route path="relatorios/movimentacao" element={<RelatorioMovimentacaoPage />} />
+            
+            {/* Auditoria route */}
+            <Route path="auditoria" element={<AuditoriaPage />} />
           </Route>
 
           {/* Empresa routes */}
