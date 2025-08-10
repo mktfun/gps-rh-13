@@ -31,11 +31,11 @@ import {
 import { toast } from 'sonner';
 
 const PlanoDetalhesPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { planoId } = useParams<{ planoId: string }>();
   const [activeTab, setActiveTab] = useState('funcionarios');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
-  const { data: plano, isLoading, error } = usePlanoDetalhes(id!);
+  const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
   const { data: stats } = usePlanoFuncionariosStats(
     plano?.cnpj_id || '', 
     plano?.valor_mensal || 0
@@ -43,7 +43,7 @@ const PlanoDetalhesPage: React.FC = () => {
 
   // Debugging detalhado no componente
   console.log('🏠 DEBUGGING PlanoDetalhesPage:', {
-    id,
+    planoId,
     isLoading,
     error: error?.message,
     plano,
@@ -61,6 +61,26 @@ const PlanoDetalhesPage: React.FC = () => {
     toast.info('Funcionalidade de exportação em desenvolvimento');
   };
 
+  // Early return if no planoId
+  if (!planoId) {
+    console.log('❌ Nenhum planoId fornecido na URL');
+    return (
+      <div className="container mx-auto py-6">
+        <Link to="/empresa/planos">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para Planos
+          </Button>
+        </Link>
+        <EmptyState
+          icon={AlertTriangle}
+          title="ID do Plano Inválido"
+          description="Não foi possível identificar o plano a partir da URL."
+        />
+      </div>
+    );
+  }
+
   // Loading state - mostrar enquanto está carregando
   if (isLoading) {
     console.log('🔄 Mostrando loading state...');
@@ -72,6 +92,12 @@ const PlanoDetalhesPage: React.FC = () => {
     console.log('❌ Mostrando error state:', error.message);
     return (
       <div className="container mx-auto py-6">
+        <Link to="/empresa/planos">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para Planos
+          </Button>
+        </Link>
         <EmptyState
           icon={AlertTriangle}
           title="Erro ao Carregar Plano"
@@ -86,6 +112,12 @@ const PlanoDetalhesPage: React.FC = () => {
     console.log('🔍 Mostrando not found state...');
     return (
       <div className="container mx-auto py-6">
+        <Link to="/empresa/planos">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para Planos
+          </Button>
+        </Link>
         <EmptyState
           icon={FileText}
           title="Plano não encontrado"
