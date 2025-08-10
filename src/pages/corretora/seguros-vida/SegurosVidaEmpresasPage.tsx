@@ -21,7 +21,7 @@ export default function SegurosVidaEmpresasPage() {
   const { data: cnpjs = [], isLoading } = useCnpjsComPlanos(search);
 
   const handleCnpjClick = (cnpj: any) => {
-    // ✅ CORREÇÃO: Navegar para a rota correta que existe no App.tsx
+    // ✅ CORREÇÃO: Navegar para a página da empresa que contém os CNPJs
     console.log('🔗 Navegando para empresa:', cnpj.empresa_id);
     console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/${cnpj.empresa_id}`);
     navigate(`/corretora/seguros-de-vida/${cnpj.empresa_id}`);

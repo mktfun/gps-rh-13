@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,8 +51,51 @@ const SegurosVidaPlanoPage = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   console.log('🔍 SegurosVidaPlanoPage - CNPJ ID recebido:', cnpjId);
+
+  // Check if we received a cnpjId that looks like it might be in the wrong param position
+  const { data: autocorrectCheck } = useQuery({
+    queryKey: ['autocorrect-check', cnpjId],
+    queryFn: async () => {
+      if (!cnpjId) return null;
+      
+      // First, try to see if this ID is actually a cnpjId
+      const { data: cnpjData, error: cnpjError } = await supabase
+        .from('cnpjs')
+        .select(`
+          id,
+          empresa_id,
+          razao_social,
+          cnpj,
+          empresas!inner(id, nome)
+        `)
+        .eq('id', cnpjId)
+        .maybeSingle();
+
+      if (cnpjData && cnpjData.empresas) {
+        console.log('🔄 Autocorrect: Found CNPJ when expecting empresa, redirecting...');
+        return {
+          isActuallyCnpj: true,
+          empresaId: cnpjData.empresa_id,
+          cnpjId: cnpjData.id
+        };
+      }
+
+      return { isActuallyCnpj: false };
+    },
+    enabled: !!cnpjId,
+  });
+
+  // Handle autocorrect redirect
+  useEffect(() => {
+    if (autocorrectCheck?.isActuallyCnpj && !isRedirecting) {
+      setIsRedirecting(true);
+      toast.info('Redirecionando para a página correta do plano...');
+      navigate(`/corretora/seguros-de-vida/${autocorrectCheck.empresaId}/cnpj/${autocorrectCheck.cnpjId}`, { replace: true });
+    }
+  }, [autocorrectCheck, navigate, isRedirecting]);
 
   const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresaPorCnpj(cnpjId);
 
@@ -87,7 +131,7 @@ const SegurosVidaPlanoPage = () => {
 
       if (!data) {
         console.error('❌ Plano não encontrado para CNPJ:', cnpjId);
-        throw new Error('Plano não encontrado');
+        throw new Error('Plano não encontrado para este CNPJ');
       }
 
       console.log('✅ Plano encontrado:', data);
@@ -107,7 +151,7 @@ const SegurosVidaPlanoPage = () => {
         tipo_seguro: data.tipo_seguro || 'vida'
       };
     },
-    enabled: !!cnpjId && !!user?.id,
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.isActuallyCnpj,
   });
 
   const { data: funcionarios, isLoading: isLoadingFuncionarios, error: errorFuncionarios } = useQuery({
@@ -140,7 +184,7 @@ const SegurosVidaPlanoPage = () => {
         idade: funcionario.idade
       }));
     },
-    enabled: !!cnpjId && !!user?.id,
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.isActuallyCnpj,
   });
 
   const handleAddFuncionario = () => {
@@ -154,6 +198,22 @@ const SegurosVidaPlanoPage = () => {
   const navigateToFuncionarios = () => {
     setActiveTab('funcionarios');
   };
+
+  // Show loading while redirecting
+  if (isRedirecting || autocorrectCheck?.isActuallyCnpj) {
+    return (
+      <div className="container py-8">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <Skeleton className="h-4 w-48 mx-auto mb-2" />
+              <p className="text-muted-foreground">Redirecionando para a página correta...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoadingPlano || isLoadingFuncionarios || isLoadingEmpresa) {
     return (
@@ -188,10 +248,19 @@ const SegurosVidaPlanoPage = () => {
           Voltar
         </Button>
         <Card>
-          <CardContent>
-            <p className="text-center text-muted-foreground">
-              Erro ao carregar dados: {errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}
-            </p>
+          <CardContent className="py-8">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Plano não encontrado</h3>
+              <p className="text-muted-foreground mb-4">
+                {errorPlano?.message === 'Plano não encontrado para este CNPJ' 
+                  ? 'Este CNPJ não possui um plano de seguro cadastrado.'
+                  : `Erro ao carregar dados: ${errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}`
+                }
+              </p>
+              <Button onClick={() => navigate('/corretora/seguros-de-vida')}>
+                Voltar para Seguros de Vida
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

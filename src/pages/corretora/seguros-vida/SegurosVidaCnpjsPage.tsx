@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Building2, Shield, Grid3X3, List, MapPin } from 'lucide-react';
@@ -27,7 +28,9 @@ const SegurosVidaCnpjsPage = () => {
 
   const handleCnpjClick = (cnpj: any) => {
     console.log('🔗 Navegando para CNPJ:', cnpj.id);
-    navigate(`/corretora/seguros-de-vida/${cnpj.id}`);
+    console.log('🔗 Empresa ID:', empresaId);
+    // ✅ CORREÇÃO: Navegar para a rota correta que inclui tanto empresaId quanto cnpjId
+    navigate(`/corretora/seguros-de-vida/${empresaId}/cnpj/${cnpj.id}`);
   };
 
   const handleImportClick = (cnpj: any) => {
