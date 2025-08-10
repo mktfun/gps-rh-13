@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
@@ -52,6 +53,8 @@ const SegurosVidaPlanoPage = () => {
 
   console.log('🔍 SegurosVidaPlanoPage - CNPJ ID recebido:', cnpjId);
 
+  const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresaPorCnpj(cnpjId);
+
   const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano } = useQuery({
     queryKey: ['plano-detalhes-cnpj', cnpjId],
     queryFn: async (): Promise<PlanoDetalhes> => {
@@ -75,7 +78,7 @@ const SegurosVidaPlanoPage = () => {
           )
         `)
         .eq('cnpj_id', cnpjId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('❌ Erro ao buscar detalhes do plano:', error);
@@ -152,7 +155,7 @@ const SegurosVidaPlanoPage = () => {
     setActiveTab('funcionarios');
   };
 
-  if (isLoadingPlano || isLoadingFuncionarios) {
+  if (isLoadingPlano || isLoadingFuncionarios || isLoadingEmpresa) {
     return (
       <div className="container py-8">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
@@ -177,7 +180,7 @@ const SegurosVidaPlanoPage = () => {
     );
   }
 
-  if (errorPlano || errorFuncionarios) {
+  if (errorPlano || errorFuncionarios || errorEmpresa) {
     return (
       <div className="container py-8">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
@@ -187,13 +190,15 @@ const SegurosVidaPlanoPage = () => {
         <Card>
           <CardContent>
             <p className="text-center text-muted-foreground">
-              Erro ao carregar detalhes do plano: {errorPlano?.message || errorFuncionarios?.message}
+              Erro ao carregar dados: {errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}
             </p>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  const empresaNome = empresaData?.empresa?.nome || planoDetalhes?.empresa_nome || 'Empresa não encontrada';
 
   return (
     <div className="container py-8">
@@ -204,7 +209,7 @@ const SegurosVidaPlanoPage = () => {
 
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{planoDetalhes?.empresa_nome}</h1>
+          <h1 className="text-2xl font-bold">{empresaNome}</h1>
           <p className="text-muted-foreground">
             {planoDetalhes?.cnpj_razao_social} ({planoDetalhes?.cnpj_numero})
           </p>

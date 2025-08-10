@@ -22,7 +22,7 @@ export const useEmpresa = (empresaId: string | undefined) => {
         .from('empresas')
         .select('*')
         .eq('id', empresaId)
-        .single();
+        .maybeSingle();
 
       console.log(`📊 [useEmpresa] Resultado da query:`, { data, error });
 
@@ -33,7 +33,7 @@ export const useEmpresa = (empresaId: string | undefined) => {
       
       if (!data) {
         console.error('❌ [useEmpresa] Nenhum dado retornado (empresa não encontrada)');
-        throw new Error('Empresa não encontrada');
+        return null;
       }
 
       console.log('✅ [useEmpresa] Empresa encontrada com sucesso:', data.nome);
