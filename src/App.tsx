@@ -44,82 +44,60 @@ function App() {
           <Route path="/login" element={<Login />} />
 
           {/* Admin routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Dashboard />} />
-            <Route path="corretoras" element={<CorretoraspPage />} />
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route element={<AppLayout />}>
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/corretoras" element={<CorretoraspPage />} />
+            </Route>
           </Route>
 
           {/* Corretora routes */}
-          <Route path="/corretora" element={
-            <ProtectedCorretoraRoute>
-              <AppLayout />
-            </ProtectedCorretoraRoute>
-          }>
-            <Route index element={<CorretoraDashboard />} />
-            <Route path="empresas" element={<CorretoraEmpresas />} />
-            <Route path="empresas/:id" element={<EmpresaDetalhes />} />
-            <Route path="funcionarios" element={<FuncionariosPendentes />} />
-            
-            {/* Seguros de Vida nested routes */}
-            <Route path="seguros-de-vida" element={<SegurosVidaEmpresasPage />} />
-            <Route path="seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
-            <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
-            
-            {/* Relatórios nested routes */}
-            <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPageCorretora />} />
-            <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
-            <Route path="relatorios/movimentacao" element={<RelatorioMovimentacaoPage />} />
-            
-            {/* Auditoria route */}
-            <Route path="auditoria" element={<AuditoriaPage />} />
+          <Route element={<ProtectedCorretoraRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/corretora" element={<CorretoraDashboard />} />
+              <Route path="/corretora/empresas" element={<CorretoraEmpresas />} />
+              <Route path="/corretora/empresas/:id" element={<EmpresaDetalhes />} />
+              <Route path="/corretora/funcionarios" element={<FuncionariosPendentes />} />
+              
+              {/* Seguros de Vida nested routes */}
+              <Route path="/corretora/seguros-de-vida" element={<SegurosVidaEmpresasPage />} />
+              <Route path="/corretora/seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
+              <Route path="/corretora/seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
+              
+              {/* Relatórios nested routes */}
+              <Route path="/corretora/relatorios/funcionarios" element={<RelatorioFuncionariosPageCorretora />} />
+              <Route path="/corretora/relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
+              <Route path="/corretora/relatorios/movimentacao" element={<RelatorioMovimentacaoPage />} />
+              
+              {/* Auditoria route */}
+              <Route path="/corretora/auditoria" element={<AuditoriaPage />} />
+            </Route>
           </Route>
 
           {/* Empresa routes */}
-          <Route path="/empresa" element={
-            <ProtectedRoute allowedRoles={['empresa']}>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<EmpresaDashboard />} />
-            <Route path="funcionarios" element={<EmpresaFuncionarios />} />
-            <Route path="planos" element={<EmpresaPlanosPage />} />
-            <Route path="planos/:planoId" element={<PlanoDetalhesPage />} />
-            
-            {/* Relatórios */}
-            <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
-            <Route path="relatorios/funcionarios-detalhado" element={<RelatorioFuncionariosEmpresaPage />} />
-            <Route path="relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
-            <Route path="relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
-            <Route path="relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
+          <Route element={<ProtectedRoute allowedRoles={['empresa']} />}>
+            <Route element={<AppLayout />}>
+              <Route path="/empresa" element={<EmpresaDashboard />} />
+              <Route path="/empresa/funcionarios" element={<EmpresaFuncionarios />} />
+              <Route path="/empresa/planos" element={<EmpresaPlanosPage />} />
+              <Route path="/empresa/planos/:planoId" element={<PlanoDetalhesPage />} />
+              
+              {/* Relatórios */}
+              <Route path="/empresa/relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
+              <Route path="/empresa/relatorios/funcionarios-detalhado" element={<RelatorioFuncionariosEmpresaPage />} />
+              <Route path="/empresa/relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
+              <Route path="/empresa/relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
+              <Route path="/empresa/relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
+            </Route>
           </Route>
 
           {/* Shared routes */}
-          <Route path="/perfil" element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<PerfilPage />} />
-          </Route>
-
-          <Route path="/configuracoes" element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<ConfiguracoesPage />} />
-          </Route>
-
-          <Route path="/chat" element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<ChatPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/perfil" element={<PerfilPage />} />
+              <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<NotFound />} />
