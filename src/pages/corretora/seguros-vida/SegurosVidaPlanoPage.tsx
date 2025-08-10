@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -46,22 +45,22 @@ interface FuncionarioPlano {
 }
 
 const SegurosVidaPlanoPage = () => {
-  const { cnpjId } = useParams<{ cnpjId: string }>();
+  const { empresaId, cnpjId } = useParams<{ empresaId: string; cnpjId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  console.log('🔍 SegurosVidaPlanoPage - CNPJ ID recebido:', cnpjId);
+  console.log('🔍 SegurosVidaPlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
-  // Check if we received a cnpjId that looks like it might be in the wrong param position
+  // Check if empresaId is actually a cnpjId that needs autocorrection
   const { data: autocorrectCheck } = useQuery({
-    queryKey: ['autocorrect-check', cnpjId],
+    queryKey: ['autocorrect-check-empresa', empresaId],
     queryFn: async () => {
-      if (!cnpjId) return null;
+      if (!empresaId || !cnpjId) return null;
       
-      // First, try to see if this ID is actually a cnpjId
+      // Check if the empresaId is actually a cnpjId
       const { data: cnpjData, error: cnpjError } = await supabase
         .from('cnpjs')
         .select(`
@@ -71,29 +70,29 @@ const SegurosVidaPlanoPage = () => {
           cnpj,
           empresas!inner(id, nome)
         `)
-        .eq('id', cnpjId)
+        .eq('id', empresaId)
         .maybeSingle();
 
       if (cnpjData && cnpjData.empresas) {
-        console.log('🔄 Autocorrect: Found CNPJ when expecting empresa, redirecting...');
+        console.log('🔄 Autocorrect: EmpresaId is actually a CNPJ, redirecting...');
         return {
-          isActuallyCnpj: true,
-          empresaId: cnpjData.empresa_id,
-          cnpjId: cnpjData.id
+          needsRedirect: true,
+          correctEmpresaId: cnpjData.empresa_id,
+          correctCnpjId: cnpjData.id
         };
       }
 
-      return { isActuallyCnpj: false };
+      return { needsRedirect: false };
     },
-    enabled: !!cnpjId,
+    enabled: !!empresaId && !!cnpjId,
   });
 
   // Handle autocorrect redirect
   useEffect(() => {
-    if (autocorrectCheck?.isActuallyCnpj && !isRedirecting) {
+    if (autocorrectCheck?.needsRedirect && !isRedirecting) {
       setIsRedirecting(true);
       toast.info('Redirecionando para a página correta do plano...');
-      navigate(`/corretora/seguros-de-vida/${autocorrectCheck.empresaId}/cnpj/${autocorrectCheck.cnpjId}`, { replace: true });
+      navigate(`/corretora/seguros-de-vida/${autocorrectCheck.correctEmpresaId}/cnpj/${autocorrectCheck.correctCnpjId}`, { replace: true });
     }
   }, [autocorrectCheck, navigate, isRedirecting]);
 
@@ -151,7 +150,7 @@ const SegurosVidaPlanoPage = () => {
         tipo_seguro: data.tipo_seguro || 'vida'
       };
     },
-    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.isActuallyCnpj,
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
   });
 
   const { data: funcionarios, isLoading: isLoadingFuncionarios, error: errorFuncionarios } = useQuery({
@@ -184,7 +183,7 @@ const SegurosVidaPlanoPage = () => {
         idade: funcionario.idade
       }));
     },
-    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.isActuallyCnpj,
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
   });
 
   const handleAddFuncionario = () => {
@@ -200,7 +199,7 @@ const SegurosVidaPlanoPage = () => {
   };
 
   // Show loading while redirecting
-  if (isRedirecting || autocorrectCheck?.isActuallyCnpj) {
+  if (isRedirecting || autocorrectCheck?.needsRedirect) {
     return (
       <div className="container py-8">
         <Card>

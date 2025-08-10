@@ -1,27 +1,26 @@
-
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useEmpresa } from '@/hooks/useEmpresa';
-import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
+import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 
 export const SmartBreadcrumbs: React.FC = () => {
   const location = useLocation();
   const params = useParams();
   
-  // ✅ CORREÇÃO: Fazer o componente mais resiliente a diferentes nomes de parâmetros
+  // Get all possible parameters from the route
   const empresaId = params.id || params.empresaId;
   const { funcionarioId, planoId, cnpjId } = params;
 
-  // Hooks condicionais baseados na rota
+  // Hooks for data fetching
   const { data: empresa } = useEmpresa(empresaId);
-  const { data: plano } = usePlanoDetalhes(planoId || cnpjId || '');
+  const { data: cnpjData } = useEmpresaPorCnpj(cnpjId);
 
   const generateBreadcrumbs = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const breadcrumbs = [];
 
-    // Sempre adicionar o breadcrumb raiz baseado no contexto
+    // Always add the root breadcrumb based on context
     if (pathSegments[0] === 'corretora') {
       breadcrumbs.push({
         label: 'Dashboard',
@@ -34,7 +33,7 @@ export const SmartBreadcrumbs: React.FC = () => {
       });
     }
 
-    // Breadcrumbs específicos para cada rota
+    // Breadcrumbs specific to each route
     if (pathSegments.includes('empresas')) {
       breadcrumbs.push({
         label: 'Empresas',
@@ -62,9 +61,11 @@ export const SmartBreadcrumbs: React.FC = () => {
         });
       }
 
-      if (cnpjId && plano) {
+      // For CNPJ routes, add the CNPJ breadcrumb
+      if (cnpjId && cnpjData?.cnpj) {
+        const cnpjLabel = cnpjData.cnpj.razao_social || `CNPJ ${cnpjData.cnpj.cnpj}`;
         breadcrumbs.push({
-          label: `Plano ${plano.seguradora}`,
+          label: cnpjLabel,
           href: `/corretora/seguros-de-vida/${empresaId}/cnpj/${cnpjId}`,
         });
       }
@@ -98,7 +99,7 @@ export const SmartBreadcrumbs: React.FC = () => {
       });
     }
 
-    // Breadcrumbs para planos da empresa
+    // Breadcrumbs for company plans
     if (pathSegments.includes('planos') && pathSegments[0] === 'empresa') {
       breadcrumbs.push({
         label: 'Planos',
