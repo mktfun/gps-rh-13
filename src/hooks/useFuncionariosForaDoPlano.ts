@@ -21,7 +21,7 @@ export const useFuncionariosForaDoPlano = (planoId: string, cnpjId: string) => {
 
       console.log('🔍 Chamando RPC get_funcionarios_fora_do_plano:', { planoId, cnpjId });
 
-      const { data, error } = await supabase.rpc('get_funcionarios_fora_do_plano', {
+      const { data, error } = await supabase.rpc('get_funcionarios_fora_do_plano' as any, {
         p_plano_id: planoId,
         p_cnpj_id: cnpjId
       });
@@ -31,8 +31,9 @@ export const useFuncionariosForaDoPlano = (planoId: string, cnpjId: string) => {
         throw error;
       }
 
-      console.log('✅ RPC retornou funcionários elegíveis:', data?.length || 0);
-      return data || [];
+      const funcionarios = data as FuncionarioForaDoPlano[];
+      console.log('✅ RPC retornou funcionários elegíveis:', funcionarios?.length || 0);
+      return funcionarios || [];
     },
     enabled: !!planoId && !!cnpjId,
   });
