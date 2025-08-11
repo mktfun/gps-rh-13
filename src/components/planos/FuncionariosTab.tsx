@@ -17,6 +17,7 @@ interface PlanoDetalhes {
   seguradora: string;
   valor_mensal: number;
   cobertura_morte: number;
+  tipo_seguro?: 'vida' | 'saude';
 }
 
 interface FuncionariosTabProps {
@@ -29,9 +30,12 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
+  const tipoSeguro = plano.tipo_seguro || 'vida';
+
   // Buscar funcionários do plano
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
     cnpjId: plano.cnpj_id,
+    tipoSeguro,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
@@ -39,7 +43,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   });
 
   // Buscar estatísticas
-  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, tipoSeguro, plano.valor_mensal);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
@@ -54,6 +58,14 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
 
   const resetPagination = () => {
     setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+  };
+
+  const handleAtivarFuncionario = async (funcionarioId: string) => {
+    // Esta funcionalidade será implementada no DataTable
+  };
+
+  const handleRemoverFuncionario = async (funcionarioId: string) => {
+    // Esta funcionalidade será implementada no DataTable
   };
 
   return (
@@ -145,28 +157,22 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
                 <SelectItem value="ativo">Ativos</SelectItem>
                 <SelectItem value="pendente">Pendentes</SelectItem>
                 <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
-                <SelectItem value="edicao_solicitada">Edição Solicitada</SelectItem>
-                <SelectItem value="desativado">Desativados</SelectItem>
+                <SelectItem value="inativo">Inativos</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <FuncionariosPlanoDataTable
-            funcionarios={funcionarios}
+            data={funcionarios}
             isLoading={isLoading}
             totalCount={totalCount}
-            totalPages={totalPages}
-            pagination={pagination}
-            setPagination={setPagination}
-            search={search}
-            setSearch={setSearch}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            plano={{
-              seguradora: plano.seguradora,
-              valor_mensal: plano.valor_mensal,
-              cnpj_id: plano.cnpj_id,
-            }}
+            currentPage={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            onPageChange={(page) => setPagination({ ...pagination, pageIndex: page })}
+            onAtivarFuncionario={handleAtivarFuncionario}
+            onRemoverFuncionario={handleRemoverFuncionario}
+            isUpdating={false}
+            tipoSeguro={tipoSeguro}
           />
         </CardContent>
       </Card>

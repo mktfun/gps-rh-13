@@ -9,20 +9,22 @@ import {
 import { Button } from '@/components/ui/button';
 
 interface AddFuncionarioModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  cnpjId: string;
   planoId?: string;
   onFuncionarioCreated?: () => void;
 }
 
 export const AddFuncionarioModal: React.FC<AddFuncionarioModalProps> = ({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
+  cnpjId,
   planoId,
   onFuncionarioCreated
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar Funcionário</DialogTitle>
@@ -31,7 +33,7 @@ export const AddFuncionarioModal: React.FC<AddFuncionarioModalProps> = ({
           <p className="text-muted-foreground mb-4">
             Funcionalidade em desenvolvimento.
           </p>
-          <Button onClick={onClose} variant="outline" className="w-full">
+          <Button onClick={() => onOpenChange(false)} variant="outline" className="w-full">
             Fechar
           </Button>
         </div>
