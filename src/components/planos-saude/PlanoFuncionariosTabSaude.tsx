@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,7 +12,7 @@ import {
   AlertTriangle,
   Stethoscope
 } from 'lucide-react';
-import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
+import { FuncionariosPlanoSaudeDataTable } from './FuncionariosPlanoSaudeDataTable';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { AddFuncionarioModal } from '@/components/seguros-vida/AddFuncionarioModal';
@@ -36,7 +35,7 @@ export const PlanoFuncionariosTabSaude = ({
   shouldOpenAddModal = false,
   onAddModalHandled 
 }: PlanoFuncionariosTabSaudeProps) => {
-  const [statusFilter, setStatusFilter] = useState<string>('todos'); // PADRÃO: 'todos'
+  const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [showAddModal, setShowAddModal] = useState(shouldOpenAddModal);
@@ -44,7 +43,6 @@ export const PlanoFuncionariosTabSaude = ({
 
   console.log('🔍 PlanoFuncionariosTabSaude - Usando plano:', plano);
 
-  // Usar o planoId diretamente
   const { 
     data: funcionariosData, 
     isLoading, 
@@ -52,7 +50,7 @@ export const PlanoFuncionariosTabSaude = ({
     updateFuncionario,
     deleteFuncionario
   } = usePlanoFuncionarios({
-    planoId: plano.id, // USAR O PLANO ID DIRETO
+    planoId: plano.id,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search,
     pageIndex: currentPage,
@@ -60,7 +58,7 @@ export const PlanoFuncionariosTabSaude = ({
   });
 
   const { data: stats } = usePlanoFuncionariosStats({
-    planoId: plano.id, // USAR O PLANO ID DIRETO
+    planoId: plano.id,
     valorMensal: plano.valor_mensal
   });
 
@@ -190,7 +188,7 @@ export const PlanoFuncionariosTabSaude = ({
             </Select>
           </div>
 
-          <FuncionariosPlanoDataTable
+          <FuncionariosPlanoSaudeDataTable
             data={funcionariosData?.funcionarios || []}
             isLoading={isLoading}
             totalCount={funcionariosData?.totalCount || 0}
@@ -200,7 +198,6 @@ export const PlanoFuncionariosTabSaude = ({
             onAtivarFuncionario={handleAtivarFuncionario}
             onRemoverFuncionario={handleRemoverFuncionario}
             isUpdating={updateFuncionario.isPending || deleteFuncionario.isPending}
-            tipoSeguro="saude"
           />
         </CardContent>
       </Card>
