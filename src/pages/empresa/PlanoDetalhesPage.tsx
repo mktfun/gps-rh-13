@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,21 +13,7 @@ import { FuncionariosTab } from '@/components/planos/FuncionariosTab';
 import { CoberturasTab } from '@/components/planos/CoberturasTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
-
-interface PlanoDetalhes {
-  id: string;
-  cnpj_id: string;
-  empresa_nome: string;
-  cnpj_razao_social: string;
-  cnpj_numero: string;
-  seguradora: string;
-  valor_mensal: number;
-  cobertura_morte: number;
-  cobertura_morte_acidental: number;
-  cobertura_invalidez_acidente: number;
-  cobertura_auxilio_funeral: number;
-  tipo_seguro: 'vida' | 'saude' | 'outros';
-}
+import type { PlanoDetalhes } from '@/types/planos';
 
 const PlanoDetalhesPage = () => {
   const { planoId } = useParams<{ planoId: string }>();
@@ -73,6 +58,13 @@ const PlanoDetalhesPage = () => {
 
       console.log('✅ Plano encontrado:', data);
 
+      // Garantir que o tipo seja válido
+      const tipoSeguroRaw = data.tipo_seguro;
+      const tipoSeguro: 'vida' | 'saude' | 'outros' = 
+        tipoSeguroRaw === 'vida' || tipoSeguroRaw === 'saude' || tipoSeguroRaw === 'outros' 
+          ? tipoSeguroRaw 
+          : 'vida';
+
       return {
         id: data.id,
         cnpj_id: data.cnpj_id,
@@ -85,7 +77,7 @@ const PlanoDetalhesPage = () => {
         cobertura_morte_acidental: data.cobertura_morte_acidental,
         cobertura_invalidez_acidente: data.cobertura_invalidez_acidente,
         cobertura_auxilio_funeral: data.cobertura_auxilio_funeral,
-        tipo_seguro: data.tipo_seguro || 'vida'
+        tipo_seguro: tipoSeguro
       };
     },
     enabled: !!planoId && !!empresaId,

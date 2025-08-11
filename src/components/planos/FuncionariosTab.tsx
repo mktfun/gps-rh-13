@@ -3,22 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Search, DollarSign } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
 import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
-
-interface PlanoDetalhes {
-  id: string;
-  cnpj_id: string;
-  seguradora: string;
-  valor_mensal: number;
-  cobertura_morte: number;
-  tipo_seguro?: 'vida' | 'saude';
-}
+import type { PlanoDetalhes } from '@/types/planos';
 
 interface FuncionariosTabProps {
   plano: PlanoDetalhes;
@@ -30,7 +21,8 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  const tipoSeguro = plano.tipo_seguro || 'vida';
+  // Garantir que temos um tipo válido, com fallback para 'vida'
+  const tipoSeguro = plano.tipo_seguro === 'saude' ? 'saude' : 'vida';
 
   // Buscar funcionários do plano
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({

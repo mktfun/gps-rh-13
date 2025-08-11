@@ -181,9 +181,14 @@ const EmpresaPlanosPage = () => {
 
       {/* Modal para adicionar funcionário */}
       <AddFuncionarioModal
-        isOpen={!!funcionarioModalPlanoId}
-        onClose={() => setFuncionarioModalPlanoId(null)}
-        planoId={funcionarioModalPlanoId || undefined}
+        open={!!funcionarioModalPlanoId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setFuncionarioModalPlanoId(null);
+          }
+        }}
+        cnpjId="" // Será definido quando implementarmos a funcionalidade completa
+        planoSeguradora=""
         onFuncionarioCreated={() => {
           setFuncionarioModalPlanoId(null);
           toast.success('Funcionário adicionado com sucesso!');
