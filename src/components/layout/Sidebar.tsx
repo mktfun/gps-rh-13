@@ -126,12 +126,12 @@ const Sidebar = () => {
   const empresaPlanos = [
     {
       name: 'Seguros de Vida',
-      href: '/empresa/planos',
+      href: '/empresa/seguros-de-vida',
       icon: Activity,
     },
     {
       name: 'Planos de Saúde',
-      href: '/empresa/planos-saude',
+      href: '/empresa/planos-de-saude',
       icon: Stethoscope,
     },
   ];
