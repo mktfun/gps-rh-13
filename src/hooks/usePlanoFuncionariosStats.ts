@@ -10,18 +10,18 @@ interface PlanoFuncionariosStats {
   custoPorFuncionario: number;
 }
 
-export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) => {
+export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number, tipoSeguro: 'vida' | 'saude' | 'outros') => {
   return useQuery({
-    queryKey: ['planoFuncionariosStats', cnpjId],
+    queryKey: ['planoFuncionariosStats', cnpjId, tipoSeguro],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId);
+      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId, 'tipo:', tipoSeguro);
 
-      // Primeiro, buscar o plano_id
+      // Primeiro, buscar o plano_id com o tipo correto
       const { data: planoData, error: planoError } = await supabase
         .from('dados_planos')
         .select('id')
         .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', 'vida')
+        .eq('tipo_seguro', tipoSeguro)
         .single();
 
       if (planoError) {
@@ -66,6 +66,6 @@ export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) =
 
       return { ...stats, custoPorFuncionario };
     },
-    enabled: !!cnpjId,
+    enabled: !!cnpjId && !!tipoSeguro,
   });
 };

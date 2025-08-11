@@ -17,6 +17,7 @@ interface PlanoDetalhes {
   seguradora: string;
   valor_mensal: number;
   cobertura_morte: number;
+  tipo_seguro: 'vida' | 'saude' | 'outros';
 }
 
 interface FuncionariosTabProps {
@@ -29,17 +30,18 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Buscar funcionários do plano
+  // Buscar funcionários do plano com o tipo correto
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
     cnpjId: plano.cnpj_id,
+    tipoSeguro: plano.tipo_seguro,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas
-  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal);
+  // Buscar estatísticas com o tipo correto
+  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal, plano.tipo_seguro);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
