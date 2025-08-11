@@ -188,7 +188,7 @@ const EmpresaPlanosPage = () => {
           }
         }}
         cnpjId="" // Será definido quando implementarmos a funcionalidade completa
-        planoSeguradora=""
+        planoId={funcionarioModalPlanoId || ""}
         onFuncionarioCreated={() => {
           setFuncionarioModalPlanoId(null);
           toast.success('Funcionário adicionado com sucesso!');
