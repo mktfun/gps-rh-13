@@ -636,29 +636,35 @@ export type Database = {
       planos_demonstrativos: {
         Row: {
           ano: number
+          data_vencimento: string | null
           id: string
           mes: number
           path_boleto: string | null
           path_demonstrativo: string | null
           plano_id: string
+          status: Database["public"]["Enums"]["boleto_status"] | null
           uploaded_at: string
         }
         Insert: {
           ano: number
+          data_vencimento?: string | null
           id?: string
           mes: number
           path_boleto?: string | null
           path_demonstrativo?: string | null
           plano_id: string
+          status?: Database["public"]["Enums"]["boleto_status"] | null
           uploaded_at?: string
         }
         Update: {
           ano?: number
+          data_vencimento?: string | null
           id?: string
           mes?: number
           path_boleto?: string | null
           path_demonstrativo?: string | null
           plano_id?: string
+          status?: Database["public"]["Enums"]["boleto_status"] | null
           uploaded_at?: string
         }
         Relationships: [
@@ -699,6 +705,45 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "planos_faixas_de_preco_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "dados_planos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_funcionarios: {
+        Row: {
+          created_at: string
+          funcionario_id: string
+          id: string
+          plano_id: string
+          status: Database["public"]["Enums"]["status_matricula"]
+        }
+        Insert: {
+          created_at?: string
+          funcionario_id: string
+          id?: string
+          plano_id: string
+          status?: Database["public"]["Enums"]["status_matricula"]
+        }
+        Update: {
+          created_at?: string
+          funcionario_id?: string
+          id?: string
+          plano_id?: string
+          status?: Database["public"]["Enums"]["status_matricula"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_funcionarios_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planos_funcionarios_plano_id_fkey"
             columns: ["plano_id"]
             isOneToOne: false
             referencedRelation: "dados_planos"
@@ -796,6 +841,10 @@ export type Database = {
       }
     }
     Functions: {
+      calcular_valor_mensal_plano_saude: {
+        Args: { plano_uuid: string }
+        Returns: number
+      }
       contar_total_mensagens_nao_lidas: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -1257,6 +1306,7 @@ export type Database = {
       }
     }
     Enums: {
+      boleto_status: "pendente" | "pago" | "vencido"
       cnpj_status: "configuracao" | "suspenso" | "ativo"
       estado_civil:
         | "solteiro"
@@ -1272,6 +1322,7 @@ export type Database = {
         | "pendente_exclusao"
         | "arquivado"
         | "edicao_solicitada"
+      status_matricula: "ativo" | "pendente" | "inativo" | "exclusao_solicitada"
       tipo_seguro: "vida" | "saude" | "outros"
       user_role: "corretora" | "empresa" | "admin"
     }
@@ -1401,6 +1452,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      boleto_status: ["pendente", "pago", "vencido"],
       cnpj_status: ["configuracao", "suspenso", "ativo"],
       estado_civil: [
         "solteiro",
@@ -1418,6 +1470,7 @@ export const Constants = {
         "arquivado",
         "edicao_solicitada",
       ],
+      status_matricula: ["ativo", "pendente", "inativo", "exclusao_solicitada"],
       tipo_seguro: ["vida", "saude", "outros"],
       user_role: ["corretora", "empresa", "admin"],
     },
