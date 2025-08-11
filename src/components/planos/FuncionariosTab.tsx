@@ -6,10 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Search, DollarSign } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
-import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
+import { useFuncionariosDoPlano } from '@/hooks/useFuncionariosDoPlano';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
-import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -30,22 +29,28 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Buscar funcionários do plano com o tipo correto
-  const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
-    cnpjId: plano.cnpj_id,
-    tipoSeguro: plano.tipo_seguro,
+  // Buscar funcionários do plano usando o novo hook
+  const { data: funcionariosData, isLoading } = useFuncionariosDoPlano({
+    planoId: plano.id,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas com o tipo correto
-  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal, plano.tipo_seguro);
-
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
   const totalPages = funcionariosData?.totalPages || 0;
+
+  // Calcular estatísticas básicas
+  const stats = {
+    ativos: funcionarios.filter(f => f.status_no_plano === 'ativo').length,
+    pendentes: funcionarios.filter(f => f.status_no_plano === 'pendente').length,
+    total: totalCount,
+    custoPorFuncionario: funcionarios.filter(f => f.status_no_plano === 'ativo').length > 0 
+      ? plano.valor_mensal / funcionarios.filter(f => f.status_no_plano === 'ativo').length 
+      : 0
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -69,7 +74,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Ativos</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {stats?.ativos || 0}
+              {stats.ativos}
             </div>
           </CardContent>
         </Card>
@@ -81,7 +86,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Pendentes</span>
             </div>
             <div className="text-2xl font-bold text-yellow-600">
-              {stats?.pendentes || 0}
+              {stats.pendentes}
             </div>
           </CardContent>
         </Card>
@@ -93,7 +98,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Total</span>
             </div>
             <div className="text-2xl font-bold">
-              {stats?.total || 0}
+              {stats.total}
             </div>
           </CardContent>
         </Card>
@@ -105,7 +110,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Custo por Funcionário</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(stats?.custoPorFuncionario || 0)}
+              {formatCurrency(stats.custoPorFuncionario)}
             </div>
           </CardContent>
         </Card>
@@ -121,7 +126,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
             </CardTitle>
             <Button onClick={() => setAddModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Adicionar Funcionário
+              Adicionar Funcionários
             </Button>
           </div>
         </CardHeader>
@@ -147,14 +152,18 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
                 <SelectItem value="ativo">Ativos</SelectItem>
                 <SelectItem value="pendente">Pendentes</SelectItem>
                 <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
-                <SelectItem value="edicao_solicitada">Edição Solicitada</SelectItem>
-                <SelectItem value="desativado">Desativados</SelectItem>
+                <SelectItem value="inativo">Inativos</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <FuncionariosPlanoDataTable
-            funcionarios={funcionarios}
+            funcionarios={funcionarios.map(f => ({
+              ...f,
+              status: f.status_no_plano,
+              matricula_id: f.matricula_id,
+              funcionario_id: f.id
+            }))}
             isLoading={isLoading}
             totalCount={totalCount}
             totalPages={totalPages}
@@ -174,13 +183,13 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
         </CardContent>
       </Card>
 
-      {/* Modal para Adicionar Funcionário */}
-      <AdicionarFuncionarioModal
-        cnpjId={plano.cnpj_id}
-        planoSeguradora={plano.seguradora}
+      {/* Modal para Adicionar Funcionários */}
+      <AdicionarFuncionariosModal
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
-        onFuncionarioAdded={resetPagination}
+        planoId={plano.id}
+        cnpjId={plano.cnpj_id}
+        planoSeguradora={plano.seguradora}
       />
     </div>
   );
