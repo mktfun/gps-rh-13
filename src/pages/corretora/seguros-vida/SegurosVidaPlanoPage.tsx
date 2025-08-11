@@ -15,6 +15,7 @@ import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
+import { ConfigurarPlanoVidaModal } from '@/components/seguros-vida/ConfigurarPlanoVidaModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -51,6 +52,7 @@ const SegurosVidaPlanoPage = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
+  const [showConfigPlanoModal, setShowConfigPlanoModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   console.log('🔍 SegurosVidaPlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
@@ -99,7 +101,7 @@ const SegurosVidaPlanoPage = () => {
 
   const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresaPorCnpj(cnpjId);
 
-  const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano } = useQuery({
+  const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano, refetch: refetchPlano } = useQuery({
     queryKey: ['plano-detalhes-cnpj', cnpjId],
     queryFn: async (): Promise<PlanoDetalhes> => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
@@ -122,7 +124,7 @@ const SegurosVidaPlanoPage = () => {
           )
         `)
         .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', 'vida') // 🔥 FILTRO MÁGICO ADICIONADO AQUI
+        .eq('tipo_seguro', 'vida')
         .maybeSingle();
 
       if (error) {
@@ -200,6 +202,15 @@ const SegurosVidaPlanoPage = () => {
     setActiveTab('funcionarios');
   };
 
+  const handleConfigurePlano = () => {
+    setShowConfigPlanoModal(true);
+  };
+
+  const handlePlanoCreated = () => {
+    refetchPlano();
+    setShowConfigPlanoModal(false);
+  };
+
   // Show loading while redirecting
   if (isRedirecting || autocorrectCheck?.needsRedirect) {
     return (
@@ -260,11 +271,7 @@ const SegurosVidaPlanoPage = () => {
               }
               primaryAction={{
                 label: "Configurar Plano de Vida",
-                onClick: () => {
-                  console.log('🔧 Abrindo modal de configuração de plano de vida para CNPJ:', cnpjId);
-                  toast.info('Modal de configuração de plano em desenvolvimento');
-                  // TODO: Integrar com modal de criação de plano
-                }
+                onClick: handleConfigurePlano
               }}
               secondaryAction={{
                 label: "Voltar",
@@ -273,6 +280,13 @@ const SegurosVidaPlanoPage = () => {
             />
           </CardContent>
         </Card>
+
+        <ConfigurarPlanoVidaModal
+          isOpen={showConfigPlanoModal}
+          onClose={() => setShowConfigPlanoModal(false)}
+          cnpjId={cnpjId!}
+          onPlanoCreated={handlePlanoCreated}
+        />
       </div>
     );
   }
