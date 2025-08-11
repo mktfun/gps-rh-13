@@ -1095,6 +1095,18 @@ export type Database = {
           total_count: number
         }[]
       }
+      get_funcionarios_fora_do_plano: {
+        Args: { p_plano_id: string; p_cnpj_id: string }
+        Returns: {
+          id: string
+          nome: string
+          cpf: string
+          cargo: string
+          salario: number
+          idade: number
+          status: string
+        }[]
+      }
       get_my_empresa_id: {
         Args: Record<PropertyKey, never>
         Returns: string
