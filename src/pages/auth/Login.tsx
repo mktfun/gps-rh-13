@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -11,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordRecoveryModal } from '@/components/auth/PasswordRecoveryModal';
+import { getDashboardRoute } from '@/utils/routePaths';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -29,22 +29,9 @@ const Login = () => {
     if (!authLoading && isAuthenticated && role) {
       console.log('[LOGIN] Usuário autenticado detectado, redirecionando...', { role });
       
-      switch (role) {
-        case 'corretora':
-          console.log('[LOGIN] Redirecionando para /corretora');
-          navigate('/corretora', { replace: true });
-          break;
-        case 'empresa':
-          console.log('[LOGIN] Redirecionando para /empresa');
-          navigate('/empresa', { replace: true });
-          break;
-        case 'admin':
-          console.log('[LOGIN] Redirecionando para /admin');
-          navigate('/admin', { replace: true });
-          break;
-        default:
-          console.warn('[LOGIN] Role não reconhecido:', role);
-      }
+      const dashboardRoute = getDashboardRoute(role);
+      console.log('[LOGIN] Redirecionando para:', dashboardRoute);
+      navigate(dashboardRoute, { replace: true });
     }
   }, [isAuthenticated, role, authLoading, navigate]);
 
