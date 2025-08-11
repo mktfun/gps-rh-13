@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, UserCheck, UserX, Users, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -67,7 +68,6 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
     deleteFuncionario 
   } = usePlanoFuncionarios({
     cnpjId,
-    tipoSeguro: 'vida', // Para seguros de vida
     search,
     statusFilter,
     pageIndex: pagination.pageIndex,
@@ -118,7 +118,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
     },
     onSuccess: (result) => {
       toast.success(`${result.updated} funcionário(s) ativado(s) com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId, 'vida'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId] });
       setSelectedFuncionarios([]);
     },
     onError: (error: any) => {

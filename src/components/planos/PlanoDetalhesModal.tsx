@@ -1,144 +1,90 @@
 
 import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils';
-
-interface PlanoDetalhes {
-  id: string;
-  seguradora: string;
-  valor_mensal: number;
-  valor_mensal_calculado?: number;
-  cobertura_morte: number;
-  cobertura_morte_acidental: number;
-  cobertura_invalidez_acidente: number;
-  cobertura_auxilio_funeral: number;
-  cnpj_id: string;
-  cnpj_numero: string;
-  cnpj_razao_social: string;
-  empresa_nome: string;
-  tipo_seguro?: 'vida' | 'saude' | 'outros';
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
+import { DashboardLoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
+import { AlertCircle, Users } from 'lucide-react';
+import { InformacoesGeraisTab } from './InformacoesGeraisTab';
+import { CoberturasTab } from './CoberturasTab';
+import { FuncionariosTab } from './FuncionariosTab';
 
 interface PlanoDetalhesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  plano: PlanoDetalhes | null;
+  planoId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const PlanoDetalhesModal: React.FC<PlanoDetalhesModalProps> = ({
-  isOpen,
-  onClose,
-  plano
+export const PlanoDetalhesModal: React.FC<PlanoDetalhesModalProps> = ({ 
+  planoId, 
+  open, 
+  onOpenChange 
 }) => {
-  if (!plano) return null;
+  const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
 
-  const getTipoSeguroLabel = (tipo?: string) => {
-    switch (tipo) {
-      case 'vida':
-        return 'Seguro de Vida';
-      case 'saude':
-        return 'Plano de Saúde';
-      case 'outros':
-        return 'Outros';
-      default:
-        return 'Seguro de Vida';
-    }
-  };
-
-  const getTipoSeguroColor = (tipo?: string) => {
-    switch (tipo) {
-      case 'vida':
-        return 'bg-blue-100 text-blue-800';
-      case 'saude':
-        return 'bg-green-100 text-green-800';
-      case 'outros':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
-    }
-  };
+  if (!open) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Detalhes do Plano
-            <Badge className={getTipoSeguroColor(plano.tipo_seguro)}>
-              {getTipoSeguroLabel(plano.tipo_seguro)}
-            </Badge>
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações Gerais</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Seguradora</p>
-                  <p className="text-sm">{plano.seguradora}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Valor Mensal</p>
-                  <p className="text-sm font-semibold">
-                    {formatCurrency(plano.valor_mensal_calculado || plano.valor_mensal)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">CNPJ</p>
-                  <p className="text-sm">{plano.cnpj_numero}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Razão Social</p>
-                  <p className="text-sm">{plano.cnpj_razao_social}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Coberturas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Morte</p>
-                  <p className="text-sm font-semibold">{formatCurrency(plano.cobertura_morte)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Morte Acidental</p>
-                  <p className="text-sm font-semibold">{formatCurrency(plano.cobertura_morte_acidental)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Invalidez por Acidente</p>
-                  <p className="text-sm font-semibold">{formatCurrency(plano.cobertura_invalidez_acidente)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Auxílio Funeral</p>
-                  <p className="text-sm font-semibold">{formatCurrency(plano.cobertura_auxilio_funeral)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button onClick={onClose} variant="outline">
-              Fechar
-            </Button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <DashboardLoadingState />
           </div>
-        </div>
+        )}
+
+        {error && (
+          <div className="py-12">
+            <EmptyState
+              icon={AlertCircle}
+              title="Erro ao carregar plano"
+              description="Não foi possível carregar os detalhes do plano. Tente novamente."
+            />
+          </div>
+        )}
+
+        {plano && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold tracking-tight flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                Detalhes do Plano - {plano.seguradora}
+              </DialogTitle>
+              <p className="text-muted-foreground">
+                {plano.empresa_nome} • {plano.cnpj_razao_social}
+              </p>
+            </DialogHeader>
+
+            <Tabs defaultValue="funcionarios" className="w-full mt-6">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="funcionarios" className="text-sm font-medium">
+                  Funcionários
+                </TabsTrigger>
+                <TabsTrigger value="info" className="text-sm font-medium">
+                  Informações Gerais
+                </TabsTrigger>
+                <TabsTrigger value="coberturas" className="text-sm font-medium">
+                  Coberturas
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="funcionarios" className="space-y-4">
+                <FuncionariosTab plano={plano} />
+              </TabsContent>
+
+              <TabsContent value="info" className="space-y-4">
+                <InformacoesGeraisTab plano={plano} />
+              </TabsContent>
+
+              <TabsContent value="coberturas" className="space-y-4">
+                <CoberturasTab plano={plano} />
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

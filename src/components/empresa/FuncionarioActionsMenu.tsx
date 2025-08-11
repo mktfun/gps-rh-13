@@ -1,6 +1,5 @@
 
-import React from 'react';
-import { MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,83 +7,137 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
+import { PlanoFuncionario } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { toast } from 'sonner';
 
 interface FuncionarioActionsMenuProps {
-  funcionario: {
-    id: string;
-    nome: string;
-    status: string;
-  };
+  funcionario: PlanoFuncionario;
   cnpjId: string;
-  tipoSeguro: 'vida' | 'saude' | 'outros';
-  onEdit?: (funcionario: any) => void;
-  onViewDetails?: (funcionario: any) => void;
+  onViewDetails: (funcionario: PlanoFuncionario) => void;
 }
 
 export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   funcionario,
   cnpjId,
-  tipoSeguro,
-  onEdit,
-  onViewDetails
+  onViewDetails,
 }) => {
-  const { deleteFuncionario } = usePlanoFuncionarios({ cnpjId, tipoSeguro });
+  const [showExclusaoDialog, setShowExclusaoDialog] = useState(false);
+  const { updateFuncionario } = usePlanoFuncionarios({ cnpjId });
 
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(funcionario);
-    } else {
-      toast.info('Funcionalidade de edição em desenvolvimento');
-    }
+  const handleViewDetails = () => {
+    onViewDetails(funcionario);
   };
 
-  const handleView = () => {
-    if (onViewDetails) {
-      onViewDetails(funcionario);
-    } else {
-      toast.info('Funcionalidade de visualização em desenvolvimento');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (window.confirm(`Tem certeza que deseja excluir ${funcionario.nome}?`)) {
-      try {
-        await deleteFuncionario.mutateAsync(funcionario.id);
-        toast.success('Funcionário excluído com sucesso!');
-      } catch (error) {
-        console.error('Erro ao excluir funcionário:', error);
-        toast.error('Erro ao excluir funcionário');
+  const handleSolicitarEdicao = () => {
+    updateFuncionario.mutate({
+      funcionario_id: funcionario.funcionario_id,
+      status: 'exclusao_solicitada', // Usar o status correto do novo enum
+    }, {
+      onSuccess: () => {
+        toast.success('Solicitação de edição enviada para aprovação da corretora!');
+      },
+      onError: () => {
+        toast.error('Erro ao enviar solicitação de edição');
       }
-    }
+    });
   };
+
+  const handleSolicitarExclusao = () => {
+    setShowExclusaoDialog(true);
+  };
+
+  const handleConfirmExclusao = () => {
+    updateFuncionario.mutate({
+      funcionario_id: funcionario.funcionario_id,
+      status: 'exclusao_solicitada',
+    }, {
+      onSuccess: () => {
+        toast.success('Solicitação de exclusão enviada para aprovação da corretora!');
+        setShowExclusaoDialog(false);
+      },
+      onError: () => {
+        toast.error('Erro ao enviar solicitação de exclusão');
+        setShowExclusaoDialog(false);
+      }
+    });
+  };
+
+  // Não mostrar menu para funcionários já com solicitações pendentes
+  if (funcionario.status === 'exclusao_solicitada') {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleViewDetails}
+        className="text-sm"
+      >
+        <Eye className="mr-2 h-4 w-4" />
+        Ver Detalhes
+      </Button>
+    );
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Abrir menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleView}>
-          <Eye className="mr-2 h-4 w-4" />
-          Visualizar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleEdit}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={handleDelete}
-          className="text-destructive"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Excluir
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleViewDetails}>
+            <Eye className="mr-2 h-4 w-4" />
+            Ver Detalhes
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSolicitarEdicao}>
+            <Edit className="mr-2 h-4 w-4" />
+            Solicitar Edição
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={handleSolicitarExclusao}
+            className="text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Solicitar Exclusão
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={showExclusaoDialog} onOpenChange={setShowExclusaoDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Solicitar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja solicitar a exclusão do funcionário <strong>{funcionario.nome}</strong>?
+              Esta solicitação será enviada para a corretora para análise e aprovação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmExclusao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar Solicitação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

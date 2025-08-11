@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Search, DollarSign } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFuncionariosDoPlano } from '@/hooks/useFuncionariosDoPlano';
+import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
-import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
+import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -16,7 +17,6 @@ interface PlanoDetalhes {
   seguradora: string;
   valor_mensal: number;
   cobertura_morte: number;
-  tipo_seguro: 'vida' | 'saude' | 'outros';
 }
 
 interface FuncionariosTabProps {
@@ -29,33 +29,21 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Buscar funcionários do plano usando o hook
-  const { data: funcionariosData, isLoading } = useFuncionariosDoPlano({
-    planoId: plano.id,
+  // Buscar funcionários do plano
+  const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
+    cnpjId: plano.cnpj_id,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas do servidor em vez de calcular no cliente
-  const { data: stats } = usePlanoFuncionariosStats(
-    plano.cnpj_id,
-    plano.valor_mensal,
-    plano.tipo_seguro
-  );
+  // Buscar estatísticas
+  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
   const totalPages = funcionariosData?.totalPages || 0;
-
-  // Usar estatísticas do servidor ou valores padrão
-  const estatisticas = stats || {
-    ativos: 0,
-    pendentes: 0,
-    total: 0,
-    custoPorFuncionario: 0
-  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -79,7 +67,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Ativos</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {estatisticas.ativos}
+              {stats?.ativos || 0}
             </div>
           </CardContent>
         </Card>
@@ -91,7 +79,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Pendentes</span>
             </div>
             <div className="text-2xl font-bold text-yellow-600">
-              {estatisticas.pendentes}
+              {stats?.pendentes || 0}
             </div>
           </CardContent>
         </Card>
@@ -103,7 +91,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Total</span>
             </div>
             <div className="text-2xl font-bold">
-              {estatisticas.total}
+              {stats?.total || 0}
             </div>
           </CardContent>
         </Card>
@@ -115,7 +103,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               <span className="text-sm text-muted-foreground">Custo por Funcionário</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(estatisticas.custoPorFuncionario)}
+              {formatCurrency(stats?.custoPorFuncionario || 0)}
             </div>
           </CardContent>
         </Card>
@@ -131,7 +119,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
             </CardTitle>
             <Button onClick={() => setAddModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Adicionar Funcionários
+              Adicionar Funcionário
             </Button>
           </div>
         </CardHeader>
@@ -157,18 +145,14 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
                 <SelectItem value="ativo">Ativos</SelectItem>
                 <SelectItem value="pendente">Pendentes</SelectItem>
                 <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
-                <SelectItem value="inativo">Inativos</SelectItem>
+                <SelectItem value="edicao_solicitada">Edição Solicitada</SelectItem>
+                <SelectItem value="desativado">Desativados</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <FuncionariosPlanoDataTable
-            funcionarios={funcionarios.map(f => ({
-              ...f,
-              status: f.status_no_plano,
-              matricula_id: f.matricula_id,
-              funcionario_id: f.id
-            }))}
+            funcionarios={funcionarios}
             isLoading={isLoading}
             totalCount={totalCount}
             totalPages={totalPages}
@@ -182,19 +166,18 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               seguradora: plano.seguradora,
               valor_mensal: plano.valor_mensal,
               cnpj_id: plano.cnpj_id,
-              tipo_seguro: plano.tipo_seguro,
             }}
           />
         </CardContent>
       </Card>
 
-      {/* Modal para Adicionar Funcionários */}
-      <AdicionarFuncionariosModal
-        open={addModalOpen}
-        onOpenChange={setAddModalOpen}
-        planoId={plano.id}
+      {/* Modal para Adicionar Funcionário */}
+      <AdicionarFuncionarioModal
         cnpjId={plano.cnpj_id}
         planoSeguradora={plano.seguradora}
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        onFuncionarioAdded={resetPagination}
       />
     </div>
   );

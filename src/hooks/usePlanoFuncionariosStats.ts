@@ -10,29 +10,23 @@ interface PlanoFuncionariosStats {
   custoPorFuncionario: number;
 }
 
-export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number, tipoSeguro: 'vida' | 'saude' | 'outros') => {
+export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) => {
   return useQuery({
-    queryKey: ['planoFuncionariosStats', cnpjId, tipoSeguro],
+    queryKey: ['planoFuncionariosStats', cnpjId],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId, 'tipo:', tipoSeguro);
+      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId);
 
-      // Primeiro, buscar o plano_id com o tipo correto
+      // Primeiro, buscar o plano_id
       const { data: planoData, error: planoError } = await supabase
         .from('dados_planos')
         .select('id')
         .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', tipoSeguro)
-        .maybeSingle();
+        .eq('tipo_seguro', 'vida')
+        .single();
 
       if (planoError) {
         console.error('❌ Erro ao buscar plano:', planoError);
         throw planoError;
-      }
-
-      // Se não há plano, retornar estatísticas zeradas
-      if (!planoData?.id) {
-        console.log('⚠️ Nenhum plano encontrado para tipo:', tipoSeguro, 'cnpjId:', cnpjId);
-        return { total: 0, ativos: 0, pendentes: 0, inativos: 0, custoPorFuncionario: 0 };
       }
 
       // Buscar estatísticas das matrículas
@@ -72,6 +66,6 @@ export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number, t
 
       return { ...stats, custoPorFuncionario };
     },
-    enabled: !!cnpjId && !!tipoSeguro,
+    enabled: !!cnpjId,
   });
 };
