@@ -103,7 +103,7 @@ const PlanosSaudePlanoPage = () => {
   const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresaPorCnpj(cnpjId);
 
   const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano, refetch: refetchPlano } = useQuery({
-    queryKey: ['plano-detalhes-cnpj', cnpjId],
+    queryKey: ['plano-detalhes-cnpj-saude', cnpjId],
     queryFn: async (): Promise<PlanoDetalhes> => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
       if (!user?.id) throw new Error('Usuário não autenticado');
@@ -148,10 +148,10 @@ const PlanosSaudePlanoPage = () => {
         cnpj_numero: data.cnpjs?.cnpj || 'CNPJ Indisponível',
         seguradora: data.seguradora,
         valor_mensal: data.valor_mensal,
-        cobertura_morte: data.cobertura_morte,
-        cobertura_morte_acidental: data.cobertura_morte_acidental,
-        cobertura_invalidez_acidente: data.cobertura_invalidez_acidente,
-        cobertura_auxilio_funeral: data.cobertura_auxilio_funeral,
+        cobertura_morte: data.cobertura_morte || 0,
+        cobertura_morte_acidental: data.cobertura_morte_acidental || 0,
+        cobertura_invalidez_acidente: data.cobertura_invalidez_acidente || 0,
+        cobertura_auxilio_funeral: data.cobertura_auxilio_funeral || 0,
         tipo_seguro: 'saude'
       };
     },
@@ -283,10 +283,9 @@ const PlanosSaudePlanoPage = () => {
         </Card>
 
         <ConfigurarPlanoSaudeModal
-          isOpen={showConfigPlanoModal}
-          onClose={() => setShowConfigPlanoModal(false)}
+          open={showConfigPlanoModal}
+          onOpenChange={setShowConfigPlanoModal}
           cnpjId={cnpjId!}
-          onPlanoCreated={handlePlanoCreated}
         />
       </div>
     );
@@ -343,7 +342,11 @@ const PlanosSaudePlanoPage = () => {
                 seguradora: planoDetalhes.seguradora,
                 valor_mensal: planoDetalhes.valor_mensal,
                 cnpj_id: planoDetalhes.cnpj_id,
-                tipo_seguro: 'saude'
+                tipo_seguro: 'saude',
+                cobertura_morte: planoDetalhes.cobertura_morte,
+                cobertura_morte_acidental: planoDetalhes.cobertura_morte_acidental,
+                cobertura_invalidez_acidente: planoDetalhes.cobertura_invalidez_acidente,
+                cobertura_auxilio_funeral: planoDetalhes.cobertura_auxilio_funeral
               }}
             />
           )}
