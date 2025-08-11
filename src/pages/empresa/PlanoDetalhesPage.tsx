@@ -10,7 +10,6 @@ import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
-import { CoberturasTab } from '@/components/planos/CoberturasTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
 import { 
@@ -142,7 +141,6 @@ const PlanoDetalhesPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
         {/* Coluna Esquerda - Fixa/Sticky (30%) */}
         <div className="lg:col-span-3 space-y-6">
-          {/* Resumo do Plano */}
           <Card className="sticky top-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -257,7 +255,7 @@ const PlanoDetalhesPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="funcionarios">
                     <Users className="h-4 w-4 mr-2" />
                     Funcionários
@@ -265,10 +263,6 @@ const PlanoDetalhesPage: React.FC = () => {
                   <TabsTrigger value="informacoes">
                     <Building2 className="h-4 w-4 mr-2" />
                     Informações
-                  </TabsTrigger>
-                  <TabsTrigger value="coberturas">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Coberturas
                   </TabsTrigger>
                   <TabsTrigger value="contrato">
                     <FileText className="h-4 w-4 mr-2" />
@@ -293,10 +287,6 @@ const PlanoDetalhesPage: React.FC = () => {
 
                 <TabsContent value="informacoes" className="mt-6">
                   <InformacoesGeraisTab plano={plano} />
-                </TabsContent>
-
-                <TabsContent value="coberturas" className="mt-6">
-                  <CoberturasTab plano={plano} />
                 </TabsContent>
 
                 <TabsContent value="contrato" className="mt-6">

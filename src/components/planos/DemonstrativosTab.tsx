@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, FileText, DollarSign } from "lucide-react";
 
 interface DemonstrativosTabProps {
   planoId: string;
@@ -148,15 +148,15 @@ export const DemonstrativosTab: React.FC<DemonstrativosTabProps> = ({
                   key={m.numero}
                   className="border rounded-lg p-3 flex flex-col gap-2"
                 >
-                  <div className="font-medium">{m.nome}/{year}</div>
-                  <div className="flex items-center gap-2">
+                  <div className="font-medium text-center">{m.nome}/{year}</div>
+                  <div className="flex items-center justify-center gap-2">
                     {isCorretora ? (
                       <>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
+                          title="Anexar Demonstrativo"
                           onClick={async () => {
-                            // abrir seletor de arquivo dinamicamente
                             const input = document.createElement("input");
                             input.type = "file";
                             input.accept = "application/pdf";
@@ -173,12 +173,12 @@ export const DemonstrativosTab: React.FC<DemonstrativosTabProps> = ({
                             input.click();
                           }}
                         >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Anexar Demonstrativo
+                          <Upload className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
+                          title="Anexar Boleto"
                           onClick={async () => {
                             const input = document.createElement("input");
                             input.type = "file";
@@ -196,29 +196,28 @@ export const DemonstrativosTab: React.FC<DemonstrativosTabProps> = ({
                             input.click();
                           }}
                         >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Anexar Boleto
+                          <Upload className="h-4 w-4" />
                         </Button>
                       </>
                     ) : (
                       <>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
                           disabled={!hasDem}
+                          title={hasDem ? "Baixar Demonstrativo" : "Sem Demonstrativo"}
                           onClick={() => handleDownload(registro?.path_demonstrativo)}
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          {hasDem ? "Baixar Demonstrativo" : "Sem Demonstrativo"}
+                          <FileText className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
                           disabled={!hasBol}
+                          title={hasBol ? "Baixar Boleto" : "Sem Boleto"}
                           onClick={() => handleDownload(registro?.path_boleto)}
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          {hasBol ? "Baixar Boleto" : "Sem Boleto"}
+                          <DollarSign className="h-4 w-4" />
                         </Button>
                       </>
                     )}
