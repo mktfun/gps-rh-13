@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,7 @@ export const ConfigurarPlanoSaudeModal: React.FC<ConfigurarPlanoSaudeModalProps>
 
       console.log('✅ Plano criado:', planoResponse);
 
-      // 2. Criar as faixas de preço usando SQL direto devido aos tipos TypeScript
+      // 2. Criar as faixas de preço
       const faixasToInsert = FAIXAS_ETARIAS
         .filter(faixa => planoData.faixasPreco[faixa.key] && planoData.faixasPreco[faixa.key] > 0)
         .map(faixa => ({
@@ -87,28 +86,13 @@ export const ConfigurarPlanoSaudeModal: React.FC<ConfigurarPlanoSaudeModalProps>
         }));
 
       if (faixasToInsert.length > 0) {
-        // Usar SQL direto para inserir as faixas de preço
-        const { error: faixasError } = await supabase.rpc('insert_planos_faixas_preco', {
-          faixas_data: faixasToInsert
-        });
+        const { error: faixasError } = await supabase
+          .from('planos_faixas_de_preco')
+          .insert(faixasToInsert);
 
         if (faixasError) {
           console.error('❌ Erro ao criar faixas de preço:', faixasError);
-          // Se não existe a função RPC, vamos tentar inserir diretamente
-          // mesmo com possível erro de tipos
-          try {
-            const { error: directInsertError } = await supabase
-              .from('planos_faixas_de_preco' as any)
-              .insert(faixasToInsert);
-            
-            if (directInsertError) {
-              console.error('❌ Erro no insert direto:', directInsertError);
-              throw directInsertError;
-            }
-          } catch (fallbackError) {
-            console.error('❌ Erro no fallback insert:', fallbackError);
-            throw fallbackError;
-          }
+          throw faixasError;
         }
 
         console.log('✅ Faixas de preço criadas:', faixasToInsert.length);
