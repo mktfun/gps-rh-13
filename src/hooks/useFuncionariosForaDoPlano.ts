@@ -2,7 +2,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface FuncionarioForaDoPlano {
+// A interface pode continuar a mesma
+export interface FuncionarioForaDoPlano {
   id: string;
   nome: string;
   cpf: string;
@@ -18,33 +19,19 @@ export const useFuncionariosForaDoPlano = (planoId: string, cnpjId: string) => {
     queryFn: async (): Promise<FuncionarioForaDoPlano[]> => {
       if (!planoId || !cnpjId) return [];
 
-      // Primeiro, buscar os IDs dos funcionários que já estão no plano
-      const { data: funcionariosNoPlano } = await supabase
-        .from('planos_funcionarios')
-        .select('funcionario_id')
-        .eq('plano_id', planoId);
+      console.log('🔍 Chamando RPC get_funcionarios_fora_do_plano:', { planoId, cnpjId });
 
-      const idsNoPlano = funcionariosNoPlano?.map(pf => pf.funcionario_id) || [];
-
-      // Buscar funcionários do CNPJ que não estão no plano
-      let query = supabase
-        .from('funcionarios')
-        .select('id, nome, cpf, cargo, salario, idade, status')
-        .eq('cnpj_id', cnpjId)
-        .eq('status', 'ativo');
-
-      // Se há funcionários no plano, excluí-los da busca
-      if (idsNoPlano.length > 0) {
-        query = query.not('id', 'in', idsNoPlano);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.rpc('get_funcionarios_fora_do_plano', {
+        p_plano_id: planoId,
+        p_cnpj_id: cnpjId
+      });
 
       if (error) {
-        console.error('Erro ao buscar funcionários fora do plano:', error);
+        console.error('❌ Erro ao executar RPC get_funcionarios_fora_do_plano:', error);
         throw error;
       }
 
+      console.log('✅ RPC retornou funcionários elegíveis:', data?.length || 0);
       return data || [];
     },
     enabled: !!planoId && !!cnpjId,
