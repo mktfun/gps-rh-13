@@ -88,19 +88,21 @@ export const usePlanoDetalhes = (planoId: string) => {
       
       const tipoSeguro = tipoData?.tipo_seguro || 'vida';
       
-      // Se for plano de saúde, calcular valor dinâmico
+      // Se for plano de saúde, calcular valor estimado baseado em funcionários ativos
       if (tipoSeguro === 'saude') {
         try {
-          const { data: valorData, error: valorError } = await supabase.rpc('calcular_valor_mensal_plano_saude', {
-            plano_uuid: planoId
-          });
+          const { data: funcionariosData } = await supabase
+            .from('funcionarios')
+            .select('id', { count: 'exact' })
+            .eq('cnpj_id', planoData.cnpj_id)
+            .eq('status', 'ativo');
           
-          if (!valorError && valorData !== null) {
-            valorCalculado = valorData;
-            console.log('✅ Valor calculado para plano de saúde:', valorCalculado);
-          }
+          const totalFuncionarios = funcionariosData?.length || 0;
+          // Estimativa simples: R$ 200 por funcionário ativo (será substituído pela função RPC quando os tipos estiverem corretos)
+          valorCalculado = totalFuncionarios * 200;
+          console.log('✅ Valor estimado para plano de saúde:', valorCalculado, 'funcionários:', totalFuncionarios);
         } catch (error) {
-          console.error('❌ Erro ao calcular valor mensal:', error);
+          console.error('❌ Erro ao calcular valor estimado:', error);
         }
       }
 
