@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,8 +119,6 @@ const PlanoDetalhesPage = () => {
         
         <TabsContent value="funcionarios">
           <FuncionariosTab 
-            funcionarios={funcionarios || []} 
-            isLoading={isLoadingFuncionarios}
             plano={{
               ...plano,
               tipo_seguro: tipoSeguro

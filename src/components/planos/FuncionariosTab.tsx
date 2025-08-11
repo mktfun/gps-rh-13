@@ -168,6 +168,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
               seguradora: plano.seguradora,
               valor_mensal: plano.valor_mensal,
               cnpj_id: plano.cnpj_id,
+              tipo_seguro: plano.tipo_seguro,
             }}
           />
         </CardContent>
