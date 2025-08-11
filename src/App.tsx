@@ -44,7 +44,7 @@ import RelatorioCustosDetalhadoPage from '@/pages/empresa/relatorios/RelatorioCu
 import RelatorioFuncionariosEmpresaPage from '@/pages/empresa/relatorios/RelatorioFuncionariosEmpresaPage';
 import RelatorioPendenciasEmpresaPage from '@/pages/empresa/relatorios/RelatorioPendenciasEmpresaPage';
 
-import RootLayout from '@/layouts/RootLayout';
+import RootLayout from '@/components/layout/RootLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ProtectedCorretoraRoute from '@/components/ProtectedCorretoraRoute';
 
