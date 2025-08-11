@@ -62,9 +62,9 @@ export const useFuncionariosForaDoPlano = ({
         query = query.eq('status', statusValue);
       }
 
-      // Excluir funcionários que já estão no plano
+      // CORREÇÃO DO BUG: Excluir funcionários que já estão no plano
       if (idsNoPlano.length > 0) {
-        query = query.not('id', 'in', `(${idsNoPlano.join(',')})`);
+        query = query.not('id', 'in', idsNoPlano);
       }
 
       // Aplicar filtro de busca

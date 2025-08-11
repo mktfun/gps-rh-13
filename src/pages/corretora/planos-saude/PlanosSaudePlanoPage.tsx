@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -141,9 +140,7 @@ const PlanosSaudePlanoPage = () => {
         </TabsContent>
         
         <TabsContent value="funcionarios">
-          <FuncionariosTab 
-            plano={planoDetalhes}
-          />
+          <FuncionariosTab plano={planoDetalhes} />
         </TabsContent>
         
         <TabsContent value="contrato">
