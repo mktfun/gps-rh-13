@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Users, Plus } from 'lucide-react';
 import { useFuncionariosForaDoPlano } from '@/hooks/useFuncionariosForaDoPlano';
 import { useAdicionarFuncionariosMutation } from '@/hooks/useAdicionarFuncionariosMutation';
-import { LoadingState } from '@/components/ui/loading-state';
+import { TableLoadingState } from '@/components/ui/loading-state';
 import { formatCurrency } from '@/lib/utils';
 
 interface AdicionarFuncionariosModalProps {
@@ -125,7 +125,7 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
           {/* Lista de Funcionários */}
           <div className="flex-1 overflow-auto border rounded-lg">
             {isLoading ? (
-              <LoadingState message="Carregando funcionários elegíveis..." />
+              <TableLoadingState rows={5} columns={3} />
             ) : funcionarios.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />

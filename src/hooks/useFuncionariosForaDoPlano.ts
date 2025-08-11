@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 export interface FuncionarioForaDoPlano {
   id: string;
@@ -10,7 +11,7 @@ export interface FuncionarioForaDoPlano {
   salario: number;
   idade: number;
   email: string | null;
-  status: string;
+  status: Database['public']['Enums']['funcionario_status'];
   created_at: string;
 }
 
@@ -57,7 +58,8 @@ export const useFuncionariosForaDoPlano = ({
 
       // Filtrar por status
       if (statusFilter && statusFilter !== 'todos') {
-        query = query.eq('status', statusFilter);
+        const statusValue = statusFilter as Database['public']['Enums']['funcionario_status'];
+        query = query.eq('status', statusValue);
       }
 
       // Excluir funcionários que já estão no plano

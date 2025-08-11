@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 export interface FuncionarioDoPlano {
   id: string;
@@ -14,7 +15,7 @@ export interface FuncionarioDoPlano {
   idade: number;
   created_at: string;
   matricula_id: string;
-  status_no_plano: 'ativo' | 'pendente' | 'inativo' | 'exclusao_solicitada';
+  status_no_plano: Database['public']['Enums']['status_matricula'];
 }
 
 interface UseFuncionariosDoPlanoParams {
@@ -59,7 +60,8 @@ export const useFuncionariosDoPlano = ({
 
       // Aplicar filtro de status
       if (statusFilter && statusFilter !== 'todos') {
-        query = query.eq('status', statusFilter);
+        const statusValue = statusFilter as Database['public']['Enums']['status_matricula'];
+        query = query.eq('status', statusValue);
       }
 
       // Aplicar filtro de busca
