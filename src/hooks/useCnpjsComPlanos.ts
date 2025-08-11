@@ -42,7 +42,7 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
     queryFn: async (): Promise<CnpjComPlano[]> => {
       console.log('🔍 Buscando CNPJs com planos para empresa:', empresaId, 'tipo:', tipoSeguro);
 
-      // Buscar CNPJs da empresa
+      // 1. Buscar CNPJs da empresa
       let cnpjQuery = supabase
         .from('cnpjs')
         .select('*')
@@ -68,38 +68,38 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         return [];
       }
 
-      // Buscar planos para cada CNPJ, filtrando por tipo se especificado
-      let planosQuery = supabase
+      const cnpjIds = cnpjs.map(c => c.id);
+
+      // 2. Buscar TODOS os planos para esses CNPJs, SEM FILTRO DE TIPO AINDA
+      const { data: todosOsPlanos, error: planosError } = await supabase
         .from('dados_planos')
         .select('*')
-        .in('cnpj_id', cnpjs.map(c => c.id));
-
-      // Aplicar filtro de tipo de seguro se especificado
-      if (tipoSeguro) {
-        planosQuery = planosQuery.eq('tipo_seguro', tipoSeguro);
-      }
-
-      const { data: planos, error: planosError } = await planosQuery;
+        .in('cnpj_id', cnpjIds);
 
       if (planosError) {
         console.error('❌ Erro ao buscar planos:', planosError);
         throw planosError;
       }
 
-      // Buscar todos os funcionários para cada CNPJ
+      // 3. Buscar todos os funcionários para cada CNPJ
       const { data: funcionarios, error: funcionariosError } = await supabase
         .from('funcionarios')
         .select('id, cnpj_id, status')
-        .in('cnpj_id', cnpjs.map(c => c.id));
+        .in('cnpj_id', cnpjIds);
 
       if (funcionariosError) {
         console.error('❌ Erro ao buscar funcionários:', funcionariosError);
         throw funcionariosError;
       }
 
-      // Montar resultado combinado
+      // 4. Montar resultado com a lógica correta
       const cnpjsComPlanos: CnpjComPlano[] = cnpjs.map(cnpj => {
-        const plano = planos?.find(p => p.cnpj_id === cnpj.id);
+        // ✅ CORREÇÃO: Encontra o plano específico do tipo que estamos procurando
+        // Se tipoSeguro não for especificado, busca qualquer plano (compatibilidade)
+        const planoDoTipoEspecifico = tipoSeguro 
+          ? todosOsPlanos?.find(p => p.cnpj_id === cnpj.id && p.tipo_seguro === tipoSeguro)
+          : todosOsPlanos?.find(p => p.cnpj_id === cnpj.id);
+        
         const funcionariosCnpj = funcionarios?.filter(f => f.cnpj_id === cnpj.id) || [];
         
         // Calcular pendências
@@ -117,10 +117,11 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
           status: cnpj.status,
           created_at: cnpj.created_at,
           empresa_id: cnpj.empresa_id,
-          temPlano: !!plano,
-          planoId: plano?.id,
-          seguradora: plano?.seguradora,
-          valor_mensal: plano?.valor_mensal,
+          // ✅ CORREÇÃO: "temPlano" agora significa "tem plano DO TIPO que eu pedi?"
+          temPlano: !!planoDoTipoEspecifico,
+          planoId: planoDoTipoEspecifico?.id,
+          seguradora: planoDoTipoEspecifico?.seguradora,
+          valor_mensal: planoDoTipoEspecifico?.valor_mensal,
           totalFuncionarios: funcionariosAtivos,
           totalPendencias,
           funcionariosPendentes,
@@ -128,7 +129,7 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         };
       });
 
-      // Aplicar filtro de plano
+      // Aplicar filtro de plano (agora funciona corretamente para o tipo específico)
       let resultado = cnpjsComPlanos;
       if (filtroPlano === 'com-plano') {
         resultado = cnpjsComPlanos.filter(c => c.temPlano);
@@ -136,7 +137,7 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         resultado = cnpjsComPlanos.filter(c => !c.temPlano);
       }
 
-      console.log('✅ CNPJs com planos encontrados:', resultado.length, 'tipo:', tipoSeguro);
+      console.log('✅ CNPJs com planos encontrados (lógica corrigida):', resultado.length, 'tipo:', tipoSeguro);
       return resultado;
     },
     enabled: true,

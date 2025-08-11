@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +21,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { useEmpresaPlanos } from '@/hooks/useEmpresaPlanos';
+import { useEmpresaPlanosPorTipo } from '@/hooks/useEmpresaPlanosPorTipo';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AddFuncionarioModal } from '@/components/seguros-vida/AddFuncionarioModal';
@@ -30,7 +29,7 @@ import { SolicitarAlteracaoCoberturasModal } from '@/components/empresa/Solicita
 import { toast } from 'sonner';
 
 const EmpresaPlanosPage = () => {
-  const { data: planos, isLoading, error } = useEmpresaPlanos();
+  const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('vida');
   const [funcionarioModalPlanoId, setFuncionarioModalPlanoId] = useState<string | null>(null);
   const [alteracaoCoberturasPlano, setAlteracaoCoberturasPlano] = useState<any | null>(null);
 
@@ -74,7 +73,7 @@ const EmpresaPlanosPage = () => {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Planos de Seguro</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Planos de Seguro de Vida</h1>
         <p className="text-muted-foreground">
           Gerencie os planos de seguro de vida da sua empresa
         </p>
@@ -83,8 +82,8 @@ const EmpresaPlanosPage = () => {
       {!planos || planos.length === 0 ? (
         <EmptyState
           icon={Shield}
-          title="Nenhum plano encontrado"
-          description="Não há planos de seguro configurados para sua empresa ainda."
+          title="Nenhum plano de vida encontrado"
+          description="Não há planos de seguro de vida configurados para sua empresa ainda."
         />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -101,7 +100,7 @@ const EmpresaPlanosPage = () => {
                       {plano.seguradora}
                     </CardTitle>
                     <Badge variant="secondary">
-                      {plano.tipo_seguro || 'Seguro de Vida'}
+                      Seguro de Vida
                     </Badge>
                   </div>
                 </CardHeader>
