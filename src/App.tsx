@@ -1,43 +1,53 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
 import LandingPage from '@/pages/LandingPage';
-import Login from '@/pages/Login';
-import AdminDashboard from '@/pages/admin/AdminDashboard';
+import Login from '@/pages/auth/Login';
+import Dashboard from '@/pages/admin/Dashboard';
 import CorretoraspPage from '@/pages/admin/CorretoraspPage';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import ProtectedCorretoraRoute from '@/components/auth/ProtectedCorretoraRoute';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedCorretoraRoute from '@/components/ProtectedCorretoraRoute';
 import RootLayout from '@/components/layout/RootLayout';
 import ChatPage from '@/pages/ChatPage';
 import PerfilPage from '@/pages/PerfilPage';
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage';
 import NotFound from '@/pages/NotFound';
-import CorretoraDashboard from '@/pages/corretora/CorretoraDashboard';
-import EmpresasPage from '@/pages/corretora/EmpresasPage';
-import FuncionariosPendentesPage from '@/pages/corretora/FuncionariosPendentesPage';
-import PendenciasExclusaoPage from '@/pages/corretora/PendenciasExclusaoPage';
+import CorretoraDashboard from '@/pages/corretora/Dashboard';
+import EmpresasPage from '@/pages/corretora/Empresas';
+import FuncionariosPendentesPage from '@/pages/corretora/FuncionariosPendentes';
+import PendenciasExclusaoPage from '@/pages/corretora/PendenciasExclusao';
 import AuditoriaPage from '@/pages/corretora/AuditoriaPage';
-import EmpresaDashboard from '@/pages/empresa/EmpresaDashboard';
-import FuncionariosPage from '@/pages/empresa/FuncionariosPage';
-import PlanosPage from '@/pages/empresa/PlanosPage';
-import AtivarFuncionarioPage from '@/pages/corretora/AtivarFuncionarioPage';
-import DadosPlanosPage from '@/pages/corretora/DadosPlanosPage';
-import PlanoDetalhesPage from '@/pages/corretora/PlanoDetalhesPage';
-import RelatorioFuncionarios from '@/pages/empresa/relatorios/RelatorioFuncionarios';
-import CustosEmpresa from '@/pages/empresa/relatorios/CustosEmpresa';
-import Pendencias from '@/pages/empresa/relatorios/Pendencias';
+import EmpresaDashboard from '@/pages/empresa/Dashboard';
+import FuncionariosPage from '@/pages/empresa/Funcionarios';
+import PlanosPage from '@/pages/empresa/EmpresaPlanosPage';
+import AtivarFuncionarioPage from '@/pages/corretora/AtivarFuncionario';
+import PlanoDetalhesPage from '@/pages/empresa/PlanoDetalhesPage';
+import RelatorioFuncionarios from '@/pages/empresa/relatorios/RelatorioFuncionariosPage';
+import CustosEmpresa from '@/pages/empresa/relatorios/RelatorioCustosEmpresaPage';
+import Pendencias from '@/pages/empresa/relatorios/RelatorioPendenciasEmpresaPage';
 import EnhancedDashboard from '@/pages/corretora/EnhancedDashboard';
-import SegurosDeVidaEmpresas from '@/pages/corretora/seguros-de-vida/SegurosDeVidaEmpresas';
-import SegurosDeVidaCnpj from '@/pages/corretora/seguros-de-vida/SegurosDeVidaCnpj';
-import RelatorioFinanceiro from '@/pages/corretora/relatorios/RelatorioFinanceiro';
-import RelatorioFuncionariosCorretora from '@/pages/corretora/relatorios/RelatorioFuncionarios';
-import RelatorioMovimentacao from '@/pages/corretora/relatorios/RelatorioMovimentacao';
+import SegurosDeVidaEmpresas from '@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage';
+import SegurosDeVidaCnpj from '@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage';
+import RelatorioFinanceiro from '@/pages/corretora/relatorios/RelatorioFinanceiroPage';
+import RelatorioFuncionariosCorretora from '@/pages/corretora/relatorios/RelatorioFuncionariosPage';
+import RelatorioMovimentacao from '@/pages/corretora/relatorios/RelatorioMovimentacaoPage';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <Toaster />
       <Router>
         <Routes>
@@ -54,8 +64,8 @@ function App() {
           <Route path="/empresa/planos-saude" element={<Navigate to="/empresa/planos" replace />} />
 
           {/* Protected admin routes */}
-          <Route path="/admin/*" element={<ProtectedRoute requiredRole="admin" />}>
-            <Route path="dashboard" element={<RootLayout><AdminDashboard /></RootLayout>} />
+          <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="dashboard" element={<RootLayout><Dashboard /></RootLayout>} />
             <Route path="corretoras" element={<RootLayout><CorretoraspPage /></RootLayout>} />
           </Route>
 
@@ -68,8 +78,6 @@ function App() {
             <Route path="pendencias-exclusao" element={<RootLayout><PendenciasExclusaoPage /></RootLayout>} />
             <Route path="auditoria" element={<RootLayout><AuditoriaPage /></RootLayout>} />
             <Route path="ativar-funcionario/:funcionarioId" element={<RootLayout><AtivarFuncionarioPage /></RootLayout>} />
-            <Route path="dados-planos" element={<RootLayout><DadosPlanosPage /></RootLayout>} />
-            <Route path="plano/:planoId" element={<RootLayout><PlanoDetalhesPage /></RootLayout>} />
             
             {/* Seguros de Vida Routes */}
             <Route path="seguros-de-vida/empresas" element={<RootLayout><SegurosDeVidaEmpresas /></RootLayout>} />
@@ -82,10 +90,11 @@ function App() {
           </Route>
 
           {/* Protected empresa routes */}
-          <Route path="/empresa/*" element={<ProtectedRoute requiredRole="empresa" />}>
+          <Route path="/empresa/*" element={<ProtectedRoute allowedRoles={['empresa']} />}>
             <Route path="dashboard" element={<RootLayout><EmpresaDashboard /></RootLayout>} />
             <Route path="funcionarios" element={<RootLayout><FuncionariosPage /></RootLayout>} />
             <Route path="planos" element={<RootLayout><PlanosPage /></RootLayout>} />
+            <Route path="plano/:planoId" element={<RootLayout><PlanoDetalhesPage /></RootLayout>} />
 
             {/* Relatórios routes */}
             <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionarios /></RootLayout>} />
@@ -102,7 +111,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
