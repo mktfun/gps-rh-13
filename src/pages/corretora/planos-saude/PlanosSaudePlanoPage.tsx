@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Stethoscope } from 'lucide-react';
+import { Plus, ArrowLeft, Stethoscope, Settings } from 'lucide-react';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner';
@@ -15,6 +14,7 @@ import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
+import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 
 interface PlanoDetalhes {
   id: string;
@@ -249,19 +249,28 @@ const PlanosSaudePlanoPage = () => {
           Voltar
         </Button>
         <Card>
-          <CardContent className="py-8">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Plano de saúde não encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                {errorPlano?.message === 'Plano de saúde não encontrado para este CNPJ' 
-                  ? 'Este CNPJ não possui um plano de saúde cadastrado.'
+          <CardContent className="py-12">
+            <EmptyStateWithAction
+              icon={Settings}
+              title="Plano de saúde não encontrado"
+              description={
+                errorPlano?.message === 'Plano de saúde não encontrado para este CNPJ' 
+                  ? 'Este CNPJ não possui um plano de saúde cadastrado. Configure um plano agora para começar a gerenciar os funcionários.'
                   : `Erro ao carregar dados: ${errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}`
+              }
+              primaryAction={{
+                label: "Configurar Plano de Saúde",
+                onClick: () => {
+                  console.log('🔧 Abrindo modal de configuração de plano de saúde para CNPJ:', cnpjId);
+                  toast.info('Modal de configuração de plano em desenvolvimento');
+                  // TODO: Integrar com modal de criação de plano
                 }
-              </p>
-              <Button onClick={() => navigate('/corretora/planos-de-saude/empresas')}>
-                Voltar para Planos de Saúde
-              </Button>
-            </div>
+              }}
+              secondaryAction={{
+                label: "Voltar",
+                onClick: () => navigate('/corretora/planos-de-saude/empresas')
+              }}
+            />
           </CardContent>
         </Card>
       </div>

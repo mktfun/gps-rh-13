@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, Shield } from 'lucide-react';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
+import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 
 interface PlanoDetalhes {
   id: string;
@@ -247,19 +248,28 @@ const SegurosVidaPlanoPage = () => {
           Voltar
         </Button>
         <Card>
-          <CardContent className="py-8">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Plano não encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                {errorPlano?.message === 'Plano não encontrado para este CNPJ' 
-                  ? 'Este CNPJ não possui um plano de seguro cadastrado.'
+          <CardContent className="py-12">
+            <EmptyStateWithAction
+              icon={Shield}
+              title="Plano de seguro de vida não encontrado"
+              description={
+                errorPlano?.message === 'Plano não encontrado para este CNPJ' 
+                  ? 'Este CNPJ não possui um plano de seguro de vida cadastrado. Configure um plano agora para começar a gerenciar os funcionários.'
                   : `Erro ao carregar dados: ${errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}`
+              }
+              primaryAction={{
+                label: "Configurar Plano de Vida",
+                onClick: () => {
+                  console.log('🔧 Abrindo modal de configuração de plano de vida para CNPJ:', cnpjId);
+                  toast.info('Modal de configuração de plano em desenvolvimento');
+                  // TODO: Integrar com modal de criação de plano
                 }
-              </p>
-              <Button onClick={() => navigate('/corretora/seguros-de-vida')}>
-                Voltar para Seguros de Vida
-              </Button>
-            </div>
+              }}
+              secondaryAction={{
+                label: "Voltar",
+                onClick: () => navigate('/corretora/seguros-de-vida')
+              }}
+            />
           </CardContent>
         </Card>
       </div>
