@@ -1,3 +1,4 @@
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -42,9 +43,9 @@ import RelatorioCustosDetalhadoPage from '@/pages/empresa/relatorios/RelatorioCu
 import RelatorioFuncionariosEmpresaPage from '@/pages/empresa/relatorios/RelatorioFuncionariosEmpresaPage';
 import RelatorioPendenciasEmpresaPage from '@/pages/empresa/relatorios/RelatorioPendenciasEmpresaPage';
 
-import { RootLayout } from '@/layouts/RootLayout';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { ProtectedCorretoraRoute } from '@/components/ProtectedCorretoraRoute';
+import RootLayout from '@/layouts/RootLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedCorretoraRoute from '@/components/ProtectedCorretoraRoute';
 
 function App() {
   return (
