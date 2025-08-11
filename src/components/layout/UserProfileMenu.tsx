@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, Settings, LogOut, Crown, Building2 } from 'lucide-react';
@@ -73,12 +72,12 @@ export const UserProfileMenu = () => {
     return 'U';
   };
 
-  // Gerar rotas contextuais baseadas no role
+  // Gerar rotas contextuais baseadas no role - CORRIGIDO para usar rotas compartilhadas
   const getPerfilRoute = () => {
-    return role === 'corretora' ? '/corretora/perfil' : '/empresa/perfil';
+    return '/perfil'; // Rota compartilhada para todos os roles
   };
   const getConfiguracoesRoute = () => {
-    return role === 'corretora' ? '/corretora/configuracoes' : '/empresa/configuracoes';
+    return '/configuracoes'; // Rota compartilhada para todos os roles
   };
   
   const RoleIcon = getRoleIcon();

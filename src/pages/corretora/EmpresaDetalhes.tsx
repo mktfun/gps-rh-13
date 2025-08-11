@@ -22,8 +22,8 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
 const EmpresaDetalhes = () => {
-  // CORREÇÃO: Extrair 'id' da URL e renomear para empresaId
-  const { id: empresaId } = useParams<{ id: string }>();
+  // CORREÇÃO: Usar 'empresaId' em vez de 'id' para corresponder à rota
+  const { empresaId } = useParams<{ empresaId: string }>();
   const [searchParams] = useSearchParams();
   const filtroStatus = searchParams.get('filtroStatus');
   
