@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { AuthProvider } from '@/hooks/useAuth';
 
 import LandingPage from '@/pages/LandingPage';
 import Login from '@/pages/auth/Login';
@@ -48,69 +49,71 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
+      <AuthProvider>
+        <Toaster />
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
 
-          {/* Safety redirects for base paths */}
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/corretora" element={<Navigate to="/corretora/dashboard" replace />} />
-          <Route path="/empresa" element={<Navigate to="/empresa/dashboard" replace />} />
-          
-          {/* Additional redirects for planos */}
-          <Route path="/empresa/planos-saude" element={<Navigate to="/empresa/planos" replace />} />
-
-          {/* Protected admin routes */}
-          <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route path="dashboard" element={<RootLayout><Dashboard /></RootLayout>} />
-            <Route path="corretoras" element={<RootLayout><CorretoraspPage /></RootLayout>} />
-          </Route>
-
-          {/* Protected corretora routes */}
-          <Route path="/corretora/*" element={<ProtectedCorretoraRoute />}>
-            <Route path="dashboard" element={<RootLayout><CorretoraDashboard /></RootLayout>} />
-            <Route path="enhanced-dashboard" element={<RootLayout><EnhancedDashboard /></RootLayout>} />
-            <Route path="empresas" element={<RootLayout><EmpresasPage /></RootLayout>} />
-            <Route path="funcionarios-pendentes" element={<RootLayout><FuncionariosPendentesPage /></RootLayout>} />
-            <Route path="pendencias-exclusao" element={<RootLayout><PendenciasExclusaoPage /></RootLayout>} />
-            <Route path="auditoria" element={<RootLayout><AuditoriaPage /></RootLayout>} />
-            <Route path="ativar-funcionario/:funcionarioId" element={<RootLayout><AtivarFuncionarioPage /></RootLayout>} />
+            {/* Safety redirects for base paths */}
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/corretora" element={<Navigate to="/corretora/dashboard" replace />} />
+            <Route path="/empresa" element={<Navigate to="/empresa/dashboard" replace />} />
             
-            {/* Seguros de Vida Routes */}
-            <Route path="seguros-de-vida/empresas" element={<RootLayout><SegurosDeVidaEmpresas /></RootLayout>} />
-            <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<RootLayout><SegurosDeVidaCnpj /></RootLayout>} />
+            {/* Additional redirects for planos */}
+            <Route path="/empresa/planos-saude" element={<Navigate to="/empresa/planos" replace />} />
 
-            {/* Relatórios routes */}
-            <Route path="relatorios/financeiro" element={<RootLayout><RelatorioFinanceiro /></RootLayout>} />
-            <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionariosCorretora /></RootLayout>} />
-            <Route path="relatorios/movimentacao" element={<RootLayout><RelatorioMovimentacao /></RootLayout>} />
-          </Route>
+            {/* Protected admin routes */}
+            <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="dashboard" element={<RootLayout><Dashboard /></RootLayout>} />
+              <Route path="corretoras" element={<RootLayout><CorretoraspPage /></RootLayout>} />
+            </Route>
 
-          {/* Protected empresa routes */}
-          <Route path="/empresa/*" element={<ProtectedRoute allowedRoles={['empresa']} />}>
-            <Route path="dashboard" element={<RootLayout><EmpresaDashboard /></RootLayout>} />
-            <Route path="funcionarios" element={<RootLayout><FuncionariosPage /></RootLayout>} />
-            <Route path="planos" element={<RootLayout><PlanosPage /></RootLayout>} />
-            <Route path="plano/:planoId" element={<RootLayout><PlanoDetalhesPage /></RootLayout>} />
+            {/* Protected corretora routes */}
+            <Route path="/corretora/*" element={<ProtectedCorretoraRoute />}>
+              <Route path="dashboard" element={<RootLayout><CorretoraDashboard /></RootLayout>} />
+              <Route path="enhanced-dashboard" element={<RootLayout><EnhancedDashboard /></RootLayout>} />
+              <Route path="empresas" element={<RootLayout><EmpresasPage /></RootLayout>} />
+              <Route path="funcionarios-pendentes" element={<RootLayout><FuncionariosPendentesPage /></RootLayout>} />
+              <Route path="pendencias-exclusao" element={<RootLayout><PendenciasExclusaoPage /></RootLayout>} />
+              <Route path="auditoria" element={<RootLayout><AuditoriaPage /></RootLayout>} />
+              <Route path="ativar-funcionario/:funcionarioId" element={<RootLayout><AtivarFuncionarioPage /></RootLayout>} />
+              
+              {/* Seguros de Vida Routes */}
+              <Route path="seguros-de-vida/empresas" element={<RootLayout><SegurosDeVidaEmpresas /></RootLayout>} />
+              <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<RootLayout><SegurosDeVidaCnpj /></RootLayout>} />
 
-            {/* Relatórios routes */}
-            <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionarios /></RootLayout>} />
-            <Route path="relatorios/custos-empresa" element={<RootLayout><CustosEmpresa /></RootLayout>} />
-            <Route path="relatorios/pendencias" element={<RootLayout><Pendencias /></RootLayout>} />
-          </Route>
+              {/* Relatórios routes */}
+              <Route path="relatorios/financeiro" element={<RootLayout><RelatorioFinanceiro /></RootLayout>} />
+              <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionariosCorretora /></RootLayout>} />
+              <Route path="relatorios/movimentacao" element={<RootLayout><RelatorioMovimentacao /></RootLayout>} />
+            </Route>
 
-          {/* Shared protected routes */}
-          <Route path="/chat" element={<ProtectedRoute><RootLayout><ChatPage /></RootLayout></ProtectedRoute>} />
-          <Route path="/perfil" element={<ProtectedRoute><RootLayout><PerfilPage /></RootLayout></ProtectedRoute>} />
-          <Route path="/configuracoes" element={<ProtectedRoute><RootLayout><ConfiguracoesPage /></RootLayout></ProtectedRoute>} />
+            {/* Protected empresa routes */}
+            <Route path="/empresa/*" element={<ProtectedRoute allowedRoles={['empresa']} />}>
+              <Route path="dashboard" element={<RootLayout><EmpresaDashboard /></RootLayout>} />
+              <Route path="funcionarios" element={<RootLayout><FuncionariosPage /></RootLayout>} />
+              <Route path="planos" element={<RootLayout><PlanosPage /></RootLayout>} />
+              <Route path="plano/:planoId" element={<RootLayout><PlanoDetalhesPage /></RootLayout>} />
 
-          {/* 404 handler */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
+              {/* Relatórios routes */}
+              <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionarios /></RootLayout>} />
+              <Route path="relatorios/custos-empresa" element={<RootLayout><CustosEmpresa /></RootLayout>} />
+              <Route path="relatorios/pendencias" element={<RootLayout><Pendencias /></RootLayout>} />
+            </Route>
+
+            {/* Shared protected routes */}
+            <Route path="/chat" element={<ProtectedRoute><RootLayout><ChatPage /></RootLayout></ProtectedRoute>} />
+            <Route path="/perfil" element={<ProtectedRoute><RootLayout><PerfilPage /></RootLayout></ProtectedRoute>} />
+            <Route path="/configuracoes" element={<ProtectedRoute><RootLayout><ConfiguracoesPage /></RootLayout></ProtectedRoute>} />
+
+            {/* 404 handler */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
