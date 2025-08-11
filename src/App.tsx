@@ -21,7 +21,7 @@ import CorretoraspPage from '@/pages/admin/CorretoraspPage';
 // Páginas da Corretora
 import CorretoraDashboard from '@/pages/corretora/Dashboard';
 import Empresas from '@/pages/corretora/Empresas';
-import EmpresaDetalhes from '@/pages/corretora/EmpresaDetalhes'; // Rota que faltava
+import EmpresaDetalhes from '@/pages/corretora/EmpresaDetalhes';
 import FuncionariosPendentes from '@/pages/corretora/FuncionariosPendentes';
 import PendenciasExclusao from '@/pages/corretora/PendenciasExclusao';
 import AtivarFuncionario from '@/pages/corretora/AtivarFuncionario';
@@ -99,7 +99,7 @@ function App() {
                 <Route element={<ProtectedCorretoraRoute />}>
                   <Route path="/corretora/dashboard" element={<CorretoraDashboard />} />
                   <Route path="/corretora/empresas" element={<Empresas />} />
-                  <Route path="/corretora/empresa/:id" element={<EmpresaDetalhes />} />
+                  <Route path="/corretora/empresas/:empresaId" element={<EmpresaDetalhes />} />
                   
                   <Route path="/corretora/funcionarios-pendentes" element={<FuncionariosPendentes />} />
                   <Route path="/corretora/pendencias-exclusao" element={<PendenciasExclusao />} />
