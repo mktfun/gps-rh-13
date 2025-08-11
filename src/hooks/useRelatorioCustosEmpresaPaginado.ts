@@ -33,7 +33,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         pageOffset: pageIndex * pageSize 
       });
 
-      const { data, error } = await (supabase as any).rpc('get_relatorio_custos_empresa', {
+      const { data, error } = await supabase.rpc('get_relatorio_custos_empresa', {
         p_empresa_id: empresaId,
         p_page_size: pageSize,
         p_page_offset: pageIndex * pageSize
@@ -47,7 +47,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
       console.log('✅ Relatório de custos paginado carregado:', data);
       
       const results = (data || []) as RelatorioCustoEmpresaPaginado[];
-      const totalCount = results.length > 0 ? results[0].total_count : 0;
+      const totalCount = results.length > 0 ? Number(results[0]?.total_count || 0) : 0;
       const totalPages = Math.ceil(totalCount / pageSize);
 
       return {

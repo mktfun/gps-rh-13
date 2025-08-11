@@ -18,7 +18,7 @@ const RelatorioCustosEmpresaPage = () => {
     pageSize: 10,
   });
 
-  const { data: result, isLoading } = useRelatorioCustosEmpresaPaginado({
+  const { data: result, isLoading, error } = useRelatorioCustosEmpresaPaginado({
     pageSize: pagination.pageSize,
     pageIndex: pagination.pageIndex,
   });
@@ -90,6 +90,27 @@ const RelatorioCustosEmpresaPage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Breadcrumbs items={breadcrumbItems} />
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-muted-foreground">
+              <p>Erro ao carregar os dados: {error.message}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="mt-4"
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <Breadcrumbs items={breadcrumbItems} />
@@ -101,7 +122,7 @@ const RelatorioCustosEmpresaPage = () => {
             Análise detalhada dos custos por funcionário e CNPJ
           </p>
         </div>
-        <Button onClick={handleExport} className="gap-2">
+        <Button onClick={handleExport} className="gap-2" disabled={custos.length === 0}>
           <Download className="h-4 w-4" />
           Exportar Relatório
         </Button>
