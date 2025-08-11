@@ -16,6 +16,7 @@ import { usePendenciasReport } from '@/hooks/usePendenciasReport';
 import { useAllCnpjs } from '@/hooks/useAllCnpjs';
 import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
 import { addDays, subDays } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 
 const RelatorioPendenciasEmpresaPage = () => {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -27,7 +28,7 @@ const RelatorioPendenciasEmpresaPage = () => {
   const [cnpjFilter, setCnpjFilter] = useState<string>('todas');
   const [searchValue, setSearchValue] = useState<string>('');
 
-  const { data: cnpjs } = useAllCnpjs();
+  const { cnpjs } = useAllCnpjs();
   const { data: reportData, isLoading } = usePendenciasReport(
     dateRange.from,
     dateRange.to,
@@ -53,6 +54,15 @@ const RelatorioPendenciasEmpresaPage = () => {
   const handleExport = () => {
     console.log('Exportar dados:', filteredTableData);
     // TODO: Implementar exportação Excel
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range?.from && range?.to) {
+      setDateRange({
+        from: range.from,
+        to: range.to
+      });
+    }
   };
 
   return (
@@ -85,7 +95,7 @@ const RelatorioPendenciasEmpresaPage = () => {
               <label className="text-sm font-medium mb-2 block">Período</label>
               <DateRangePicker
                 dateRange={dateRange}
-                onDateRangeChange={setDateRange}
+                onDateRangeChange={handleDateRangeChange}
               />
             </div>
             <div>

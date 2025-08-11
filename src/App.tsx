@@ -31,7 +31,7 @@ import AuditoriaPage from '@/pages/corretora/AuditoriaPage';
 
 // Import corretora relatórios
 import RelatorioFinanceiroPage from '@/pages/corretora/relatorios/RelatorioFinanceiroPage';
-import RelatorioFuncionariosPage from '@/pages/corretora/relatorios/RelatorioFuncionariosPage';
+import RelatorioFuncionariosCorretora from '@/pages/corretora/relatorios/RelatorioFuncionariosPage';
 import RelatorioMovimentacaoPage from '@/pages/corretora/relatorios/RelatorioMovimentacaoPage';
 
 // Import seguros-vida pages
@@ -49,7 +49,7 @@ import PlanoDetalhesPage from '@/pages/empresa/PlanoDetalhesPage';
 import RelatorioFuncionariosEmpresaPage from '@/pages/empresa/relatorios/RelatorioFuncionariosEmpresaPage';
 import RelatorioCustosEmpresaPage from '@/pages/empresa/relatorios/RelatorioCustosEmpresaPage';
 import RelatorioCustosDetalhadoPage from '@/pages/empresa/relatorios/RelatorioCustosDetalhadoPage';
-import RelatorioFuncionariosPage from '@/pages/empresa/relatorios/RelatorioFuncionariosPage';
+import RelatorioFuncionariosEmpresa from '@/pages/empresa/relatorios/RelatorioFuncionariosPage';
 import RelatorioPendenciasEmpresaPage from '@/pages/empresa/relatorios/RelatorioPendenciasEmpresaPage';
 
 // Import shared pages
@@ -140,7 +140,7 @@ function App() {
                   
                   {/* Relatórios */}
                   <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
-                  <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
+                  <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosCorretora />} />
                   <Route path="relatorios/movimentacao" element={<RelatorioMovimentacaoPage />} />
                   
                   {/* Seguros de Vida */}
@@ -166,7 +166,7 @@ function App() {
                   <Route path="relatorios/funcionarios-empresa" element={<RelatorioFuncionariosEmpresaPage />} />
                   <Route path="relatorios/custos-empresa" element={<RelatorioCustosEmpresaPage />} />
                   <Route path="relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
-                  <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
+                  <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosEmpresa />} />
                   <Route path="relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
                 </Routes>
               </RootLayout>
