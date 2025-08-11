@@ -105,7 +105,7 @@ const SegurosVidaPlanoPage = () => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      console.log('🔍 Buscando plano para CNPJ:', cnpjId);
+      console.log('🔍 Buscando plano de VIDA para CNPJ:', cnpjId);
 
       const { data, error } = await supabase
         .from('dados_planos')
@@ -122,19 +122,20 @@ const SegurosVidaPlanoPage = () => {
           )
         `)
         .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'vida') // 🔥 FILTRO MÁGICO ADICIONADO AQUI
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Erro ao buscar detalhes do plano:', error);
-        throw new Error('Erro ao buscar detalhes do plano');
+        console.error('❌ Erro ao buscar detalhes do plano de vida:', error);
+        throw new Error('Erro ao buscar detalhes do plano de vida');
       }
 
       if (!data) {
-        console.error('❌ Plano não encontrado para CNPJ:', cnpjId);
-        throw new Error('Plano não encontrado para este CNPJ');
+        console.error('❌ Plano de vida não encontrado para CNPJ:', cnpjId);
+        throw new Error('Plano de vida não encontrado para este CNPJ');
       }
 
-      console.log('✅ Plano encontrado:', data);
+      console.log('✅ Plano de vida encontrado:', data);
 
       return {
         id: data.id,
@@ -253,7 +254,7 @@ const SegurosVidaPlanoPage = () => {
               icon={Shield}
               title="Plano de seguro de vida não encontrado"
               description={
-                errorPlano?.message === 'Plano não encontrado para este CNPJ' 
+                errorPlano?.message === 'Plano de vida não encontrado para este CNPJ' 
                   ? 'Este CNPJ não possui um plano de seguro de vida cadastrado. Configure um plano agora para começar a gerenciar os funcionários.'
                   : `Erro ao carregar dados: ${errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}`
               }
