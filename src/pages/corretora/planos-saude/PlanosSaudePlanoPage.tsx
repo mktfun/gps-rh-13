@@ -61,11 +61,6 @@ export const PlanosSaudePlanoPage = () => {
     };
   }, [cnpjId, empresa?.nome]);
 
-  const handlePlanoCreated = () => {
-    setShowConfigurarModal(false);
-    // Refresh data logic here
-  };
-
   const handleAddFuncionario = () => {
     setActiveTab('funcionarios');
   };
@@ -109,7 +104,6 @@ export const PlanosSaudePlanoPage = () => {
           open={showConfigurarModal}
           onOpenChange={setShowConfigurarModal}
           cnpjId={cnpjId}
-          onPlanoCreated={handlePlanoCreated}
         />
       </div>
     );
@@ -195,13 +189,16 @@ export const PlanosSaudePlanoPage = () => {
         </TabsContent>
 
         <TabsContent value="contrato" className="space-y-4">
-          <ContratoTab plano={planoSaude} />
+          <ContratoTab planoId={planoSaude.id} />
         </TabsContent>
 
         <TabsContent value="demonstrativos" className="space-y-4">
-          <DemonstrativosTab plano={planoSaude} />
+          <DemonstrativosTab planoId={planoSaude.id} />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
+
+// Add default export to fix the import error
+export default PlanosSaudePlanoPage;
