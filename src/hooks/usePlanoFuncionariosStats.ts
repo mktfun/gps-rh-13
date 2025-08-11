@@ -22,11 +22,17 @@ export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number, t
         .select('id')
         .eq('cnpj_id', cnpjId)
         .eq('tipo_seguro', tipoSeguro)
-        .single();
+        .maybeSingle();
 
       if (planoError) {
         console.error('❌ Erro ao buscar plano:', planoError);
         throw planoError;
+      }
+
+      // Se não há plano, retornar estatísticas zeradas
+      if (!planoData?.id) {
+        console.log('⚠️ Nenhum plano encontrado para tipo:', tipoSeguro, 'cnpjId:', cnpjId);
+        return { total: 0, ativos: 0, pendentes: 0, inativos: 0, custoPorFuncionario: 0 };
       }
 
       // Buscar estatísticas das matrículas

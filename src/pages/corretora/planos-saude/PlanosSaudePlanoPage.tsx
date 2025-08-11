@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Stethoscope, Settings } from 'lucide-react';
+import { Plus, ArrowLeft, Heart } from 'lucide-react';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner';
@@ -12,11 +13,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
-import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
+import { FuncionariosTab } from '@/components/planos/FuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
-import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
-import { ContratoTab } from '@/components/planos/ContratoTab';
 import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
 
 interface PlanoDetalhes {
@@ -54,16 +53,18 @@ const PlanosSaudePlanoPage = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
+  const [showConfigPlanoModal, setShowConfigPlanoModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [showConfigurarModal, setShowConfigurarModal] = useState(false);
 
   console.log('🔍 PlanosSaudePlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
+  // Check if empresaId is actually a cnpjId that needs autocorrection
   const { data: autocorrectCheck } = useQuery({
     queryKey: ['autocorrect-check-empresa', empresaId],
     queryFn: async () => {
       if (!empresaId || !cnpjId) return null;
       
+      // Check if the empresaId is actually a cnpjId
       const { data: cnpjData, error: cnpjError } = await supabase
         .from('cnpjs')
         .select(`
@@ -90,6 +91,7 @@ const PlanosSaudePlanoPage = () => {
     enabled: !!empresaId && !!cnpjId,
   });
 
+  // Handle autocorrect redirect
   useEffect(() => {
     if (autocorrectCheck?.needsRedirect && !isRedirecting) {
       setIsRedirecting(true);
@@ -100,13 +102,13 @@ const PlanosSaudePlanoPage = () => {
 
   const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresaPorCnpj(cnpjId);
 
-  const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano } = useQuery({
-    queryKey: ['plano-detalhes-cnpj-saude', cnpjId],
+  const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano, refetch: refetchPlano } = useQuery({
+    queryKey: ['plano-detalhes-cnpj', cnpjId],
     queryFn: async (): Promise<PlanoDetalhes> => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      console.log('🔍 Buscando plano de saúde para CNPJ:', cnpjId);
+      console.log('🔍 Buscando plano de SAÚDE para CNPJ:', cnpjId);
 
       const { data, error } = await supabase
         .from('dados_planos')
@@ -150,7 +152,7 @@ const PlanosSaudePlanoPage = () => {
         cobertura_morte_acidental: data.cobertura_morte_acidental,
         cobertura_invalidez_acidente: data.cobertura_invalidez_acidente,
         cobertura_auxilio_funeral: data.cobertura_auxilio_funeral,
-        tipo_seguro: data.tipo_seguro || 'saude'
+        tipo_seguro: 'saude'
       };
     },
     enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
@@ -201,11 +203,16 @@ const PlanosSaudePlanoPage = () => {
     setActiveTab('funcionarios');
   };
 
-  const handleConfigurarPlano = () => {
-    console.log('🔧 Abrindo modal de configuração de plano de saúde para CNPJ:', cnpjId);
-    setShowConfigurarModal(true);
+  const handleConfigurePlano = () => {
+    setShowConfigPlanoModal(true);
   };
 
+  const handlePlanoCreated = () => {
+    refetchPlano();
+    setShowConfigPlanoModal(false);
+  };
+
+  // Show loading while redirecting
   if (isRedirecting || autocorrectCheck?.needsRedirect) {
     return (
       <div className="container py-8">
@@ -256,7 +263,7 @@ const PlanosSaudePlanoPage = () => {
         <Card>
           <CardContent className="py-12">
             <EmptyStateWithAction
-              icon={Settings}
+              icon={Heart}
               title="Plano de saúde não encontrado"
               description={
                 errorPlano?.message === 'Plano de saúde não encontrado para este CNPJ' 
@@ -265,23 +272,22 @@ const PlanosSaudePlanoPage = () => {
               }
               primaryAction={{
                 label: "Configurar Plano de Saúde",
-                onClick: handleConfigurarPlano
+                onClick: handleConfigurePlano
               }}
               secondaryAction={{
                 label: "Voltar",
-                onClick: () => navigate('/corretora/planos-de-saude/empresas')
+                onClick: () => navigate('/corretora/planos-de-saude')
               }}
             />
           </CardContent>
         </Card>
 
-        {cnpjId && (
-          <ConfigurarPlanoSaudeModal
-            open={showConfigurarModal}
-            onOpenChange={setShowConfigurarModal}
-            cnpjId={cnpjId}
-          />
-        )}
+        <ConfigurarPlanoSaudeModal
+          isOpen={showConfigPlanoModal}
+          onClose={() => setShowConfigPlanoModal(false)}
+          cnpjId={cnpjId!}
+          onPlanoCreated={handlePlanoCreated}
+        />
       </div>
     );
   }
@@ -297,10 +303,7 @@ const PlanosSaudePlanoPage = () => {
 
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Stethoscope className="h-6 w-6" />
-            {empresaNome}
-          </h1>
+          <h1 className="text-2xl font-bold">{empresaNome}</h1>
           <p className="text-muted-foreground">
             {planoDetalhes?.cnpj_razao_social} ({planoDetalhes?.cnpj_numero})
           </p>
@@ -317,17 +320,14 @@ const PlanosSaudePlanoPage = () => {
         <TabsList>
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="funcionarios">Funcionários</TabsTrigger>
-          <TabsTrigger value="contrato">Contrato</TabsTrigger>
-          <TabsTrigger value="documentos">Demonstrativos e Boletos</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
-
         <TabsContent value="visao-geral">
           {planoDetalhes && (
             <PlanoVisaoGeralTab
               plano={{
                 ...planoDetalhes,
-                tipo_seguro: planoDetalhes.tipo_seguro || 'saude'
+                tipo_seguro: 'saude'
               }}
               funcionarios={funcionarios || []}
               onNavigateToFuncionarios={navigateToFuncionarios}
@@ -335,46 +335,23 @@ const PlanosSaudePlanoPage = () => {
             />
           )}
         </TabsContent>
-
         <TabsContent value="funcionarios">
           {planoDetalhes && cnpjId && (
-            <PlanoFuncionariosTab 
-              cnpjId={cnpjId}
+            <FuncionariosTab 
               plano={{
                 id: planoDetalhes.id,
                 seguradora: planoDetalhes.seguradora,
-                valor_mensal: planoDetalhes.valor_mensal
+                valor_mensal: planoDetalhes.valor_mensal,
+                cnpj_id: planoDetalhes.cnpj_id,
+                tipo_seguro: 'saude'
               }}
-              shouldOpenAddModal={shouldOpenAddModal}
-              onAddModalHandled={handleAddModalHandled}
             />
           )}
         </TabsContent>
-
-        <TabsContent value="contrato">
-          {planoDetalhes && (
-            <ContratoTab planoId={planoDetalhes.id} isCorretora />
-          )}
-        </TabsContent>
-
-        <TabsContent value="documentos">
-          {planoDetalhes && (
-            <DemonstrativosTab planoId={planoDetalhes.id} isCorretora />
-          )}
-        </TabsContent>
-
         <TabsContent value="historico">
           <PlanoHistoricoTab />
         </TabsContent>
       </Tabs>
-
-      {cnpjId && (
-        <ConfigurarPlanoSaudeModal
-          open={showConfigurarModal}
-          onOpenChange={setShowConfigurarModal}
-          cnpjId={cnpjId}
-        />
-      )}
     </div>
   );
 };

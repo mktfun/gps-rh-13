@@ -60,11 +60,21 @@ export const usePlanoFuncionarios = ({
         .select('id')
         .eq('cnpj_id', cnpjId)
         .eq('tipo_seguro', tipoSeguro)
-        .single();
+        .maybeSingle();
 
       if (planoError) {
         console.error('❌ Erro ao buscar plano:', planoError);
-        throw new Error(`Plano de ${tipoSeguro} não encontrado para este CNPJ`);
+        throw planoError;
+      }
+
+      // Se não há plano, retornar resultados vazios
+      if (!planoData?.id) {
+        console.log('⚠️ Nenhum plano encontrado para tipo:', tipoSeguro, 'cnpjId:', cnpjId);
+        return {
+          funcionarios: [],
+          totalCount: 0,
+          totalPages: 0
+        };
       }
 
       const planoId = planoData.id;
@@ -174,10 +184,14 @@ export const usePlanoFuncionarios = ({
         .select('id')
         .eq('cnpj_id', cnpjId)
         .eq('tipo_seguro', tipoSeguro)
-        .single();
+        .maybeSingle();
 
       if (planoError) {
-        throw new Error(`Plano de ${tipoSeguro} não encontrado`);
+        throw planoError;
+      }
+
+      if (!planoData?.id) {
+        throw new Error(`Plano de ${tipoSeguro} não encontrado para este CNPJ`);
       }
 
       // Atualizar na tabela planos_funcionarios
@@ -226,10 +240,14 @@ export const usePlanoFuncionarios = ({
         .select('id')
         .eq('cnpj_id', cnpjId)
         .eq('tipo_seguro', tipoSeguro)
-        .single();
+        .maybeSingle();
 
       if (planoError) {
-        throw new Error(`Plano de ${tipoSeguro} não encontrado`);
+        throw planoError;
+      }
+
+      if (!planoData?.id) {
+        throw new Error(`Plano de ${tipoSeguro} não encontrado para este CNPJ`);
       }
 
       // Remover da tabela planos_funcionarios (não remove o funcionário, só a matrícula)
