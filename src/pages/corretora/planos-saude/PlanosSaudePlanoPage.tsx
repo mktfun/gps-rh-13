@@ -17,6 +17,7 @@ import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
+import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -54,16 +55,15 @@ const PlanosSaudePlanoPage = () => {
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [showConfigurarModal, setShowConfigurarModal] = useState(false);
 
   console.log('🔍 PlanosSaudePlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
-  // Check if empresaId is actually a cnpjId that needs autocorrection
   const { data: autocorrectCheck } = useQuery({
     queryKey: ['autocorrect-check-empresa', empresaId],
     queryFn: async () => {
       if (!empresaId || !cnpjId) return null;
       
-      // Check if the empresaId is actually a cnpjId
       const { data: cnpjData, error: cnpjError } = await supabase
         .from('cnpjs')
         .select(`
@@ -90,7 +90,6 @@ const PlanosSaudePlanoPage = () => {
     enabled: !!empresaId && !!cnpjId,
   });
 
-  // Handle autocorrect redirect
   useEffect(() => {
     if (autocorrectCheck?.needsRedirect && !isRedirecting) {
       setIsRedirecting(true);
@@ -202,7 +201,11 @@ const PlanosSaudePlanoPage = () => {
     setActiveTab('funcionarios');
   };
 
-  // Show loading while redirecting
+  const handleConfigurarPlano = () => {
+    console.log('🔧 Abrindo modal de configuração de plano de saúde para CNPJ:', cnpjId);
+    setShowConfigurarModal(true);
+  };
+
   if (isRedirecting || autocorrectCheck?.needsRedirect) {
     return (
       <div className="container py-8">
@@ -262,11 +265,7 @@ const PlanosSaudePlanoPage = () => {
               }
               primaryAction={{
                 label: "Configurar Plano de Saúde",
-                onClick: () => {
-                  console.log('🔧 Abrindo modal de configuração de plano de saúde para CNPJ:', cnpjId);
-                  toast.info('Modal de configuração de plano em desenvolvimento');
-                  // TODO: Integrar com modal de criação de plano
-                }
+                onClick: handleConfigurarPlano
               }}
               secondaryAction={{
                 label: "Voltar",
@@ -275,6 +274,14 @@ const PlanosSaudePlanoPage = () => {
             />
           </CardContent>
         </Card>
+
+        {cnpjId && (
+          <ConfigurarPlanoSaudeModal
+            open={showConfigurarModal}
+            onOpenChange={setShowConfigurarModal}
+            cnpjId={cnpjId}
+          />
+        )}
       </div>
     );
   }
@@ -360,6 +367,14 @@ const PlanosSaudePlanoPage = () => {
           <PlanoHistoricoTab />
         </TabsContent>
       </Tabs>
+
+      {cnpjId && (
+        <ConfigurarPlanoSaudeModal
+          open={showConfigurarModal}
+          onOpenChange={setShowConfigurarModal}
+          cnpjId={cnpjId}
+        />
+      )}
     </div>
   );
 };
