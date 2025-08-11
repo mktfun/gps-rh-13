@@ -19,7 +19,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BulkImportModal } from '@/components/import/BulkImportModal';
 
-type FuncionarioStatus = Database['public']['Enums']['funcionario_status'];
+type StatusMatricula = Database['public']['Enums']['status_matricula'];
 
 interface PlanoDetalhes {
   id: string;
@@ -89,25 +89,35 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
 
   const ativacaoMassaMutation = useMutation({
     mutationFn: async (funcionarioIds: string[]) => {
-      const promises = funcionarioIds.map(id => 
-        supabase
-          .from('funcionarios')
-          .update({ status: 'ativo' })
-          .eq('id', id)
-      );
+      console.log('🔄 Ativação em massa:', funcionarioIds);
       
-      const results = await Promise.all(promises);
+      // Buscar o plano_id primeiro
+      const { data: planoData, error: planoError } = await supabase
+        .from('dados_planos')
+        .select('id')
+        .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'vida')
+        .single();
+
+      if (planoError) {
+        throw new Error('Plano não encontrado');
+      }
+
+      // Atualizar todas as matrículas em uma só operação
+      const { error } = await supabase
+        .from('planos_funcionarios')
+        .update({ status: 'ativo' as StatusMatricula })
+        .eq('plano_id', planoData.id)
+        .in('funcionario_id', funcionarioIds);
       
-      // Verificar se houve erros
-      const errors = results.filter(result => result.error);
-      if (errors.length > 0) {
-        throw new Error(`Erro ao ativar ${errors.length} funcionário(s)`);
+      if (error) {
+        throw error;
       }
       
-      return results;
+      return { updated: funcionarioIds.length };
     },
-    onSuccess: (_, funcionarioIds) => {
-      toast.success(`${funcionarioIds.length} funcionário(s) ativado(s) com sucesso!`);
+    onSuccess: (result) => {
+      toast.success(`${result.updated} funcionário(s) ativado(s) com sucesso!`);
       queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId] });
       setSelectedFuncionarios([]);
     },
@@ -123,9 +133,9 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
     }).format(value);
   };
 
-  const handleStatusChange = async (funcionarioId: string, novoStatus: FuncionarioStatus) => {
+  const handleStatusChange = async (funcionarioId: string, novoStatus: StatusMatricula) => {
     try {
-      await updateFuncionario.mutateAsync({ id: funcionarioId, status: novoStatus });
+      await updateFuncionario.mutateAsync({ funcionario_id: funcionarioId, status: novoStatus });
     } catch (error) {
       console.error('Erro ao alterar status:', error);
     }
@@ -147,7 +157,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
     try {
       if (editingFuncionario) {
         // Editar funcionário existente
-        await updateFuncionario.mutateAsync({ id: editingFuncionario.id, ...data });
+        await updateFuncionario.mutateAsync({ funcionario_id: editingFuncionario.funcionario_id, ...data });
         setEditingFuncionario(null);
       } else {
         // Criar novo funcionário
@@ -168,8 +178,38 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
       return;
     }
 
-    const funcionarioIds = funcionariosPendentes.map(f => f.id);
+    const funcionarioIds = funcionariosPendentes.map(f => f.funcionario_id);
     ativacaoMassaMutation.mutate(funcionarioIds);
+  };
+
+  const getStatusLabel = (status: StatusMatricula) => {
+    switch (status) {
+      case 'ativo':
+        return 'Ativo';
+      case 'pendente':
+        return 'Pendente';
+      case 'inativo':
+        return 'Inativo';
+      case 'exclusao_solicitada':
+        return 'Exclusão Solicitada';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusVariant = (status: StatusMatricula) => {
+    switch (status) {
+      case 'ativo':
+        return 'default';
+      case 'pendente':
+        return 'secondary';
+      case 'exclusao_solicitada':
+        return 'destructive';
+      case 'inativo':
+        return 'outline';
+      default:
+        return 'outline';
+    }
   };
 
   const columns: ColumnDef<any>[] = [
@@ -202,11 +242,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
       header: 'Status',
       cell: ({ row }) => {
         const status = row.original.status;
-        const variant = status === 'ativo' ? 'default' : 
-                      status === 'pendente' ? 'secondary' : 
-                      status === 'exclusao_solicitada' ? 'destructive' : 
-                      'outline';
-        return <Badge variant={variant}>{status}</Badge>;
+        return <Badge variant={getStatusVariant(status)}>{getStatusLabel(status)}</Badge>;
       },
     },
     {
@@ -237,21 +273,21 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleStatusChange(row.original.id, 'ativo')}
+              onClick={() => handleStatusChange(row.original.funcionario_id, 'ativo')}
               disabled={row.original.status === 'ativo'}
             >
               <UserCheck className="mr-2 h-4 w-4" />
               Ativar
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleStatusChange(row.original.id, 'desativado')}
-              disabled={row.original.status === 'desativado'}
+              onClick={() => handleStatusChange(row.original.funcionario_id, 'inativo')}
+              disabled={row.original.status === 'inativo'}
             >
               <UserX className="mr-2 h-4 w-4" />
               Desativar
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleStatusChange(row.original.id, 'pendente')}
+              onClick={() => handleStatusChange(row.original.funcionario_id, 'pendente')}
               disabled={row.original.status === 'pendente'}
             >
               <Filter className="mr-2 h-4 w-4" />
@@ -275,7 +311,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction 
-                    onClick={() => handleRemoverFuncionario(row.original.id)}
+                    onClick={() => handleRemoverFuncionario(row.original.funcionario_id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     Remover
@@ -321,7 +357,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
                 <SelectItem value="pendentes">Pendentes (Ativar/Excluir)</SelectItem>
                 <SelectItem value="pendente">Aguardando Ativação</SelectItem>
                 <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
-                <SelectItem value="desativado">Desativados</SelectItem>
+                <SelectItem value="inativo">Inativos</SelectItem>
               </SelectContent>
             </Select>
 

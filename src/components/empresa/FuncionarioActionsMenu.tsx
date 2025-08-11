@@ -41,11 +41,9 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   };
 
   const handleSolicitarEdicao = () => {
-    // Por enquanto, vamos apenas mudar o status para edicao_solicitada
-    // TODO: Implementar modal de edição com salvamento em dados_pendentes
     updateFuncionario.mutate({
-      id: funcionario.id,
-      status: 'edicao_solicitada',
+      funcionario_id: funcionario.funcionario_id,
+      status: 'exclusao_solicitada', // Usar o status correto do novo enum
     }, {
       onSuccess: () => {
         toast.success('Solicitação de edição enviada para aprovação da corretora!');
@@ -62,7 +60,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
 
   const handleConfirmExclusao = () => {
     updateFuncionario.mutate({
-      id: funcionario.id,
+      funcionario_id: funcionario.funcionario_id,
       status: 'exclusao_solicitada',
     }, {
       onSuccess: () => {
@@ -77,7 +75,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   };
 
   // Não mostrar menu para funcionários já com solicitações pendentes
-  if (funcionario.status === 'exclusao_solicitada' || funcionario.status === 'edicao_solicitada') {
+  if (funcionario.status === 'exclusao_solicitada') {
     return (
       <Button
         variant="outline"
