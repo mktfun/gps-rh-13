@@ -81,7 +81,7 @@ function App() {
                 <Route path="/empresa/funcionarios" element={<EmpresaFuncionarios />} />
                 <Route path="/empresa/planos" element={<EmpresaPlanosPage />} />
                 <Route path="/empresa/planos-saude" element={<EmpresaPlanosSaudePage />} />
-                <Route path="/empresa/planos/:id" element={<PlanoDetalhesPage />} />
+                <Route path="/empresa/planos/:planoId" element={<PlanoDetalhesPage />} />
                 
                 {/* Relatórios - Empresa */}
                 <Route path="/empresa/relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
