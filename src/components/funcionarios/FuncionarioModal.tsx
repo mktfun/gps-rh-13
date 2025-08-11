@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useCnpjs } from '@/hooks/useCnpjs';
 
 interface FuncionarioModalProps {
   isOpen: boolean;
@@ -37,6 +38,9 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
     cnpj_id: ''
   });
 
+  // Buscar CNPJs da empresa para o select
+  const { cnpjs } = useCnpjs({ empresaId: empresaId || undefined });
+
   useEffect(() => {
     if (funcionario) {
       setFormData({
@@ -66,7 +70,7 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome || !formData.cpf || !formData.cargo) {
+    if (!formData.nome || !formData.cpf || !formData.cargo || !formData.cnpj_id) {
       toast({
         title: 'Erro',
         description: 'Por favor, preencha todos os campos obrigatórios.',
@@ -104,7 +108,7 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="nome">Nome *</Label>
+              <Label htmlFor="nome">Nome Completo *</Label>
               <Input
                 id="nome"
                 value={formData.nome}
@@ -174,14 +178,32 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="email">E-mail</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="cnpj_id">CNPJ da Empresa *</Label>
+              <Select value={formData.cnpj_id} onValueChange={(value) => handleChange('cnpj_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o CNPJ..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {cnpjs?.map((cnpj) => (
+                    <SelectItem key={cnpj.id} value={cnpj.id}>
+                      {cnpj.razao_social} - {cnpj.cnpj}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { Search, Users, Filter } from 'lucide-react';
+import { Users, Plus, Search, Filter, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
 import { DataTable } from '@/components/ui/data-table';
@@ -10,6 +11,8 @@ import { FuncionarioDetalhesModal } from '@/components/empresa/FuncionarioDetalh
 import { createFuncionariosEmpresaTableColumns } from '@/components/empresa/funcionariosEmpresaTableColumns';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
+import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
+import { useCreateFuncionario } from '@/hooks/useCreateFuncionario';
 
 interface FuncionarioEmpresa {
   id: string;
@@ -20,11 +23,15 @@ interface FuncionarioEmpresa {
   idade: number;
   status: string;
   created_at: string;
-  cnpj_razao_social?: string;
-  cnpj_numero?: string;
-  plano_seguradora?: string;
-  plano_valor_mensal?: number;
-  plano_cobertura_morte?: number;
+  cnpj?: {
+    razao_social: string;
+    cnpj: string;
+  };
+  plano?: {
+    seguradora: string;
+    valor_mensal: number;
+    cobertura_morte: number;
+  };
 }
 
 const Funcionarios = () => {
@@ -32,6 +39,7 @@ const Funcionarios = () => {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [selectedFuncionario, setSelectedFuncionario] = useState<FuncionarioEmpresa | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
   const { data: empresaId } = useEmpresaId();
@@ -41,7 +49,6 @@ const Funcionarios = () => {
     funcionarios,
     totalCount,
     totalPages,
-    currentPage: realCurrentPage,
     isLoading,
   } = useFuncionarios({
     search,
@@ -51,9 +58,21 @@ const Funcionarios = () => {
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
   });
 
+  const { createFuncionario, isCreating } = useCreateFuncionario();
+
   const handleViewDetails = (funcionario: any) => {
     setSelectedFuncionario(funcionario);
     setModalOpen(true);
+  };
+
+  const handleCreateFuncionario = async (data: any) => {
+    try {
+      await createFuncionario.mutateAsync(data);
+      setCreateModalOpen(false);
+      setCurrentPage(0); // Reset to first page to see the new employee
+    } catch (error) {
+      console.error('Erro ao criar funcionário:', error);
+    }
   };
 
   const columns = createFuncionariosEmpresaTableColumns(handleViewDetails);
@@ -68,7 +87,6 @@ const Funcionarios = () => {
     setCurrentPage(0);
   };
 
-  // Filtrar funcionários baseado no status (aplicado localmente para compatibilidade)
   const filteredFuncionarios = statusFilter === 'todos' 
     ? funcionarios
     : funcionarios?.filter(funcionario => funcionario.status === statusFilter) || [];
@@ -79,7 +97,6 @@ const Funcionarios = () => {
   };
 
   const setPagination = (newPagination: { pageIndex: number; pageSize: number }) => {
-    console.log('📄 [Funcionarios] Mudando página:', currentPage, '→', newPagination.pageIndex);
     setCurrentPage(newPagination.pageIndex);
   };
 
@@ -91,26 +108,32 @@ const Funcionarios = () => {
           { label: 'Dashboard', href: '/empresa' },
           { label: 'Funcionários' }
         ]} />
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Users className="h-5 w-5 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">
+                Gestão de Funcionários
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Gerencie todos os funcionários da sua empresa
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Gestão de Funcionários
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Visualize e gerencie os funcionários da sua empresa
-            </p>
-          </div>
+          <Button onClick={() => setCreateModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar Funcionário
+          </Button>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Funcionários da Empresa
+            <Building2 className="h-5 w-5" />
+            Funcionários da Empresa ({totalCount})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -158,7 +181,7 @@ const Funcionarios = () => {
               pagination={pagination}
               setPagination={setPagination}
               emptyStateTitle="Nenhum funcionário encontrado"
-              emptyStateDescription="Tente ajustar os filtros de busca ou adicione novos funcionários."
+              emptyStateDescription="Clique em 'Adicionar Funcionário' para criar o primeiro funcionário da empresa."
             />
           </div>
         </CardContent>
@@ -169,6 +192,15 @@ const Funcionarios = () => {
         funcionario={selectedFuncionario}
         open={modalOpen}
         onOpenChange={setModalOpen}
+      />
+
+      {/* Modal de criação */}
+      <FuncionarioModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSubmit={handleCreateFuncionario}
+        isLoading={isCreating}
+        empresaId={empresaId}
       />
     </div>
   );
