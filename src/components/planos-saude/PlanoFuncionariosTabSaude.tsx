@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,15 +11,15 @@ import {
   UserCheck, 
   Clock, 
   AlertTriangle,
-  Download
+  Stethoscope
 } from 'lucide-react';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
-import { AddFuncionarioModal } from './AddFuncionarioModal';
+import { AddFuncionarioModal } from '@/components/seguros-vida/AddFuncionarioModal';
 import { toast } from 'sonner';
 
-interface PlanoFuncionariosTabProps {
+interface PlanoFuncionariosTabSaudeProps {
   cnpjId: string;
   plano: {
     id: string;
@@ -29,19 +30,19 @@ interface PlanoFuncionariosTabProps {
   onAddModalHandled?: () => void;
 }
 
-export const PlanoFuncionariosTab = ({ 
+export const PlanoFuncionariosTabSaude = ({ 
   cnpjId, 
   plano, 
   shouldOpenAddModal = false,
   onAddModalHandled 
-}: PlanoFuncionariosTabProps) => {
+}: PlanoFuncionariosTabSaudeProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [showAddModal, setShowAddModal] = useState(shouldOpenAddModal);
   const pageSize = 10;
 
-  // Usar o hook com tipoSeguro específico para vida
+  // Usar o hook com tipoSeguro específico para saúde
   const { 
     data: funcionariosData, 
     isLoading, 
@@ -50,14 +51,14 @@ export const PlanoFuncionariosTab = ({
     deleteFuncionario
   } = usePlanoFuncionarios({
     cnpjId,
-    tipoSeguro: 'vida', // Específico para Seguro de Vida
+    tipoSeguro: 'saude', // Específico para Plano de Saúde
     statusFilter,
     search,
     pageIndex: currentPage,
     pageSize
   });
 
-  const { data: stats } = usePlanoFuncionariosStats(cnpjId, 'vida', plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats(cnpjId, 'saude', plano.valor_mensal);
 
   const handleAtivarFuncionario = async (funcionarioId: string) => {
     try {
@@ -65,10 +66,10 @@ export const PlanoFuncionariosTab = ({
         funcionario_id: funcionarioId,
         status: 'ativo'
       });
-      toast.success('Funcionário ativado com sucesso!');
+      toast.success('Funcionário ativado no plano de saúde com sucesso!');
     } catch (error) {
-      console.error('Erro ao ativar funcionário:', error);
-      toast.error('Erro ao ativar funcionário');
+      console.error('Erro ao ativar funcionário no plano de saúde:', error);
+      toast.error('Erro ao ativar funcionário no plano de saúde');
     }
   };
 
@@ -76,7 +77,7 @@ export const PlanoFuncionariosTab = ({
     try {
       await deleteFuncionario.mutateAsync(funcionarioId);
     } catch (error) {
-      console.error('Erro ao remover funcionário:', error);
+      console.error('Erro ao remover funcionário do plano de saúde:', error);
     }
   };
 
@@ -134,7 +135,10 @@ export const PlanoFuncionariosTab = ({
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <CardTitle>Funcionários do Plano</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5" />
+              Funcionários do Plano de Saúde
+            </CardTitle>
             <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={() => setShowAddModal(true)}

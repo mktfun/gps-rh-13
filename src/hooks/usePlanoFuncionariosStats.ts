@@ -1,6 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type TipoSeguro = Database['public']['Enums']['tipo_seguro'];
 
 interface PlanoFuncionariosStats {
   total: number;
@@ -10,18 +13,18 @@ interface PlanoFuncionariosStats {
   custoPorFuncionario: number;
 }
 
-export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) => {
+export const usePlanoFuncionariosStats = (cnpjId: string, tipoSeguro: TipoSeguro, valorMensal: number) => {
   return useQuery({
-    queryKey: ['planoFuncionariosStats', cnpjId],
+    queryKey: ['planoFuncionariosStats', cnpjId, tipoSeguro],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId);
+      console.log('🔍 Buscando estatísticas via planos_funcionarios para:', { cnpjId, tipoSeguro });
 
       // Primeiro, buscar o plano_id
       const { data: planoData, error: planoError } = await supabase
         .from('dados_planos')
         .select('id')
         .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', 'vida')
+        .eq('tipo_seguro', tipoSeguro)
         .single();
 
       if (planoError) {
@@ -62,10 +65,10 @@ export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) =
       // Calcular custo por funcionário ativo
       const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas de matrículas calculadas:', { ...stats, custoPorFuncionario });
+      console.log('✅ Estatísticas de matrículas calculadas:', { ...stats, custoPorFuncionario, tipoSeguro });
 
       return { ...stats, custoPorFuncionario };
     },
-    enabled: !!cnpjId,
+    enabled: !!cnpjId && !!tipoSeguro,
   });
 };

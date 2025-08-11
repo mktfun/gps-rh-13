@@ -57,13 +57,13 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
         return [];
       }
 
-      // Buscar contagem de funcionários ATIVOS para cada plano
+      // Buscar contagem de funcionários ATIVOS para cada plano via planos_funcionarios
       const planosComFuncionarios = await Promise.all(
         planos.map(async (plano: any) => {
           const { data: funcionariosData, error: funcionariosError } = await supabase
-            .from('funcionarios')
+            .from('planos_funcionarios')
             .select('id', { count: 'exact' })
-            .eq('cnpj_id', plano.cnpj_id)
+            .eq('plano_id', plano.id)
             .eq('status', 'ativo');
 
           if (funcionariosError) {
@@ -74,7 +74,7 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
           let valorCalculado = plano.valor_mensal;
           if (tipo === 'saude') {
             const totalFuncionarios = funcionariosData?.length || 0;
-            // Estimativa simples: R$ 200 por funcionário ativo (será substituído pela função RPC quando os tipos estiverem corretos)
+            // Estimativa simples: R$ 200 por funcionário ativo
             valorCalculado = totalFuncionarios * 200;
             console.log('🔍 Valor estimado para plano de saúde:', valorCalculado, 'funcionários:', totalFuncionarios);
           }
