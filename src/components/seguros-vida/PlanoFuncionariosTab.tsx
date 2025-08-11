@@ -74,7 +74,13 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
     pageSize: pagination.pageSize
   });
 
-  const funcionarios = data?.funcionarios || [];
+  // Ordenação alfabética por nome (ASC)
+  const funcionarios = [...(data?.funcionarios || [])].sort((a, b) => {
+    const an = (a?.nome || '').toString();
+    const bn = (b?.nome || '').toString();
+    return an.localeCompare(bn, 'pt-BR', { sensitivity: 'base' });
+  });
+
   const totalCount = data?.totalCount || 0;
   const totalPages = data?.totalPages || 0;
 

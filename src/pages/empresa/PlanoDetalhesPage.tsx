@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +28,8 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ContratoTab } from '@/components/planos/ContratoTab';
+import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 
 const PlanoDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
@@ -256,7 +257,7 @@ const PlanoDetalhesPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="funcionarios">
                     <Users className="h-4 w-4 mr-2" />
                     Funcionários
@@ -268,6 +269,14 @@ const PlanoDetalhesPage: React.FC = () => {
                   <TabsTrigger value="coberturas">
                     <Shield className="h-4 w-4 mr-2" />
                     Coberturas
+                  </TabsTrigger>
+                  <TabsTrigger value="contrato">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Contrato
+                  </TabsTrigger>
+                  <TabsTrigger value="documentos">
+                    <Download className="h-4 w-4 mr-2" />
+                    Documentos
                   </TabsTrigger>
                 </TabsList>
 
@@ -288,6 +297,14 @@ const PlanoDetalhesPage: React.FC = () => {
 
                 <TabsContent value="coberturas" className="mt-6">
                   <CoberturasTab plano={plano} />
+                </TabsContent>
+
+                <TabsContent value="contrato" className="mt-6">
+                  {plano && <ContratoTab planoId={plano.id} isCorretora={false} />}
+                </TabsContent>
+
+                <TabsContent value="documentos" className="mt-6">
+                  {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
                 </TabsContent>
               </Tabs>
             </CardContent>

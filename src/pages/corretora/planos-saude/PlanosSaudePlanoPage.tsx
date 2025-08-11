@@ -15,6 +15,8 @@ import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
+import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
+import { ContratoTab } from '@/components/planos/ContratoTab';
 
 interface PlanoDetalhes {
   id: string;
@@ -308,8 +310,11 @@ const PlanosSaudePlanoPage = () => {
         <TabsList>
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="funcionarios">Funcionários</TabsTrigger>
+          <TabsTrigger value="contrato">Contrato</TabsTrigger>
+          <TabsTrigger value="documentos">Demonstrativos e Boletos</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
+
         <TabsContent value="visao-geral">
           {planoDetalhes && (
             <PlanoVisaoGeralTab
@@ -323,6 +328,7 @@ const PlanosSaudePlanoPage = () => {
             />
           )}
         </TabsContent>
+
         <TabsContent value="funcionarios">
           {planoDetalhes && cnpjId && (
             <PlanoFuncionariosTab 
@@ -337,6 +343,19 @@ const PlanosSaudePlanoPage = () => {
             />
           )}
         </TabsContent>
+
+        <TabsContent value="contrato">
+          {planoDetalhes && (
+            <ContratoTab planoId={planoDetalhes.id} isCorretora />
+          )}
+        </TabsContent>
+
+        <TabsContent value="documentos">
+          {planoDetalhes && (
+            <DemonstrativosTab planoId={planoDetalhes.id} isCorretora />
+          )}
+        </TabsContent>
+
         <TabsContent value="historico">
           <PlanoHistoricoTab />
         </TabsContent>

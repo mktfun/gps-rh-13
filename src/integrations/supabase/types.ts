@@ -591,6 +591,86 @@ export type Database = {
           },
         ]
       }
+      planos_contratos: {
+        Row: {
+          file_name: string
+          id: string
+          plano_id: string
+          storage_object_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: string
+          plano_id: string
+          storage_object_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: string
+          plano_id?: string
+          storage_object_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_contratos_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: true
+            referencedRelation: "dados_planos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planos_contratos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_demonstrativos: {
+        Row: {
+          ano: number
+          id: string
+          mes: number
+          path_boleto: string | null
+          path_demonstrativo: string | null
+          plano_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          ano: number
+          id?: string
+          mes: number
+          path_boleto?: string | null
+          path_demonstrativo?: string | null
+          plano_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          ano?: number
+          id?: string
+          mes?: number
+          path_boleto?: string | null
+          path_demonstrativo?: string | null
+          plano_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_demonstrativos_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "dados_planos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1096,6 +1176,10 @@ export type Database = {
       mark_notification_as_read: {
         Args: { p_notification_id: string }
         Returns: undefined
+      }
+      path_plano_id: {
+        Args: { _name: string }
+        Returns: string
       }
       resolver_exclusao_funcionario: {
         Args:
