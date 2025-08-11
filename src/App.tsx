@@ -63,7 +63,7 @@ function App() {
             <Route path="/empresa" element={<Navigate to="/empresa/dashboard" replace />} />
             
             {/* Additional redirects for planos */}
-            <Route path="/empresa/planos-saude" element={<Navigate to="/empresa/planos" replace />} />
+            <Route path="/empresa/planos-saude" element={<Navigate to="/empresa/planos-saude" replace />} />
 
             {/* Protected admin routes */}
             <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']} />}>
@@ -85,6 +85,11 @@ function App() {
               <Route path="seguros-de-vida/empresas" element={<RootLayout><SegurosDeVidaEmpresas /></RootLayout>} />
               <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<RootLayout><SegurosDeVidaCnpj /></RootLayout>} />
 
+              {/* Planos de Saúde Routes - NOVAS ROTAS */}
+              <Route path="planos-de-saude/empresas" element={<RootLayout><div>PlanosSaudeEmpresasPage - Em breve</div></RootLayout>} />
+              <Route path="planos-de-saude/:empresaId" element={<RootLayout><div>PlanosSaudeCnpjsPage - Em breve</div></RootLayout>} />
+              <Route path="planos-de-saude/:empresaId/cnpj/:cnpjId" element={<RootLayout><div>PlanosSaudePlanoPage - Em breve</div></RootLayout>} />
+
               {/* Relatórios routes */}
               <Route path="relatorios/financeiro" element={<RootLayout><RelatorioFinanceiro /></RootLayout>} />
               <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionariosCorretora /></RootLayout>} />
@@ -97,6 +102,9 @@ function App() {
               <Route path="funcionarios" element={<RootLayout><FuncionariosPage /></RootLayout>} />
               <Route path="planos" element={<RootLayout><PlanosPage /></RootLayout>} />
               <Route path="plano/:planoId" element={<RootLayout><PlanoDetalhesPage /></RootLayout>} />
+
+              {/* Planos de Saúde Route - NOVA ROTA */}
+              <Route path="planos-saude" element={<RootLayout><div>EmpresaPlanosSaudePage - Em breve</div></RootLayout>} />
 
               {/* Relatórios routes */}
               <Route path="relatorios/funcionarios" element={<RootLayout><RelatorioFuncionarios /></RootLayout>} />

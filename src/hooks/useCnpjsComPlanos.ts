@@ -23,6 +23,7 @@ interface UseCnpjsComPlanosParams {
   empresaId?: string;
   search?: string;
   filtroPlano?: 'todos' | 'com-plano' | 'sem-plano';
+  tipoSeguro?: 'vida' | 'saude';
 }
 
 // Overload para compatibilidade com chamadas antigas que passam apenas string
@@ -34,12 +35,12 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
     ? { search: paramsOrSearch }
     : paramsOrSearch;
 
-  const { empresaId, search = '', filtroPlano = 'todos' } = params;
+  const { empresaId, search = '', filtroPlano = 'todos', tipoSeguro } = params;
 
   return useQuery({
-    queryKey: ['cnpjs-com-planos', empresaId, search, filtroPlano],
+    queryKey: ['cnpjs-com-planos', empresaId, search, filtroPlano, tipoSeguro],
     queryFn: async (): Promise<CnpjComPlano[]> => {
-      console.log('🔍 Buscando CNPJs com planos para empresa:', empresaId);
+      console.log('🔍 Buscando CNPJs com planos para empresa:', empresaId, 'tipo:', tipoSeguro);
 
       // Buscar CNPJs da empresa
       let cnpjQuery = supabase
@@ -67,11 +68,18 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         return [];
       }
 
-      // Buscar planos para cada CNPJ
-      const { data: planos, error: planosError } = await supabase
+      // Buscar planos para cada CNPJ, filtrando por tipo se especificado
+      let planosQuery = supabase
         .from('dados_planos')
         .select('*')
         .in('cnpj_id', cnpjs.map(c => c.id));
+
+      // Aplicar filtro de tipo de seguro se especificado
+      if (tipoSeguro) {
+        planosQuery = planosQuery.eq('tipo_seguro', tipoSeguro);
+      }
+
+      const { data: planos, error: planosError } = await planosQuery;
 
       if (planosError) {
         console.error('❌ Erro ao buscar planos:', planosError);
@@ -108,7 +116,7 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
           razao_social: cnpj.razao_social,
           status: cnpj.status,
           created_at: cnpj.created_at,
-          empresa_id: cnpj.empresa_id, // ✅ Garantindo que empresa_id está sendo incluído
+          empresa_id: cnpj.empresa_id,
           temPlano: !!plano,
           planoId: plano?.id,
           seguradora: plano?.seguradora,
@@ -128,9 +136,9 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         resultado = cnpjsComPlanos.filter(c => !c.temPlano);
       }
 
-      console.log('✅ CNPJs com planos encontrados:', resultado.length);
+      console.log('✅ CNPJs com planos encontrados:', resultado.length, 'tipo:', tipoSeguro);
       return resultado;
     },
-    enabled: true, // Remover a dependência de empresaId para permitir busca geral
+    enabled: true,
   });
 }
