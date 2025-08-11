@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -44,7 +45,7 @@ const Sidebar = () => {
     },
   ];
 
-  // Corretora navigation
+  // Corretora navigation - Principal (apenas o essencial)
   const corretoraNavigation = [
     {
       name: 'Dashboard',
@@ -52,15 +53,14 @@ const Sidebar = () => {
       icon: LayoutDashboard,
     },
     {
-      name: 'Enhanced Dashboard',
-      href: '/corretora/enhanced-dashboard',
-      icon: Activity,
-    },
-    {
       name: 'Empresas',
       href: '/corretora/empresas',
       icon: Building2,
     },
+  ];
+
+  // Corretora navigation - Operacional (dia a dia)
+  const corretoraOperacional = [
     {
       name: 'Funcionários Pendentes',
       href: '/corretora/funcionarios-pendentes',
@@ -212,6 +212,8 @@ const Sidebar = () => {
           {role === 'corretora' && (
             <>
               {renderSection('Principal', corretoraNavigation)}
+              <Separator />
+              {renderSection('Operacional', corretoraOperacional)}
               <Separator />
               {renderSection('Planos', corretoraPlanos)}
               <Separator />
