@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -342,7 +341,7 @@ const PlanosSaudePlanoPage = () => {
                 seguradora: planoDetalhes.seguradora,
                 valor_mensal: planoDetalhes.valor_mensal,
                 cnpj_id: planoDetalhes.cnpj_id,
-                tipo_seguro: 'saude',
+                tipo_seguro: planoDetalhes.tipo_seguro,
                 cobertura_morte: planoDetalhes.cobertura_morte,
                 cobertura_morte_acidental: planoDetalhes.cobertura_morte_acidental,
                 cobertura_invalidez_acidente: planoDetalhes.cobertura_invalidez_acidente,
