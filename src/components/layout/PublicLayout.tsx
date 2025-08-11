@@ -2,6 +2,7 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardLoadingState } from "@/components/ui/loading-state";
+import { getDashboardRoute } from "@/utils/routePaths";
 
 const PublicLayout = () => {
   const { isAuthenticated, role, isLoading } = useAuth();
@@ -12,16 +13,8 @@ const PublicLayout = () => {
 
   // If user is authenticated, redirect to their role-based dashboard
   if (isAuthenticated) {
-    switch (role) {
-      case 'admin':
-        return <Navigate to="/admin/dashboard" replace />;
-      case 'corretora':
-        return <Navigate to="/corretora/dashboard" replace />;
-      case 'empresa':
-        return <Navigate to="/empresa/dashboard" replace />;
-      default:
-        return <Navigate to="/login" replace />;
-    }
+    const dashboardRoute = getDashboardRoute(role);
+    return <Navigate to={dashboardRoute} replace />;
   }
 
   // If not authenticated, render the public route

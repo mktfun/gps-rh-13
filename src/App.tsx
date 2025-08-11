@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/hooks/useAuth';
@@ -79,6 +78,11 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
+
+            {/* Safety redirects for base paths */}
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/corretora" element={<Navigate to="/corretora/dashboard" replace />} />
+            <Route path="/empresa" element={<Navigate to="/empresa/dashboard" replace />} />
 
             {/* Protected routes with layout */}
             <Route path="/dashboard" element={

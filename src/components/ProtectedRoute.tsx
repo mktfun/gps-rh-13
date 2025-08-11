@@ -3,6 +3,7 @@ import React from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
+import { getDashboardRoute } from '@/utils/routePaths';
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
@@ -24,17 +25,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
 
   // Check if user has one of the allowed roles
   if (allowedRoles && !allowedRoles.includes(role || '')) {
-    // ✅ CORREÇÃO: Redirect to valid index routes that exist
-    switch (role) {
-      case 'admin':
-        return <Navigate to="/admin" replace />;
-      case 'corretora':
-        return <Navigate to="/corretora" replace />;
-      case 'empresa':
-        return <Navigate to="/empresa" replace />;
-      default:
-        return <Navigate to="/login" replace />;
-    }
+    // Redirect to correct dashboard based on role
+    const dashboardRoute = getDashboardRoute(role);
+    return <Navigate to={dashboardRoute} replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface ActionContext {
-  userRole: 'corretora' | 'empresa' | null;
+  userRole: 'corretora' | 'empresa' | 'admin' | null;
   currentRoute: string;
   routeParams: {
     empresaId?: string;
@@ -31,14 +31,14 @@ export const useActionContext = (): ActionContext => {
     routeParams.cnpjId = segments[segments.indexOf('cnpj') + 1];
   }
   
-  if (segments.includes('plano') && segments[segments.indexOf('plano') + 1]) {
-    routeParams.planoId = segments[segments.indexOf('plano') + 1];
+  if (segments.includes('planos') && segments[segments.indexOf('planos') + 1]) {
+    routeParams.planoId = segments[segments.indexOf('planos') + 1];
   }
 
   // Determine context type
   let contextType: ActionContext['contextType'] = 'other';
   
-  if (pathname.includes('/dashboard') || pathname === '/corretora' || pathname === '/empresa') {
+  if (pathname.includes('/dashboard')) {
     contextType = 'dashboard';
   } else if (pathname.includes('/empresas') && !routeParams.empresaId) {
     contextType = 'empresas';
@@ -57,7 +57,7 @@ export const useActionContext = (): ActionContext => {
   }
 
   return {
-    userRole: role as 'corretora' | 'empresa' | null,
+    userRole: role as 'corretora' | 'empresa' | 'admin' | null,
     currentRoute: pathname,
     routeParams,
     contextType,
