@@ -221,7 +221,7 @@ export type Database = {
           {
             foreignKeyName: "dados_planos_cnpj_id_fkey"
             columns: ["cnpj_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "cnpjs"
             referencedColumns: ["id"]
           },
@@ -664,6 +664,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "planos_demonstrativos_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "dados_planos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_faixas_de_preco: {
+        Row: {
+          created_at: string | null
+          faixa_fim: number
+          faixa_inicio: number
+          id: string
+          plano_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          faixa_fim: number
+          faixa_inicio: number
+          id?: string
+          plano_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          faixa_fim?: number
+          faixa_inicio?: number
+          id?: string
+          plano_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_faixas_de_preco_plano_id_fkey"
             columns: ["plano_id"]
             isOneToOne: false
             referencedRelation: "dados_planos"
