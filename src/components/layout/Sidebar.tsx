@@ -1,222 +1,303 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { BarChart3, Building2, FileText, Users, Settings, User, GanttChartSquare, HeartPulse, Shield, DollarSign } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
-import { useQueryClient } from '@tanstack/react-query';
+import { 
+  LayoutDashboard, 
+  Building2, 
+  Users, 
+  FileText, 
+  Settings, 
+  User,
+  MessageSquare,
+  ChevronDown,
+  BarChart3,
+  Shield,
+  Heart,
+  ClipboardList,
+  DollarSign,
+  Activity,
+  AlertTriangle,
+  Calendar
+} from 'lucide-react';
 
-// Configuração CORRIGIDA para Corretora - Links agora apontam para rotas que EXISTEM
-const corretoraNavItems = [
-  { href: '/corretora', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta para index da corretora
-  { href: '/corretora/empresas', label: 'Empresas', icon: Building2 },
-];
+const Sidebar = () => {
+  const location = useLocation();
+  const { role } = useAuth();
+  const [openSections, setOpenSections] = useState<string[]>(['relatorios']);
 
-const corretoraPlanos = [
-  { href: '/corretora/seguros-de-vida', label: 'Seguros de Vida', icon: Shield }, // CORRIGIDO: rota existe agora
-  { href: '/corretora/planos-saude', label: 'Planos de Saúde', icon: HeartPulse, disabled: true },
-];
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
 
-const corretoraRelatorios = [
-  { href: '/corretora/relatorios/funcionarios', label: 'Funcionários', icon: Users }, // CORRIGIDO: rota existe agora
-  { href: '/corretora/relatorios/financeiro', label: 'Financeiro', icon: BarChart3 }, // CORRIGIDO: rota existe agora
-  { href: '/corretora/relatorios/movimentacao', label: 'Movimentação', icon: GanttChartSquare }, // CORRIGIDO: rota existe agora
-  { href: '/corretora/auditoria', label: 'Auditoria', icon: FileText }, // CORRIGIDO: rota existe agora
-];
+  const isActive = (path: string) => location.pathname === path;
+  const isParentActive = (paths: string[]) => paths.some(path => location.pathname.startsWith(path));
 
-const corretoraConfiguracao = [
-  { href: '/perfil', label: 'Perfil', icon: User }, // CORRIGIDO: rota compartilhada existe
-  { href: '/configuracoes', label: 'Configurações', icon: Settings }, // CORRIGIDO: rota compartilhada existe
-];
+  // Admin navigation
+  const adminNavigation = [
+    {
+      name: 'Dashboard',
+      href: '/admin/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      name: 'Corretoras',
+      href: '/admin/corretoras',
+      icon: Building2,
+    },
+  ];
 
-// Configuração CORRIGIDA para Empresa - rotas agora apontam para as que existem
-const empresaNavItems = [
-  { href: '/empresa', label: 'Dashboard', icon: BarChart3 }, // CORRIGIDO: aponta para index da empresa
-  { href: '/empresa/funcionarios', label: 'Funcionários', icon: Users },
-];
+  // Corretora navigation
+  const corretoraNavigation = [
+    {
+      name: 'Dashboard',
+      href: '/corretora/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      name: 'Enhanced Dashboard',
+      href: '/corretora/enhanced-dashboard',
+      icon: Activity,
+    },
+    {
+      name: 'Empresas',
+      href: '/corretora/empresas',
+      icon: Building2,
+    },
+    {
+      name: 'Funcionários Pendentes',
+      href: '/corretora/funcionarios-pendentes',
+      icon: Users,
+    },
+    {
+      name: 'Pendências Exclusão',
+      href: '/corretora/pendencias-exclusao',
+      icon: AlertTriangle,
+    },
+    {
+      name: 'Auditoria',
+      href: '/corretora/auditoria',
+      icon: Shield,
+    },
+  ];
 
-const empresaPlanos = [
-  { href: '/empresa/planos', label: 'Seguros de Vida', icon: Shield },
-  { href: '/empresa/planos-saude', label: 'Planos de Saúde', icon: HeartPulse, disabled: true },
-];
+  const corretoraRelatorios = [
+    {
+      name: 'Financeiro',
+      href: '/corretora/relatorios/financeiro',
+      icon: DollarSign,
+    },
+    {
+      name: 'Funcionários',
+      href: '/corretora/relatorios/funcionarios',
+      icon: Users,
+    },
+    {
+      name: 'Movimentação',
+      href: '/corretora/relatorios/movimentacao',
+      icon: Activity,
+    },
+  ];
 
-const empresaRelatorios = [
-  { href: '/empresa/relatorios/funcionarios', label: 'Funcionários', icon: Users }, // REMOVIDO: disabled flag
-  { href: '/empresa/relatorios/custos-detalhado', label: 'Custos Detalhado', icon: DollarSign },
-  { href: '/empresa/relatorios/pendencias', label: 'Pendências', icon: FileText, disabled: true },
-];
+  const corretoraSeguroVida = [
+    {
+      name: 'Empresas',
+      href: '/corretora/seguros-de-vida/empresas',
+      icon: Building2,
+    },
+  ];
 
-const empresaConfiguracao = [
-  { href: '/perfil', label: 'Perfil', icon: User }, // CORRIGIDO: rota compartilhada existe
-  { href: '/configuracoes', label: 'Configurações', icon: Settings }, // CORRIGIDO: rota compartilhada existe
-];
+  // Empresa navigation
+  const empresaNavigation = [
+    {
+      name: 'Dashboard',
+      href: '/empresa/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      name: 'Funcionários',
+      href: '/empresa/funcionarios',
+      icon: Users,
+    },
+    {
+      name: 'Planos',
+      href: '/empresa/planos',
+      icon: FileText,
+    },
+  ];
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
-}
+  const empresaRelatorios = [
+    {
+      name: 'Funcionários',
+      href: '/empresa/relatorios/funcionarios',
+      icon: Users,
+    },
+    {
+      name: 'Custos',
+      href: '/empresa/relatorios/custos-empresa',
+      icon: DollarSign,
+    },
+    {
+      name: 'Pendências',
+      href: '/empresa/relatorios/pendencias',
+      icon: ClipboardList,
+    },
+  ];
 
-interface NavSectionProps {
-  title?: string;
-  items: NavItem[];
-  isActive: (path: string) => boolean;
-  onLinkHover?: (href: string) => void;
-}
+  // Shared navigation (for all roles)
+  const sharedNavigation = [
+    {
+      name: 'Chat',
+      href: '/chat',
+      icon: MessageSquare,
+    },
+    {
+      name: 'Perfil',
+      href: '/perfil',
+      icon: User,
+    },
+    {
+      name: 'Configurações',
+      href: '/configuracoes',
+      icon: Settings,
+    },
+  ];
 
-// Sub-componente reutilizável NavSection with prefetching
-const NavSection: React.FC<NavSectionProps> = ({ title, items, isActive, onLinkHover }) => (
-  <div className="py-2">
-    {title && <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">{title}</h2>}
-    <div className="space-y-1">
-      {items.map((item) => {
-        const Icon = item.icon;
-        
-        if (item.disabled) {
-          return (
-            <div
-              key={item.href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground opacity-50 cursor-not-allowed"
-            >
-              <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
-              <span className="text-xs bg-muted px-2 py-1 rounded">Em breve</span>
-            </div>
-          );
-        }
+  const renderNavItem = (item: any, isChild = false) => (
+    <Link
+      key={item.href}
+      to={item.href}
+      className={cn(
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent',
+        isActive(item.href) && 'bg-accent text-accent-foreground',
+        isChild && 'ml-4'
+      )}
+    >
+      <item.icon className="h-4 w-4" />
+      {item.name}
+      {item.badge && <Badge variant="secondary">{item.badge}</Badge>}
+    </Link>
+  );
 
-        return (
-          <Link
-            key={item.href}
-            to={item.href}
-            onMouseEnter={() => onLinkHover?.(item.href)}
+  const renderCollapsibleSection = (title: string, items: any[], icon: any, sectionKey: string) => {
+    const Icon = icon;
+    const isOpen = openSections.includes(sectionKey);
+    const hasActiveChild = isParentActive(items.map(item => item.href));
+
+    return (
+      <Collapsible
+        open={isOpen}
+        onOpenChange={() => toggleSection(sectionKey)}
+      >
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-              isActive(item.href) && "bg-muted text-primary font-semibold"
+              'w-full justify-between px-3 py-2 text-sm',
+              hasActiveChild && 'bg-accent text-accent-foreground'
             )}
           >
-            <Icon className="h-4 w-4" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </div>
-  </div>
-);
-
-const CorretoraNav: React.FC = () => {
-  const location = useLocation();
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  
-  const isActive = (path: string) => {
-    if (path === '/corretora') return location.pathname === '/corretora' || location.pathname === '/corretora/';
-    return location.pathname.startsWith(path);
-  };
-
-  const handleLinkHover = (href: string) => {
-    if (!user?.id) return;
-
-    // Prefetch apenas com queryFn implementadas para evitar erros
-    switch (href) {
-      case '/corretora/empresas':
-        // Prefetch empresas data - esta funciona porque tem queryFn
-        queryClient.prefetchQuery({
-          queryKey: ['empresas-com-metricas', '', 1, 10, 'created_at', 'desc'],
-          staleTime: 1000 * 60 * 5,
-        });
-        break;
-      
-      // Outros casos removidos para evitar Missing queryFn errors
-      default:
-        // Não fazer prefetch para rotas sem queryFn implementadas
-        break;
-    }
+            <div className="flex items-center gap-3">
+              <Icon className="h-4 w-4" />
+              {title}
+            </div>
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 transition-transform duration-200',
+                isOpen && 'rotate-180'
+              )}
+            />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-1 mt-1">
+          {items.map(item => renderNavItem(item, true))}
+        </CollapsibleContent>
+      </Collapsible>
+    );
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <NavSection items={corretoraNavItems} isActive={isActive} onLinkHover={handleLinkHover} />
-      <Separator />
-      <NavSection title="Planos" items={corretoraPlanos} isActive={isActive} onLinkHover={handleLinkHover} />
-      <Separator />
-      <NavSection title="Relatórios" items={corretoraRelatorios} isActive={isActive} onLinkHover={handleLinkHover} />
-      <Separator />
-      <NavSection title="Conta" items={corretoraConfiguracao} isActive={isActive} onLinkHover={handleLinkHover} />
-    </div>
-  );
-};
+    <div className="flex h-full w-64 flex-col bg-background border-r">
+      <div className="flex h-14 items-center border-b px-4">
+        <Link className="flex items-center gap-2 font-semibold" to="/dashboard">
+          <Heart className="h-6 w-6" />
+          <span className="">Seguros App</span>
+        </Link>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="flex flex-col gap-2 p-4">
+          {/* Role-specific navigation */}
+          {role === 'admin' && (
+            <div className="space-y-1">
+              <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Administração
+              </div>
+              {adminNavigation.map(item => renderNavItem(item))}
+            </div>
+          )}
 
-const EmpresaNav: React.FC = () => {
-  const location = useLocation();
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  
-  const isActive = (path: string) => {
-    if (path === '/empresa') return location.pathname === '/empresa' || location.pathname === '/empresa/';
-    return location.pathname.startsWith(path);
-  };
+          {role === 'corretora' && (
+            <>
+              <div className="space-y-1">
+                <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Principal
+                </div>
+                {corretoraNavigation.map(item => renderNavItem(item))}
+              </div>
 
-  const handleLinkHover = (href: string) => {
-    if (!user?.id) return;
+              <Separator />
 
-    // Prefetch apenas com queryFn implementadas para evitar erros
-    switch (href) {
-      case '/empresa/funcionarios':
-        // Este pode funcionar se o hook tiver queryFn implementada
-        break;
-        
-      // Outros casos removidos para evitar Missing queryFn errors
-      default:
-        // Não fazer prefetch para rotas sem queryFn implementadas
-        break;
-    }
-  };
+              <div className="space-y-1">
+                {renderCollapsibleSection('Relatórios', corretoraRelatorios, BarChart3, 'relatorios')}
+              </div>
 
-  return (
-    <div className="flex flex-col gap-2">
-      <NavSection items={empresaNavItems} isActive={isActive} onLinkHover={handleLinkHover} />
-      <Separator />
-      <NavSection title="Planos" items={empresaPlanos} isActive={isActive} onLinkHover={handleLinkHover} />
-      <Separator />
-      <NavSection title="Relatórios" items={empresaRelatorios} isActive={isActive} onLinkHover={handleLinkHover} />
-      <Separator />
-      <NavSection title="Conta" items={empresaConfiguracao} isActive={isActive} onLinkHover={handleLinkHover} />
-    </div>
-  );
-};
+              <Separator />
 
-export const Sidebar: React.FC = () => {
-  const { role, branding } = useAuth();
+              <div className="space-y-1">
+                {renderCollapsibleSection('Seguros de Vida', corretoraSeguroVida, Heart, 'seguros-vida')}
+              </div>
+            </>
+          )}
 
-  const renderLogo = () => {
-    if (branding?.logo_url) {
-      return (
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={branding.logo_url} alt="Logo da Corretora" />
-            <AvatarFallback>C</AvatarFallback>
-          </Avatar>
-          <span className="font-semibold text-lg">CorporateHR</span>
+          {role === 'empresa' && (
+            <>
+              <div className="space-y-1">
+                <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Principal
+                </div>
+                {empresaNavigation.map(item => renderNavItem(item))}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-1">
+                {renderCollapsibleSection('Relatórios', empresaRelatorios, BarChart3, 'relatorios')}
+              </div>
+            </>
+          )}
+
+          {/* Shared navigation */}
+          <Separator />
+          <div className="space-y-1">
+            <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Geral
+            </div>
+            {sharedNavigation.map(item => renderNavItem(item))}
+          </div>
         </div>
-      );
-    }
-    return <span className="font-semibold text-lg">CorporateHR</span>;
-  };
-
-  return (
-    <div className="flex h-full flex-col p-4">
-      <div className="mb-4 flex items-center border-b pb-4">
-        {renderLogo()}
-      </div>
-      <div className="flex-1 overflow-auto">
-        {role === 'corretora' && <CorretoraNav />}
-        {role === 'empresa' && <EmpresaNav />}
-      </div>
+      </ScrollArea>
     </div>
   );
 };
+
+export default Sidebar;

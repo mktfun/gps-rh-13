@@ -117,62 +117,188 @@ function App() {
             } />
 
             {/* Admin routes */}
-            <Route path="/admin/*" element={
+            <Route path="/admin/dashboard" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <InternalRootLayout>
-                  <Routes>
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="corretoras" element={<CorretoraspPage />} />
-                  </Routes>
+                  <AdminDashboard />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/corretoras" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <InternalRootLayout>
+                  <CorretoraspPage />
                 </InternalRootLayout>
               </ProtectedRoute>
             } />
 
             {/* Corretora routes */}
-            <Route path="/corretora/*" element={
+            <Route path="/corretora/dashboard" element={
               <ProtectedCorretoraRoute>
                 <InternalRootLayout>
-                  <Routes>
-                    <Route path="dashboard" element={<CorretoraDashboard />} />
-                    <Route path="enhanced-dashboard" element={<EnhancedDashboard />} />
-                    <Route path="empresas" element={<EmpresasPage />} />
-                    <Route path="empresas/:empresaId" element={<EmpresaDetalhes />} />
-                    <Route path="funcionarios-pendentes" element={<FuncionariosPendentes />} />
-                    <Route path="pendencias-exclusao" element={<PendenciasExclusao />} />
-                    <Route path="ativar-funcionario/:funcionarioId" element={<AtivarFuncionario />} />
-                    <Route path="auditoria" element={<AuditoriaPage />} />
-                    
-                    {/* Relatórios */}
-                    <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
-                    <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosCorretora />} />
-                    <Route path="relatorios/movimentacao" element={<RelatorioMovimentacaoPage />} />
-                    
-                    {/* Seguros de Vida */}
-                    <Route path="seguros-de-vida/empresas" element={<SegurosVidaEmpresasPage />} />
-                    <Route path="seguros-de-vida/empresa/:empresaId/cnpjs" element={<SegurosVidaCnpjsPage />} />
-                    <Route path="seguros-de-vida/empresa/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
-                  </Routes>
+                  <CorretoraDashboard />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/enhanced-dashboard" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <EnhancedDashboard />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/empresas" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <EmpresasPage />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/empresas/:empresaId" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <EmpresaDetalhes />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/funcionarios-pendentes" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <FuncionariosPendentes />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/pendencias-exclusao" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <PendenciasExclusao />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/ativar-funcionario/:funcionarioId" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <AtivarFuncionario />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/auditoria" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <AuditoriaPage />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            
+            {/* Relatórios Corretora */}
+            <Route path="/corretora/relatorios/financeiro" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <RelatorioFinanceiroPage />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/relatorios/funcionarios" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <RelatorioFuncionariosCorretora />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/relatorios/movimentacao" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <RelatorioMovimentacaoPage />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            
+            {/* Seguros de Vida */}
+            <Route path="/corretora/seguros-de-vida/empresas" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <SegurosVidaEmpresasPage />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/seguros-de-vida/empresa/:empresaId/cnpjs" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <SegurosVidaCnpjsPage />
+                </InternalRootLayout>
+              </ProtectedCorretoraRoute>
+            } />
+            <Route path="/corretora/seguros-de-vida/empresa/:empresaId/cnpj/:cnpjId" element={
+              <ProtectedCorretoraRoute>
+                <InternalRootLayout>
+                  <SegurosVidaPlanoPage />
                 </InternalRootLayout>
               </ProtectedCorretoraRoute>
             } />
 
             {/* Empresa routes */}
-            <Route path="/empresa/*" element={
+            <Route path="/empresa/dashboard" element={
               <ProtectedRoute allowedRoles={['empresa']}>
                 <InternalRootLayout>
-                  <Routes>
-                    <Route path="dashboard" element={<EmpresaDashboard />} />
-                    <Route path="funcionarios" element={<EmpresaFuncionarios />} />
-                    <Route path="planos" element={<EmpresaPlanosPage />} />
-                    <Route path="planos/:planoId" element={<PlanoDetalhesPage />} />
-                    
-                    {/* Relatórios */}
-                    <Route path="relatorios/funcionarios-empresa" element={<RelatorioFuncionariosEmpresaPage />} />
-                    <Route path="relatorios/custos-empresa" element={<RelatorioCustosEmpresaPage />} />
-                    <Route path="relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
-                    <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosEmpresa />} />
-                    <Route path="relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
-                  </Routes>
+                  <EmpresaDashboard />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/funcionarios" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <EmpresaFuncionarios />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/planos" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <EmpresaPlanosPage />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/planos/:planoId" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <PlanoDetalhesPage />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Relatórios Empresa */}
+            <Route path="/empresa/relatorios/funcionarios-empresa" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <RelatorioFuncionariosEmpresaPage />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/relatorios/custos-empresa" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <RelatorioCustosEmpresaPage />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/relatorios/custos-detalhado" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <RelatorioCustosDetalhadoPage />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/relatorios/funcionarios" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <RelatorioFuncionariosEmpresa />
+                </InternalRootLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/empresa/relatorios/pendencias" element={
+              <ProtectedRoute allowedRoles={['empresa']}>
+                <InternalRootLayout>
+                  <RelatorioPendenciasEmpresaPage />
                 </InternalRootLayout>
               </ProtectedRoute>
             } />

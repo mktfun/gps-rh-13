@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, MessageSquare } from "lucide-react";
 import { TipoPendenciaBadge, PrioridadePendenciaBadge } from "./PendenciasBadges";
+import { PendenciaCommentsModal } from "./PendenciaCommentsModal";
+import { useState } from "react";
 
 interface TabelaPendencias {
   id: string;
@@ -125,28 +127,49 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
   {
     id: 'acoes',
     header: 'Ações',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => console.log('Ver detalhes:', row.original.id)}
-          className="h-8 w-8 p-0"
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => console.log('Comentários:', row.original.id)}
-          className="h-8 w-8 p-0"
-        >
-          <MessageSquare className="h-4 w-4" />
-          {row.original.comentarios_count > 0 && (
-            <span className="ml-1 text-xs">{row.original.comentarios_count}</span>
-          )}
-        </Button>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+      
+      return (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => console.log('Ver detalhes:', row.original.id)}
+            className="h-8 w-8 p-0"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCommentsOpen(true)}
+            className="h-8 w-8 p-0 relative"
+          >
+            <MessageSquare className="h-4 w-4" />
+            {row.original.comentarios_count > 0 && (
+              <Badge 
+                variant="secondary" 
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
+              >
+                {row.original.comentarios_count}
+              </Badge>
+            )}
+          </Button>
+          
+          <PendenciaCommentsModal
+            isOpen={isCommentsOpen}
+            onClose={() => setIsCommentsOpen(false)}
+            pendencia={{
+              id: row.original.id,
+              protocolo: row.original.protocolo,
+              funcionario_nome: row.original.funcionario_nome,
+              descricao: row.original.descricao,
+              comentarios_count: row.original.comentarios_count
+            }}
+          />
+        </div>
+      );
+    },
   },
 ];

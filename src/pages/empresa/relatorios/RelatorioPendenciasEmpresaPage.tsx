@@ -14,6 +14,7 @@ import PendenciasByCNPJChart from '@/components/relatorios/PendenciasByCNPJChart
 import { createPendenciasTableColumns } from '@/components/relatorios/pendenciasDetailedTableColumns';
 import { usePendenciasReport } from '@/hooks/usePendenciasReport';
 import { useAllCnpjs } from '@/hooks/useAllCnpjs';
+import { useExportData, ExportField } from '@/hooks/useExportData';
 import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
 import { addDays, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
@@ -37,6 +38,14 @@ const RelatorioPendenciasEmpresaPage = () => {
     cnpjFilter
   );
 
+  const {
+    openExportPreview,
+    formatCurrency,
+    formatCPF,
+    formatDate,
+    formatDateTime
+  } = useExportData();
+
   const columns = createPendenciasTableColumns();
 
   // Filtrar dados da tabela por busca
@@ -52,8 +61,29 @@ const RelatorioPendenciasEmpresaPage = () => {
   }) || [];
 
   const handleExport = () => {
-    console.log('Exportar dados:', filteredTableData);
-    // TODO: Implementar exportação Excel
+    if (!filteredTableData || filteredTableData.length === 0) {
+      console.log('Nenhum dado para exportar');
+      return;
+    }
+
+    const exportFields: ExportField[] = [
+      { key: 'protocolo', label: 'Protocolo', selected: true },
+      { key: 'tipo', label: 'Tipo', selected: true },
+      { key: 'funcionario_nome', label: 'Nome do Funcionário', selected: true },
+      { key: 'funcionario_cpf', label: 'CPF do Funcionário', selected: true, format: formatCPF },
+      { key: 'razao_social', label: 'Razão Social', selected: true },
+      { key: 'cnpj', label: 'CNPJ', selected: true },
+      { key: 'descricao', label: 'Descrição', selected: true },
+      { key: 'data_criacao', label: 'Data de Criação', selected: true, format: formatDate },
+      { key: 'data_vencimento', label: 'Data de Vencimento', selected: true, format: formatDate },
+      { key: 'status_prioridade', label: 'Prioridade', selected: true },
+      { key: 'dias_em_aberto', label: 'Dias em Aberto', selected: true },
+      { key: 'comentarios_count', label: 'Qtd. Comentários', selected: true }
+    ];
+
+    const filename = `relatorio-pendencias-${new Date().toISOString().split('T')[0]}`;
+    
+    openExportPreview(filteredTableData, exportFields, filename);
   };
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
