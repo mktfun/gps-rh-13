@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 interface AdicionarFuncionariosPayload {
   planoId: string;
+  tipoSeguro: string;
   funcionarioIds: string[];
 }
 
@@ -12,10 +13,12 @@ export const useAdicionarFuncionariosMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ planoId, funcionarioIds }: AdicionarFuncionariosPayload) => {
-      if (!planoId || !funcionarioIds.length) {
-        throw new Error('Plano ID e funcionários são obrigatórios');
+    mutationFn: async ({ planoId, tipoSeguro, funcionarioIds }: AdicionarFuncionariosPayload) => {
+      if (!planoId || !funcionarioIds.length || !tipoSeguro) {
+        throw new Error('Plano ID, tipo de seguro e funcionários são obrigatórios');
       }
+
+      console.log('🔄 Adicionando funcionários ao plano:', { planoId, tipoSeguro, funcionarioIds });
 
       // Criar registros para inserção em massa
       const registros = funcionarioIds.map(funcionarioId => ({
@@ -37,15 +40,17 @@ export const useAdicionarFuncionariosMutation = () => {
       return data;
     },
     onSuccess: (data, variables) => {
-      // Invalidar queries relacionadas
+      console.log('✅ Funcionários adicionados com sucesso ao plano:', variables.planoId, 'tipo:', variables.tipoSeguro);
+      
+      // Invalidar queries específicas do plano e tipo
       queryClient.invalidateQueries({ 
         queryKey: ['funcionarios-fora-do-plano', variables.planoId] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: ['plano-funcionarios', variables.planoId] 
+        queryKey: ['planoFuncionarios', variables.tipoSeguro, variables.planoId] 
       });
       queryClient.invalidateQueries({ 
-        queryKey: ['planoFuncionariosStats'] 
+        queryKey: ['planoFuncionariosStats', variables.tipoSeguro, variables.planoId] 
       });
 
       toast.success(`${data.length} funcionário(s) adicionado(s) ao plano com sucesso!`);

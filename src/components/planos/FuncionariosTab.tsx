@@ -17,6 +17,7 @@ interface PlanoDetalhes {
   seguradora: string;
   valor_mensal: number;
   cobertura_morte: number;
+  tipo_seguro?: string;
 }
 
 interface FuncionariosTabProps {
@@ -29,17 +30,20 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Buscar funcionários do plano
+  // Determinar tipo de seguro, defaulting para 'saude' se não especificado
+  const tipoSeguro = plano.tipo_seguro || 'saude';
+
+  // Usar hooks refatorados com planoId e tipoSeguro
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
-    cnpjId: plano.cnpj_id,
+    planoId: plano.id,
+    tipoSeguro,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas
-  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats(plano.id, tipoSeguro, plano.valor_mensal);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
@@ -163,6 +167,8 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
             plano={{
+              id: plano.id,
+              tipoSeguro,
               seguradora: plano.seguradora,
               valor_mensal: plano.valor_mensal,
               cnpj_id: plano.cnpj_id,

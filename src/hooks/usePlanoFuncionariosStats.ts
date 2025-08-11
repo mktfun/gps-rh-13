@@ -10,30 +10,17 @@ interface PlanoFuncionariosStats {
   custoPorFuncionario: number;
 }
 
-export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) => {
+export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, valorMensal: number) => {
   return useQuery({
-    queryKey: ['planoFuncionariosStats', cnpjId],
+    queryKey: ['planoFuncionariosStats', tipoSeguro, planoId],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId);
+      console.log('🔍 Buscando estatísticas via planos_funcionarios para planoId:', planoId, 'tipo:', tipoSeguro);
 
-      // Primeiro, buscar o plano_id
-      const { data: planoData, error: planoError } = await supabase
-        .from('dados_planos')
-        .select('id')
-        .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', 'vida')
-        .single();
-
-      if (planoError) {
-        console.error('❌ Erro ao buscar plano:', planoError);
-        throw planoError;
-      }
-
-      // Buscar estatísticas das matrículas
+      // Buscar estatísticas das matrículas usando planoId diretamente
       const { data, error } = await supabase
         .from('planos_funcionarios')
         .select('status')
-        .eq('plano_id', planoData.id);
+        .eq('plano_id', planoId);
 
       if (error) {
         console.error('❌ Erro ao buscar estatísticas de matrículas:', error);
@@ -62,10 +49,10 @@ export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) =
       // Calcular custo por funcionário ativo
       const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas de matrículas calculadas:', { ...stats, custoPorFuncionario });
+      console.log('✅ Estatísticas de matrículas calculadas para plano:', planoId, 'tipo:', tipoSeguro, { ...stats, custoPorFuncionario });
 
       return { ...stats, custoPorFuncionario };
     },
-    enabled: !!cnpjId,
+    enabled: !!planoId && !!tipoSeguro,
   });
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,17 +33,17 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   const [statusFilter, setStatusFilter] = useState('todos');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-  // Buscar funcionários do plano
+  // Usar hooks refatorados com planoId e tipoSeguro
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
-    cnpjId: cnpjId,
+    planoId: plano.id,
+    tipoSeguro: 'vida',
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas
-  const { data: stats } = usePlanoFuncionariosStats(cnpjId, plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats(plano.id, 'vida', plano.valor_mensal);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
@@ -168,6 +169,8 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
             plano={{
+              id: plano.id,
+              tipoSeguro: 'vida',
               seguradora: plano.seguradora,
               valor_mensal: plano.valor_mensal,
               cnpj_id: cnpjId,

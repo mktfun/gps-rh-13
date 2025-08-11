@@ -19,6 +19,8 @@ interface FuncionariosPlanoDataTableProps {
   statusFilter: string;
   setStatusFilter: (status: string) => void;
   plano: {
+    id: string;
+    tipoSeguro: string;
     seguradora: string;
     valor_mensal: number;
     cnpj_id: string;
@@ -146,6 +148,8 @@ export const FuncionariosPlanoDataTable: React.FC<FuncionariosPlanoDataTableProp
         return (
           <FuncionarioActionsMenu 
             funcionario={funcionario}
+            planoId={plano.id}
+            tipoSeguro={plano.tipoSeguro}
             cnpjId={plano.cnpj_id}
             onViewDetails={handleViewDetails}
           />

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +43,8 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
     : (plano?.valor_mensal ?? 0);
     
   const { data: stats } = usePlanoFuncionariosStats(
-    plano?.cnpj_id || '', 
+    plano?.id || '', 
+    'saude',
     valorReal
   );
 
@@ -326,6 +328,7 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
         planoId={plano.id}
         cnpjId={plano.cnpj_id}
         planoSeguradora={plano.seguradora}
+        tipoSeguro="saude"
       />
     </div>
   );
