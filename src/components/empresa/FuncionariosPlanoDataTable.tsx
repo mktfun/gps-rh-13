@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,7 @@ interface FuncionariosPlanoDataTableProps {
     seguradora: string;
     valor_mensal: number;
     cnpj_id: string;
+    tipo_seguro: 'vida' | 'saude' | 'outros';
   };
 }
 
@@ -147,6 +147,7 @@ export const FuncionariosPlanoDataTable: React.FC<FuncionariosPlanoDataTableProp
           <FuncionarioActionsMenu 
             funcionario={funcionario}
             cnpjId={plano.cnpj_id}
+            tipoSeguro={plano.tipo_seguro}
             onViewDetails={handleViewDetails}
           />
         );

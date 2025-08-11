@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,7 +109,7 @@ const PlanoDetalhesPage = () => {
         </TabsList>
         
         <TabsContent value="informacoes">
-          <InformacoesGeraisTab plano={plano} onNavigateToFuncionarios={navigateToFuncionarios} />
+          <InformacoesGeraisTab plano={plano} />
         </TabsContent>
         
         <TabsContent value="coberturas">
@@ -121,24 +120,28 @@ const PlanoDetalhesPage = () => {
           <FuncionariosTab 
             funcionarios={funcionarios || []} 
             isLoading={isLoadingFuncionarios}
-            plano={plano}
+            plano={{
+              ...plano,
+              tipo_seguro: tipoSeguro
+            }}
           />
         </TabsContent>
         
         <TabsContent value="contrato">
-          <ContratoTab />
+          <ContratoTab planoId={planoId!} />
         </TabsContent>
         
         <TabsContent value="demonstrativos">
-          <DemonstrativosTab />
+          <DemonstrativosTab planoId={planoId!} />
         </TabsContent>
       </Tabs>
 
       <AdicionarFuncionarioModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
         cnpjId={plano.cnpj_id}
-        onFuncionarioCreated={() => {
+        planoSeguradora={plano.seguradora}
+        onFuncionarioAdded={() => {
           setShowAddModal(false);
           // Refresh data will happen automatically due to react-query
         }}

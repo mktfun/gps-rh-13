@@ -20,7 +20,7 @@ interface FuncionarioActionsMenuProps {
   cnpjId: string;
   tipoSeguro: 'vida' | 'saude' | 'outros';
   onEdit?: (funcionario: any) => void;
-  onView?: (funcionario: any) => void;
+  onViewDetails?: (funcionario: any) => void;
 }
 
 export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
@@ -28,7 +28,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   cnpjId,
   tipoSeguro,
   onEdit,
-  onView
+  onViewDetails
 }) => {
   const { deleteFuncionario } = usePlanoFuncionarios({ cnpjId, tipoSeguro });
 
@@ -41,8 +41,8 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   };
 
   const handleView = () => {
-    if (onView) {
-      onView(funcionario);
+    if (onViewDetails) {
+      onViewDetails(funcionario);
     } else {
       toast.info('Funcionalidade de visualização em desenvolvimento');
     }
