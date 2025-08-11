@@ -32,6 +32,10 @@ import Pendencias from '@/pages/empresa/relatorios/RelatorioPendenciasEmpresaPag
 import EnhancedDashboard from '@/pages/corretora/EnhancedDashboard';
 import SegurosDeVidaEmpresas from '@/pages/corretora/seguros-vida/SegurosVidaEmpresasPage';
 import SegurosDeVidaCnpj from '@/pages/corretora/seguros-vida/SegurosVidaCnpjsPage';
+import SegurosDeVidaPlano from '@/pages/corretora/seguros-vida/SegurosVidaPlanoPage';
+import PlanosSaudeEmpresas from '@/pages/corretora/planos-saude/PlanosSaudeEmpresasPage';
+import PlanosSaudeCnpjs from '@/pages/corretora/planos-saude/PlanosSaudeCnpjsPage';
+import PlanosSaudePlano from '@/pages/corretora/planos-saude/PlanosSaudePlanoPage';
 import RelatorioFinanceiro from '@/pages/corretora/relatorios/RelatorioFinanceiroPage';
 import RelatorioFuncionariosCorretora from '@/pages/corretora/relatorios/RelatorioFuncionariosPage';
 import RelatorioMovimentacao from '@/pages/corretora/relatorios/RelatorioMovimentacaoPage';
@@ -83,12 +87,13 @@ function App() {
               
               {/* Seguros de Vida Routes */}
               <Route path="seguros-de-vida/empresas" element={<RootLayout><SegurosDeVidaEmpresas /></RootLayout>} />
-              <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<RootLayout><SegurosDeVidaCnpj /></RootLayout>} />
+              <Route path="seguros-de-vida/:empresaId" element={<RootLayout><SegurosDeVidaCnpj /></RootLayout>} />
+              <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<RootLayout><SegurosDeVidaPlano /></RootLayout>} />
 
-              {/* Planos de Saúde Routes - NOVAS ROTAS */}
-              <Route path="planos-de-saude/empresas" element={<RootLayout><div>PlanosSaudeEmpresasPage - Em breve</div></RootLayout>} />
-              <Route path="planos-de-saude/:empresaId" element={<RootLayout><div>PlanosSaudeCnpjsPage - Em breve</div></RootLayout>} />
-              <Route path="planos-de-saude/:empresaId/cnpj/:cnpjId" element={<RootLayout><div>PlanosSaudePlanoPage - Em breve</div></RootLayout>} />
+              {/* Planos de Saúde Routes */}
+              <Route path="planos-de-saude/empresas" element={<RootLayout><PlanosSaudeEmpresas /></RootLayout>} />
+              <Route path="planos-de-saude/:empresaId" element={<RootLayout><PlanosSaudeCnpjs /></RootLayout>} />
+              <Route path="planos-de-saude/:empresaId/cnpj/:cnpjId" element={<RootLayout><PlanosSaudePlano /></RootLayout>} />
 
               {/* Relatórios routes */}
               <Route path="relatorios/financeiro" element={<RootLayout><RelatorioFinanceiro /></RootLayout>} />
@@ -103,7 +108,7 @@ function App() {
               <Route path="planos" element={<RootLayout><PlanosPage /></RootLayout>} />
               <Route path="plano/:planoId" element={<RootLayout><PlanoDetalhesPage /></RootLayout>} />
 
-              {/* Planos de Saúde Route - NOVA ROTA */}
+              {/* Planos de Saúde Route */}
               <Route path="planos-saude" element={<RootLayout><div>EmpresaPlanosSaudePage - Em breve</div></RootLayout>} />
 
               {/* Relatórios routes */}

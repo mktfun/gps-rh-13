@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -84,6 +83,11 @@ const Sidebar = () => {
       name: 'Seguros de Vida',
       href: '/corretora/seguros-de-vida/empresas',
       icon: Activity,
+    },
+    {
+      name: 'Planos de Saúde',
+      href: '/corretora/planos-de-saude/empresas',
+      icon: Stethoscope,
     },
   ];
 
