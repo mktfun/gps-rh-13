@@ -45,7 +45,8 @@ import EmpresaDashboard from '@/pages/empresa/Dashboard';
 import EmpresaFuncionarios from '@/pages/empresa/Funcionarios';
 import EmpresaPlanosPage from '@/pages/empresa/EmpresaPlanosPage';
 import EmpresaPlanosSaudePage from '@/pages/empresa/EmpresaPlanosSaudePage';
-import PlanoDetalhesPage from '@/pages/empresa/PlanoDetalhesPage';
+import SeguroVidaDetalhesPage from '@/pages/empresa/SeguroVidaDetalhesPage';
+import PlanoSaudeDetalhesPage from '@/pages/empresa/PlanoSaudeDetalhesPage';
 
 // Relatórios da Empresa
 import RelatorioCustosEmpresaPage from '@/pages/empresa/relatorios/RelatorioCustosEmpresaPage';
@@ -79,9 +80,15 @@ function App() {
                 {/* --- ROTAS DA EMPRESA --- */}
                 <Route path="/empresa/dashboard" element={<EmpresaDashboard />} />
                 <Route path="/empresa/funcionarios" element={<EmpresaFuncionarios />} />
-                <Route path="/empresa/planos" element={<EmpresaPlanosPage />} />
-                <Route path="/empresa/planos-saude" element={<EmpresaPlanosSaudePage />} />
-                <Route path="/empresa/planos/:planoId" element={<PlanoDetalhesPage />} />
+                
+                {/* === ROTAS CORRIGIDAS E SEPARADAS === */}
+                {/* Listagem de planos */}
+                <Route path="/empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
+                <Route path="/empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
+                
+                {/* Detalhes dos planos (NOVAS ROTAS USANDO AS NOVAS PÁGINAS) */}
+                <Route path="/empresa/seguros-de-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
+                <Route path="/empresa/planos-de-saude/:planoId" element={<PlanoSaudeDetalhesPage />} />
                 
                 {/* Relatórios - Empresa */}
                 <Route path="/empresa/relatorios/custos" element={<RelatorioCustosEmpresaPage />} />

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -122,7 +121,7 @@ const EmpresaPlanosSaudePage = () => {
 
                   <div className="flex gap-2 pt-2">
                     <Button asChild className="flex-1">
-                      <Link to={`/empresa/planos/${plano.id}`}>
+                      <Link to={`/empresa/planos-de-saude/${plano.id}`}>
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Gerenciar Plano
                       </Link>

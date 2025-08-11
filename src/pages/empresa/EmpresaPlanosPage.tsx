@@ -134,7 +134,7 @@ const EmpresaPlanosPage = () => {
                   <div className="flex gap-2">
                     {/* Botão principal - navegar para página dedicada */}
                     <Button asChild className="flex-1">
-                      <Link to={`/empresa/planos/${plano.id}`}>
+                      <Link to={`/empresa/seguros-de-vida/${plano.id}`}>
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Abrir Plano
                       </Link>
