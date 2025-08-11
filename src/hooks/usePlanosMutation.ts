@@ -39,25 +39,6 @@ export const usePlanosMutation = () => {
     mutationFn: async (data: CreatePlanoData) => {
       console.log('🔄 Criando plano:', data);
       
-      // Verificar se já existe um plano do mesmo tipo para este CNPJ
-      const { data: existingPlano, error: checkError } = await supabase
-        .from('dados_planos')
-        .select('id')
-        .eq('cnpj_id', data.cnpj_id)
-        .eq('tipo_seguro', data.tipo_seguro)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('❌ Erro ao verificar plano existente:', checkError);
-        throw checkError;
-      }
-
-      if (existingPlano?.id) {
-        const tipoTexto = data.tipo_seguro === 'vida' ? 'Seguro de Vida' : 
-                         data.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro';
-        throw new Error(`Já existe um ${tipoTexto} cadastrado para este CNPJ`);
-      }
-
       // Use direct RPC call to ensure the function exists
       const { data: result, error } = await supabase.rpc('create_plano_v2' as any, {
         p_cnpj_id: data.cnpj_id,

@@ -1,198 +1,355 @@
-import React, { useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Plus, ArrowLeft, Heart } from 'lucide-react';
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
-import { useEmpresa } from '@/hooks/useEmpresa';
-import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
+import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
+import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
 import { FuncionariosTab } from '@/components/planos/FuncionariosTab';
-import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
-import { CoberturasTab } from '@/components/planos/CoberturasTab';
-import { ContratoTab } from '@/components/planos/ContratoTab';
-import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
-import { formatCurrency } from '@/lib/utils';
+import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
+import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
+import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
+
+interface PlanoDetalhes {
+  id: string;
+  cnpj_id: string;
+  empresa_nome: string;
+  cnpj_razao_social: string;
+  cnpj_numero: string;
+  seguradora: string;
+  valor_mensal: number;
+  cobertura_morte: number;
+  cobertura_morte_acidental: number;
+  cobertura_invalidez_acidente: number;
+  cobertura_auxilio_funeral: number;
+  tipo_seguro: 'vida' | 'saude' | 'outros';
+}
+
+interface FuncionarioPlano {
+  id: string;
+  nome: string;
+  cpf: string;
+  email: string;
+  telefone: string;
+  data_nascimento: string;
+  cargo: string;
+  salario: number;
+  data_admissao: string;
+  status: string;
+  idade: number;
+}
 
 const PlanosSaudePlanoPage = () => {
-  const { empresaId, cnpjId } = useParams();
-  const { role } = useAuth();
-  const [activeTab, setActiveTab] = useState('geral');
-  const [showConfigurarModal, setShowConfigurarModal] = useState(false);
+  const { empresaId, cnpjId } = useParams<{ empresaId: string; cnpjId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("visao-geral");
+  const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
+  const [showConfigPlanoModal, setShowConfigPlanoModal] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Redirect if not corretora
-  if (role !== 'corretora') {
-    return <Navigate to="/dashboard" replace />;
-  }
+  console.log('🔍 PlanosSaudePlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
-  if (!empresaId || !cnpjId) {
-    return <Navigate to="/corretora/planos-de-saude" replace />;
-  }
+  // Check if empresaId is actually a cnpjId that needs autocorrection
+  const { data: autocorrectCheck } = useQuery({
+    queryKey: ['autocorrect-check-empresa', empresaId],
+    queryFn: async () => {
+      if (!empresaId || !cnpjId) return null;
+      
+      // Check if the empresaId is actually a cnpjId
+      const { data: cnpjData, error: cnpjError } = await supabase
+        .from('cnpjs')
+        .select(`
+          id,
+          empresa_id,
+          razao_social,
+          cnpj,
+          empresas!inner(id, nome)
+        `)
+        .eq('id', empresaId)
+        .maybeSingle();
 
-  // Buscar dados da empresa
-  const { data: empresa } = useEmpresa(empresaId);
+      if (cnpjData && cnpjData.empresas) {
+        console.log('🔄 Autocorrect: EmpresaId is actually a CNPJ, redirecting...');
+        return {
+          needsRedirect: true,
+          correctEmpresaId: cnpjData.empresa_id,
+          correctCnpjId: cnpjData.id
+        };
+      }
 
-  // Buscar plano de saúde para este CNPJ
-  const { data: planos, isLoading: planosLoading } = usePlanoDetalhes('');
+      return { needsRedirect: false };
+    },
+    enabled: !!empresaId && !!cnpjId,
+  });
 
-  // Buscar plano específico de saúde
-  const planoSaude = React.useMemo(() => {
-    if (!planos) return null;
-    
-    // Como usePlanoDetalhes não suporta busca por tipo, vamos simular um plano de saúde
-    return {
-      id: `${cnpjId}-saude`,
-      seguradora: 'Unimed',
-      valor_mensal: 450.00,
-      cnpj_id: cnpjId,
-      cnpj_numero: '12.345.678/0001-90',
-      cnpj_razao_social: empresa?.nome || 'Empresa Exemplo',
-      empresa_nome: empresa?.nome || 'Empresa Exemplo',
-      tipo_seguro: 'saude' as const,
-      // Campos obrigatórios do PlanoDetalhes mas não aplicáveis a saúde
-      cobertura_morte: 0,
-      cobertura_morte_acidental: 0,
-      cobertura_invalidez_acidente: 0,
-      cobertura_auxilio_funeral: 0
-    };
-  }, [cnpjId, empresa?.nome]);
+  // Handle autocorrect redirect
+  useEffect(() => {
+    if (autocorrectCheck?.needsRedirect && !isRedirecting) {
+      setIsRedirecting(true);
+      toast.info('Redirecionando para a página correta do plano...');
+      navigate(`/corretora/planos-de-saude/${autocorrectCheck.correctEmpresaId}/cnpj/${autocorrectCheck.correctCnpjId}`, { replace: true });
+    }
+  }, [autocorrectCheck, navigate, isRedirecting]);
+
+  const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresaPorCnpj(cnpjId);
+
+  const { data: planoDetalhes, isLoading: isLoadingPlano, error: errorPlano, refetch: refetchPlano } = useQuery({
+    queryKey: ['plano-detalhes-cnpj', cnpjId],
+    queryFn: async (): Promise<PlanoDetalhes> => {
+      if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
+      if (!user?.id) throw new Error('Usuário não autenticado');
+
+      console.log('🔍 Buscando plano de SAÚDE para CNPJ:', cnpjId);
+
+      const { data, error } = await supabase
+        .from('dados_planos')
+        .select(`
+          *,
+          cnpjs!inner(
+            id,
+            razao_social,
+            cnpj,
+            empresa_id,
+            empresas (
+              nome
+            )
+          )
+        `)
+        .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'saude')
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Erro ao buscar detalhes do plano de saúde:', error);
+        throw new Error('Erro ao buscar detalhes do plano de saúde');
+      }
+
+      if (!data) {
+        console.error('❌ Plano de saúde não encontrado para CNPJ:', cnpjId);
+        throw new Error('Plano de saúde não encontrado para este CNPJ');
+      }
+
+      console.log('✅ Plano de saúde encontrado:', data);
+
+      return {
+        id: data.id,
+        cnpj_id: data.cnpj_id,
+        empresa_nome: data.cnpjs?.empresas?.nome || 'Nome da Empresa Indisponível',
+        cnpj_razao_social: data.cnpjs?.razao_social || 'Razão Social Indisponível',
+        cnpj_numero: data.cnpjs?.cnpj || 'CNPJ Indisponível',
+        seguradora: data.seguradora,
+        valor_mensal: data.valor_mensal,
+        cobertura_morte: data.cobertura_morte,
+        cobertura_morte_acidental: data.cobertura_morte_acidental,
+        cobertura_invalidez_acidente: data.cobertura_invalidez_acidente,
+        cobertura_auxilio_funeral: data.cobertura_auxilio_funeral,
+        tipo_seguro: 'saude'
+      };
+    },
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
+  });
+
+  const { data: funcionarios, isLoading: isLoadingFuncionarios, error: errorFuncionarios } = useQuery({
+    queryKey: ['funcionarios-cnpj', cnpjId],
+    queryFn: async (): Promise<FuncionarioPlano[]> => {
+      if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
+      if (!user?.id) throw new Error('Usuário não autenticado');
+
+      const { data, error } = await supabase
+        .from('funcionarios')
+        .select('*')
+        .eq('cnpj_id', cnpjId);
+
+      if (error) {
+        console.error('Erro ao buscar funcionários:', error);
+        throw new Error('Erro ao buscar funcionários');
+      }
+
+      return (data || []).map(funcionario => ({
+        id: funcionario.id,
+        nome: funcionario.nome,
+        cpf: funcionario.cpf,
+        email: funcionario.email || '',
+        telefone: '',
+        data_nascimento: funcionario.data_nascimento,
+        cargo: funcionario.cargo,
+        salario: funcionario.salario,
+        data_admissao: funcionario.created_at,
+        status: funcionario.status,
+        idade: funcionario.idade
+      }));
+    },
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
+  });
 
   const handleAddFuncionario = () => {
+    setShouldOpenAddModal(true);
+  };
+
+  const handleAddModalHandled = () => {
+    setShouldOpenAddModal(false);
+  };
+
+  const navigateToFuncionarios = () => {
     setActiveTab('funcionarios');
   };
 
-  if (planosLoading) {
-    return <div>Carregando...</div>;
+  const handleConfigurePlano = () => {
+    setShowConfigPlanoModal(true);
+  };
+
+  const handlePlanoCreated = () => {
+    refetchPlano();
+    setShowConfigPlanoModal(false);
+  };
+
+  // Show loading while redirecting
+  if (isRedirecting || autocorrectCheck?.needsRedirect) {
+    return (
+      <div className="container py-8">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <Skeleton className="h-4 w-48 mx-auto mb-2" />
+              <p className="text-muted-foreground">Redirecionando para a página correta...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
-  if (!planoSaude) {
+  if (isLoadingPlano || isLoadingFuncionarios || isLoadingEmpresa) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <a href={`/corretora/planos-de-saude/${empresaId}`}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </a>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Plano de Saúde</h1>
-            <p className="text-muted-foreground">{empresa?.nome}</p>
-          </div>
-        </div>
-
+      <div className="container py-8">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Nenhum plano de saúde encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                Este CNPJ ainda não possui um plano de saúde configurado.
-              </p>
-              <Button onClick={() => setShowConfigurarModal(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Configurar Plano de Saúde
-              </Button>
+          <CardHeader>
+            <CardTitle>
+              <Skeleton className="h-6 w-64 mb-2" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-64" />
+              <Skeleton className="h-4 w-32" />
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (errorPlano || errorFuncionarios || errorEmpresa) {
+    return (
+      <div className="container py-8">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        <Card>
+          <CardContent className="py-12">
+            <EmptyStateWithAction
+              icon={Heart}
+              title="Plano de saúde não encontrado"
+              description={
+                errorPlano?.message === 'Plano de saúde não encontrado para este CNPJ' 
+                  ? 'Este CNPJ não possui um plano de saúde cadastrado. Configure um plano agora para começar a gerenciar os funcionários.'
+                  : `Erro ao carregar dados: ${errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}`
+              }
+              primaryAction={{
+                label: "Configurar Plano de Saúde",
+                onClick: handleConfigurePlano
+              }}
+              secondaryAction={{
+                label: "Voltar",
+                onClick: () => navigate('/corretora/planos-de-saude')
+              }}
+            />
           </CardContent>
         </Card>
 
         <ConfigurarPlanoSaudeModal
-          open={showConfigurarModal}
-          onOpenChange={setShowConfigurarModal}
-          cnpjId={cnpjId}
+          isOpen={showConfigPlanoModal}
+          onClose={() => setShowConfigPlanoModal(false)}
+          cnpjId={cnpjId!}
+          onPlanoCreated={handlePlanoCreated}
         />
       </div>
     );
   }
 
+  const empresaNome = empresaData?.empresa?.nome || planoDetalhes?.empresa_nome || 'Empresa não encontrada';
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <a href={`/corretora/planos-de-saude/${empresaId}`}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </a>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Plano de Saúde - {planoSaude.seguradora}</h1>
-            <p className="text-muted-foreground">{planoSaude.cnpj_razao_social}</p>
-          </div>
+    <div className="container py-8">
+      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+      </Button>
+
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{empresaNome}</h1>
+          <p className="text-muted-foreground">
+            {planoDetalhes?.cnpj_razao_social} ({planoDetalhes?.cnpj_numero})
+          </p>
         </div>
         <Button onClick={handleAddFuncionario}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Adicionar Funcionário
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              Resumo do Plano
-              <Badge variant="secondary">Saúde</Badge>
-            </CardTitle>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Valor Mensal</p>
-              <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(planoSaude.valor_mensal)}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Seguradora</p>
-              <p className="font-semibold">{planoSaude.seguradora}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">CNPJ</p>
-              <p className="font-semibold">{planoSaude.cnpj_numero}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Empresa</p>
-              <p className="font-semibold">{planoSaude.empresa_nome}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Tipo</p>
-              <Badge variant="outline">Plano de Saúde</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <Separator className="mb-4" />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="geral">Informações Gerais</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList>
+          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="funcionarios">Funcionários</TabsTrigger>
-          <TabsTrigger value="coberturas">Coberturas</TabsTrigger>
-          <TabsTrigger value="contrato">Contrato</TabsTrigger>
-          <TabsTrigger value="demonstrativos">Demonstrativos</TabsTrigger>
+          <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="geral" className="space-y-4">
-          <InformacoesGeraisTab plano={planoSaude} />
+        <TabsContent value="visao-geral">
+          {planoDetalhes && (
+            <PlanoVisaoGeralTab
+              plano={{
+                ...planoDetalhes,
+                tipo_seguro: 'saude'
+              }}
+              funcionarios={funcionarios || []}
+              onNavigateToFuncionarios={navigateToFuncionarios}
+              onAddFuncionario={handleAddFuncionario}
+            />
+          )}
         </TabsContent>
-
-        <TabsContent value="funcionarios" className="space-y-4">
-          <FuncionariosTab plano={planoSaude} />
+        <TabsContent value="funcionarios">
+          {planoDetalhes && cnpjId && (
+            <FuncionariosTab 
+              plano={{
+                id: planoDetalhes.id,
+                seguradora: planoDetalhes.seguradora,
+                valor_mensal: planoDetalhes.valor_mensal,
+                cnpj_id: planoDetalhes.cnpj_id,
+                tipo_seguro: 'saude'
+              }}
+            />
+          )}
         </TabsContent>
-
-        <TabsContent value="coberturas" className="space-y-4">
-          <CoberturasTab plano={planoSaude} />
-        </TabsContent>
-
-        <TabsContent value="contrato" className="space-y-4">
-          <ContratoTab planoId={planoSaude.id} />
-        </TabsContent>
-
-        <TabsContent value="demonstrativos" className="space-y-4">
-          <DemonstrativosTab planoId={planoSaude.id} />
+        <TabsContent value="historico">
+          <PlanoHistoricoTab />
         </TabsContent>
       </Tabs>
     </div>
