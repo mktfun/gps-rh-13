@@ -3,6 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
+import { Link } from 'react-router-dom';
 
 export const SmartBreadcrumbs: React.FC = () => {
   const location = useLocation();
@@ -24,12 +25,12 @@ export const SmartBreadcrumbs: React.FC = () => {
     if (pathSegments[0] === 'corretora') {
       breadcrumbs.push({
         label: 'Dashboard',
-        href: '/corretora',
+        href: '/corretora/dashboard',
       });
     } else if (pathSegments[0] === 'empresa') {
       breadcrumbs.push({
         label: 'Dashboard',
-        href: '/empresa',
+        href: '/empresa/dashboard',
       });
     }
 
@@ -192,8 +193,10 @@ export const SmartBreadcrumbs: React.FC = () => {
                 {index === breadcrumbs.length - 1 ? (
                   <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink href={breadcrumb.href}>
-                    {breadcrumb.label}
+                  <BreadcrumbLink asChild>
+                    <Link to={breadcrumb.href}>
+                      {breadcrumb.label}
+                    </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

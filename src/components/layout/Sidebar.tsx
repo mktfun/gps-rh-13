@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
+import { getDashboardRoute } from '@/utils/routePaths';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -15,33 +15,21 @@ import {
   FileText, 
   Settings, 
   User,
-  MessageSquare,
-  ChevronDown,
   BarChart3,
   Shield,
-  Heart,
   ClipboardList,
   DollarSign,
   Activity,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Stethoscope
 } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
   const { role } = useAuth();
-  const [openSections, setOpenSections] = useState<string[]>(['relatorios']);
-
-  const toggleSection = (section: string) => {
-    setOpenSections(prev => 
-      prev.includes(section) 
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
-    );
-  };
 
   const isActive = (path: string) => location.pathname === path;
-  const isParentActive = (paths: string[]) => paths.some(path => location.pathname.startsWith(path));
 
   // Admin navigation
   const adminNavigation = [
@@ -91,6 +79,14 @@ const Sidebar = () => {
     },
   ];
 
+  const corretoraPlanos = [
+    {
+      name: 'Seguros de Vida',
+      href: '/corretora/seguros-de-vida/empresas',
+      icon: Activity,
+    },
+  ];
+
   const corretoraRelatorios = [
     {
       name: 'Financeiro',
@@ -109,14 +105,6 @@ const Sidebar = () => {
     },
   ];
 
-  const corretoraSeguroVida = [
-    {
-      name: 'Empresas',
-      href: '/corretora/seguros-de-vida/empresas',
-      icon: Building2,
-    },
-  ];
-
   // Empresa navigation
   const empresaNavigation = [
     {
@@ -129,10 +117,18 @@ const Sidebar = () => {
       href: '/empresa/funcionarios',
       icon: Users,
     },
+  ];
+
+  const empresaPlanos = [
     {
-      name: 'Planos',
+      name: 'Seguros de Vida',
       href: '/empresa/planos',
-      icon: FileText,
+      icon: Activity,
+    },
+    {
+      name: 'Planos de Saúde',
+      href: '/empresa/planos-saude',
+      icon: Stethoscope,
     },
   ];
 
@@ -157,11 +153,6 @@ const Sidebar = () => {
   // Shared navigation (for all roles)
   const sharedNavigation = [
     {
-      name: 'Chat',
-      href: '/chat',
-      icon: MessageSquare,
-    },
-    {
       name: 'Perfil',
       href: '/perfil',
       icon: User,
@@ -173,14 +164,13 @@ const Sidebar = () => {
     },
   ];
 
-  const renderNavItem = (item: any, isChild = false) => (
+  const renderNavItem = (item: any) => (
     <Link
       key={item.href}
       to={item.href}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent',
-        isActive(item.href) && 'bg-accent text-accent-foreground',
-        isChild && 'ml-4'
+        isActive(item.href) && 'bg-accent text-accent-foreground'
       )}
     >
       <item.icon className="h-4 w-4" />
@@ -189,49 +179,21 @@ const Sidebar = () => {
     </Link>
   );
 
-  const renderCollapsibleSection = (title: string, items: any[], icon: any, sectionKey: string) => {
-    const Icon = icon;
-    const isOpen = openSections.includes(sectionKey);
-    const hasActiveChild = isParentActive(items.map(item => item.href));
-
-    return (
-      <Collapsible
-        open={isOpen}
-        onOpenChange={() => toggleSection(sectionKey)}
-      >
-        <CollapsibleTrigger asChild>
-          <Button
-            variant="ghost"
-            className={cn(
-              'w-full justify-between px-3 py-2 text-sm',
-              hasActiveChild && 'bg-accent text-accent-foreground'
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <Icon className="h-4 w-4" />
-              {title}
-            </div>
-            <ChevronDown
-              className={cn(
-                'h-4 w-4 transition-transform duration-200',
-                isOpen && 'rotate-180'
-              )}
-            />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-1 mt-1">
-          {items.map(item => renderNavItem(item, true))}
-        </CollapsibleContent>
-      </Collapsible>
-    );
-  };
+  const renderSection = (title: string, items: any[]) => (
+    <div className="space-y-1">
+      <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        {title}
+      </div>
+      {items.map(item => renderNavItem(item))}
+    </div>
+  );
 
   return (
     <div className="flex h-full w-64 flex-col bg-background border-r">
       <div className="flex h-14 items-center border-b px-4">
-        <Link className="flex items-center gap-2 font-semibold" to="/dashboard">
-          <Heart className="h-6 w-6" />
-          <span className="">Seguros App</span>
+        <Link className="flex items-center gap-2 font-semibold" to={getDashboardRoute(role)}>
+          <LayoutDashboard className="h-6 w-6" />
+          <span className="">GPS</span>
         </Link>
       </div>
       <ScrollArea className="flex-1">
@@ -239,61 +201,33 @@ const Sidebar = () => {
           {/* Role-specific navigation */}
           {role === 'admin' && (
             <div className="space-y-1">
-              <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Administração
-              </div>
-              {adminNavigation.map(item => renderNavItem(item))}
+              {renderSection('Principal', adminNavigation)}
             </div>
           )}
 
           {role === 'corretora' && (
             <>
-              <div className="space-y-1">
-                <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Principal
-                </div>
-                {corretoraNavigation.map(item => renderNavItem(item))}
-              </div>
-
+              {renderSection('Principal', corretoraNavigation)}
               <Separator />
-
-              <div className="space-y-1">
-                {renderCollapsibleSection('Relatórios', corretoraRelatorios, BarChart3, 'relatorios')}
-              </div>
-
+              {renderSection('Planos', corretoraPlanos)}
               <Separator />
-
-              <div className="space-y-1">
-                {renderCollapsibleSection('Seguros de Vida', corretoraSeguroVida, Heart, 'seguros-vida')}
-              </div>
+              {renderSection('Relatórios', corretoraRelatorios)}
             </>
           )}
 
           {role === 'empresa' && (
             <>
-              <div className="space-y-1">
-                <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Principal
-                </div>
-                {empresaNavigation.map(item => renderNavItem(item))}
-              </div>
-
+              {renderSection('Principal', empresaNavigation)}
               <Separator />
-
-              <div className="space-y-1">
-                {renderCollapsibleSection('Relatórios', empresaRelatorios, BarChart3, 'relatorios')}
-              </div>
+              {renderSection('Planos', empresaPlanos)}
+              <Separator />
+              {renderSection('Relatórios', empresaRelatorios)}
             </>
           )}
 
           {/* Shared navigation */}
           <Separator />
-          <div className="space-y-1">
-            <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Geral
-            </div>
-            {sharedNavigation.map(item => renderNavItem(item))}
-          </div>
+          {renderSection('Geral', sharedNavigation)}
         </div>
       </ScrollArea>
     </div>
