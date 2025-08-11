@@ -6,6 +6,7 @@ interface PlanoDetalhes {
   id: string;
   seguradora: string;
   valor_mensal: number;
+  valor_mensal_calculado?: number; // Novo campo para valor calculado
   cobertura_morte: number;
   cobertura_morte_acidental: number;
   cobertura_invalidez_acidente: number;
@@ -14,6 +15,7 @@ interface PlanoDetalhes {
   cnpj_numero: string;
   cnpj_razao_social: string;
   empresa_nome: string;
+  tipo_seguro?: string;
 }
 
 export const usePlanoDetalhes = (planoId: string) => {
@@ -74,8 +76,42 @@ export const usePlanoDetalhes = (planoId: string) => {
         throw new Error('Dados do plano incompletos');
       }
 
-      console.log('✅ Detalhes do plano validados e encontrados:', planoData);
-      return planoData;
+      // Verificar o tipo de seguro para decidir se calcula valor dinâmico
+      let valorCalculado = planoData.valor_mensal;
+      
+      // Buscar o tipo de seguro primeiro
+      const { data: tipoData } = await supabase
+        .from('dados_planos')
+        .select('tipo_seguro')
+        .eq('id', planoId)
+        .single();
+      
+      const tipoSeguro = tipoData?.tipo_seguro || 'vida';
+      
+      // Se for plano de saúde, calcular valor dinâmico
+      if (tipoSeguro === 'saude') {
+        try {
+          const { data: valorData, error: valorError } = await supabase.rpc('calcular_valor_mensal_plano_saude', {
+            plano_uuid: planoId
+          });
+          
+          if (!valorError && valorData !== null) {
+            valorCalculado = valorData;
+            console.log('✅ Valor calculado para plano de saúde:', valorCalculado);
+          }
+        } catch (error) {
+          console.error('❌ Erro ao calcular valor mensal:', error);
+        }
+      }
+
+      const resultado = {
+        ...planoData,
+        valor_mensal_calculado: valorCalculado,
+        tipo_seguro: tipoSeguro
+      };
+
+      console.log('✅ Detalhes do plano validados e encontrados:', resultado);
+      return resultado;
     },
     enabled: !!planoId,
     // Adicionar configurações para evitar refetch desnecessário

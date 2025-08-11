@@ -7,6 +7,7 @@ interface PlanoEmpresaPorTipo {
   id: string;
   seguradora: string;
   valor_mensal: number;
+  valor_mensal_calculado?: number; // Novo campo para o valor calculado
   cobertura_morte: number;
   cobertura_morte_acidental: number;
   cobertura_invalidez_acidente: number;
@@ -56,7 +57,7 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
         return [];
       }
 
-      // Buscar contagem de funcionários ATIVOS para cada plano
+      // Buscar contagem de funcionários ATIVOS e calcular valor mensal para cada plano
       const planosComFuncionarios = await Promise.all(
         planos.map(async (plano: any) => {
           const { data: funcionariosData, error: funcionariosError } = await supabase
@@ -69,10 +70,27 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
             console.error('❌ Erro ao buscar funcionários:', funcionariosError);
           }
 
+          // Calcular valor mensal se for plano de saúde
+          let valorCalculado = plano.valor_mensal;
+          if (tipo === 'saude') {
+            try {
+              const { data: valorData, error: valorError } = await supabase.rpc('calcular_valor_mensal_plano_saude', {
+                plano_uuid: plano.id
+              });
+              
+              if (!valorError && valorData !== null) {
+                valorCalculado = valorData;
+              }
+            } catch (error) {
+              console.error('❌ Erro ao calcular valor mensal:', error);
+            }
+          }
+
           return {
             id: plano.id,
             seguradora: plano.seguradora,
             valor_mensal: plano.valor_mensal,
+            valor_mensal_calculado: valorCalculado,
             cobertura_morte: plano.cobertura_morte,
             cobertura_morte_acidental: plano.cobertura_morte_acidental,
             cobertura_invalidez_acidente: plano.cobertura_invalidez_acidente,

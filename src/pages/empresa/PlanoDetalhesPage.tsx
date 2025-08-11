@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
-import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
@@ -36,9 +36,15 @@ const PlanoDetalhesPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
+  
+  // Usar o valor calculado se for plano de saúde, senão usar valor original
+  const valorReal = plano?.tipo_seguro === 'saude' 
+    ? (plano?.valor_mensal_calculado ?? plano?.valor_mensal ?? 0)
+    : (plano?.valor_mensal ?? 0);
+    
   const { data: stats } = usePlanoFuncionariosStats(
     plano?.cnpj_id || '', 
-    plano?.valor_mensal || 0
+    valorReal
   );
 
   // Debugging detalhado no componente
@@ -47,7 +53,11 @@ const PlanoDetalhesPage: React.FC = () => {
     isLoading,
     error: error?.message,
     plano,
-    hasPlano: !!plano
+    hasPlano: !!plano,
+    valorOriginal: plano?.valor_mensal,
+    valorCalculado: plano?.valor_mensal_calculado,
+    valorReal,
+    tipoSeguro: plano?.tipo_seguro
   });
 
   const formatCurrency = (value: number) => {
@@ -161,11 +171,26 @@ const PlanoDetalhesPage: React.FC = () => {
                   <p className="text-sm font-medium">{plano.empresa_nome}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Valor Mensal</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    {plano.tipo_seguro === 'saude' ? 'Valor Mensal Total' : 'Valor Mensal'}
+                  </label>
                   <p className="text-lg font-bold text-green-600">
-                    {formatCurrency(plano.valor_mensal)}
+                    {formatCurrency(valorReal)}
                   </p>
+                  {plano.tipo_seguro === 'saude' && plano.valor_mensal_calculado !== plano.valor_mensal && (
+                    <p className="text-xs text-muted-foreground">
+                      * Calculado com base nas faixas etárias
+                    </p>
+                  )}
                 </div>
+                {plano.tipo_seguro && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Tipo de Seguro</label>
+                    <Badge variant="outline" className="block w-fit mt-1">
+                      {plano.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro de Vida'}
+                    </Badge>
+                  </div>
+                )}
               </div>
               
               {/* KPIs */}
@@ -255,14 +280,10 @@ const PlanoDetalhesPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="funcionarios">
                     <Users className="h-4 w-4 mr-2" />
                     Funcionários
-                  </TabsTrigger>
-                  <TabsTrigger value="informacoes">
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Informações
                   </TabsTrigger>
                   <TabsTrigger value="contrato">
                     <FileText className="h-4 w-4 mr-2" />
@@ -280,13 +301,9 @@ const PlanoDetalhesPage: React.FC = () => {
                     plano={{
                       id: plano.id,
                       seguradora: plano.seguradora,
-                      valor_mensal: plano.valor_mensal
+                      valor_mensal: valorReal
                     }}
                   />
-                </TabsContent>
-
-                <TabsContent value="informacoes" className="mt-6">
-                  <InformacoesGeraisTab plano={plano} />
                 </TabsContent>
 
                 <TabsContent value="contrato" className="mt-6">

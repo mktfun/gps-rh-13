@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,46 +9,21 @@ import {
   Users, 
   DollarSign, 
   ExternalLink, 
-  MoreVertical, 
-  UserPlus, 
-  FileText, 
-  Settings, 
-  History 
+  Building2,
+  Plus
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { useEmpresaPlanosPorTipo } from '@/hooks/useEmpresaPlanosPorTipo';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { AddFuncionarioModal } from '@/components/seguros-vida/AddFuncionarioModal';
-import { SolicitarAlteracaoCoberturasModal } from '@/components/empresa/SolicitarAlteracaoCoberturasModal';
-import { toast } from 'sonner';
 
 const EmpresaPlanosSaudePage = () => {
   const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('saude');
-  const [funcionarioModalPlanoId, setFuncionarioModalPlanoId] = useState<string | null>(null);
-  const [alteracaoCoberturasPlano, setAlteracaoCoberturasPlano] = useState<any | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
-  };
-
-  const handleExportarRelatorio = (plano: any) => {
-    // TODO: Implementar exportação de relatório do plano
-    toast.info(`Exportando relatório do plano ${plano.seguradora}...`);
-  };
-
-  const handleVisualizarHistorico = (plano: any) => {
-    // TODO: Implementar visualização de histórico
-    toast.info(`Visualizando histórico do plano ${plano.seguradora}...`);
   };
 
   if (isLoading) {
@@ -73,24 +48,31 @@ const EmpresaPlanosSaudePage = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Planos de Saúde</h1>
-        <p className="text-muted-foreground">
-          Gerencie os planos de saúde da sua empresa
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Stethoscope className="h-8 w-8" />
+            Planos de Saúde
+          </h1>
+          <p className="text-muted-foreground">
+            Gerencie os planos de saúde da sua empresa
+          </p>
+        </div>
       </div>
 
       {!planos || planos.length === 0 ? (
         <EmptyState
           icon={Stethoscope}
-          title="Nenhum plano encontrado"
+          title="Nenhum plano de saúde encontrado"
           description="Não há planos de saúde configurados para sua empresa ainda."
         />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {planos.map((plano) => {
             const funcionariosAtivos = plano.total_funcionarios || 0;
-            const custoPorFuncionario = funcionariosAtivos > 0 ? plano.valor_mensal / funcionariosAtivos : 0;
+            // Usar o valor calculado se disponível, senão usar o valor original
+            const valorReal = plano.valor_mensal_calculado ?? plano.valor_mensal;
+            const custoPorFuncionario = funcionariosAtivos > 0 ? valorReal / funcionariosAtivos : 0;
             
             return (
               <Card key={plano.id} className="relative">
@@ -100,7 +82,7 @@ const EmpresaPlanosSaudePage = () => {
                       <Stethoscope className="h-5 w-5" />
                       {plano.seguradora}
                     </CardTitle>
-                    <Badge variant="secondary">
+                    <Badge variant="outline">
                       Plano de Saúde
                     </Badge>
                   </div>
@@ -108,12 +90,12 @@ const EmpresaPlanosSaudePage = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Valor Mensal</p>
-                      <p className="font-semibold">{formatCurrency(plano.valor_mensal)}</p>
+                      <p className="text-sm text-muted-foreground">Valor Mensal Total</p>
+                      <p className="font-semibold text-lg text-green-600">{formatCurrency(valorReal)}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Cobertura Morte</p>
-                      <p className="font-semibold">{formatCurrency(plano.cobertura_morte)}</p>
+                      <p className="text-sm text-muted-foreground">CNPJ</p>
+                      <p className="font-semibold text-sm">{plano.cnpj_razao_social}</p>
                     </div>
                   </div>
 
@@ -130,78 +112,27 @@ const EmpresaPlanosSaudePage = () => {
                         Custo por Funcionário: {formatCurrency(custoPorFuncionario)}
                       </span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {plano.cnpj_numero}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    {/* Botão principal - navegar para página dedicada */}
+                  <div className="flex gap-2 pt-2">
                     <Button asChild className="flex-1">
-                      <Link to={`/empresa/planos/${plano.id}`}>
+                      <Link to={`/empresa/planos-saude/${plano.id}`}>
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        Abrir Plano
+                        Gerenciar Plano
                       </Link>
                     </Button>
-                    
-                    {/* Botão de Ações Rápidas - substitui o botão Eye */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="outline"
-                          size="icon"
-                          className="shrink-0"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem onClick={() => setFuncionarioModalPlanoId(plano.id)}>
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Adicionar Funcionário
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setAlteracaoCoberturasPlano(plano)}>
-                          <Settings className="mr-2 h-4 w-4" />
-                          Solicitar Alteração
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleExportarRelatorio(plano)}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          Exportar Relatório
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleVisualizarHistorico(plano)}>
-                          <History className="mr-2 h-4 w-4" />
-                          Ver Histórico
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
-      )}
-
-      {/* Modal para adicionar funcionário */}
-      <AddFuncionarioModal
-        isOpen={!!funcionarioModalPlanoId}
-        onClose={() => setFuncionarioModalPlanoId(null)}
-        planoId={funcionarioModalPlanoId || undefined}
-        onFuncionarioCreated={() => {
-          setFuncionarioModalPlanoId(null);
-          toast.success('Funcionário adicionado com sucesso!');
-        }}
-      />
-
-      {/* Modal para solicitar alteração de coberturas */}
-      {alteracaoCoberturasPlano && (
-        <SolicitarAlteracaoCoberturasModal
-          plano={alteracaoCoberturasPlano}
-          open={!!alteracaoCoberturasPlano}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setAlteracaoCoberturasPlano(null);
-            }
-          }}
-        />
       )}
     </div>
   );
