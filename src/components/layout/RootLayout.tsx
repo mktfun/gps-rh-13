@@ -2,11 +2,15 @@
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
+import Sidebar from "./Sidebar";
 import { DashboardLoadingState } from "../ui/loading-state";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 
-const RootLayout = () => {
+interface RootLayoutProps {
+  children?: React.ReactNode;
+}
+
+const RootLayout = ({ children }: RootLayoutProps) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -33,7 +37,7 @@ const RootLayout = () => {
           <Header />
 
           <main className="flex-1 p-6 lg:p-8">
-            <Outlet />
+            {children || <Outlet />}
           </main>
         </div>
       </div>
