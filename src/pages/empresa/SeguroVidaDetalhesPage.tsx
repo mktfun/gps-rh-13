@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
-import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
 import { 
   Shield, 
   Building2, 
@@ -65,6 +64,10 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
   const handleExportReport = () => {
     toast.info('Funcionalidade de exportação em desenvolvimento');
+  };
+
+  const handleAddFuncionarios = () => {
+    setIsAddModalOpen(true);
   };
 
   // Early return if no planoId
@@ -224,12 +227,12 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                 <h4 className="font-medium text-sm mb-3">Ações Rápidas</h4>
                 
                 <Button 
-                  onClick={() => setIsAddModalOpen(true)}
+                  onClick={handleAddFuncionarios}
                   className="w-full"
                   size="sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Funcionário
+                  Adicionar Funcionários
                 </Button>
                 
                 <Button 
@@ -290,6 +293,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                       seguradora: plano.seguradora,
                       valor_mensal: valorReal
                     }}
+                    onAddFuncionarios={handleAddFuncionarios}
                   />
                 </TabsContent>
 
@@ -306,15 +310,13 @@ const SeguroVidaDetalhesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal para Adicionar Funcionário */}
-      <AdicionarFuncionarioModal
-        cnpjId={plano.cnpj_id}
-        planoSeguradora={plano.seguradora}
+      {/* Modal para Adicionar Funcionários */}
+      <AdicionarFuncionariosModal
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
-        onFuncionarioAdded={() => {
-          toast.success('Funcionário adicionado com sucesso!');
-        }}
+        planoId={plano.id}
+        cnpjId={plano.cnpj_id}
+        planoSeguradora={plano.seguradora}
       />
     </div>
   );
