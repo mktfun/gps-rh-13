@@ -531,6 +531,66 @@ export type Database = {
           },
         ]
       }
+      pendencias: {
+        Row: {
+          cnpj_id: string
+          comentarios_count: number
+          created_at: string
+          data_criacao: string
+          data_vencimento: string
+          descricao: string
+          funcionario_id: string | null
+          id: string
+          protocolo: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          cnpj_id: string
+          comentarios_count?: number
+          created_at?: string
+          data_criacao?: string
+          data_vencimento: string
+          descricao: string
+          funcionario_id?: string | null
+          id?: string
+          protocolo: string
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          cnpj_id?: string
+          comentarios_count?: number
+          created_at?: string
+          data_criacao?: string
+          data_vencimento?: string
+          descricao?: string
+          funcionario_id?: string | null
+          id?: string
+          protocolo?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pendencias_cnpj_id_fkey"
+            columns: ["cnpj_id"]
+            isOneToOne: false
+            referencedRelation: "cnpjs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pendencias_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -681,6 +741,10 @@ export type Database = {
       find_or_create_conversation_empresa: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      generate_protocolo: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_acoes_necessarias_corretora: {
         Args: Record<PropertyKey, never>
