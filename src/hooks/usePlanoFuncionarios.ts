@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 
 type StatusMatricula = Database['public']['Enums']['status_matricula'];
-type TipoSeguro = Database['public']['Enums']['tipo_seguro'];
 
 // Tipo atualizado baseado na nova estrutura com planos_funcionarios
 export interface PlanoFuncionario {
@@ -25,9 +24,7 @@ export interface PlanoFuncionario {
 }
 
 interface UsePlanoFuncionariosParams {
-  planoId?: string; // NOVO: aceita planoId diretamente
-  cnpjId?: string; // Torna opcional quando planoId é fornecido
-  tipoSeguro?: TipoSeguro; // Torna opcional quando planoId é fornecido
+  cnpjId: string;
   statusFilter?: string;
   search?: string;
   pageIndex?: number;
@@ -35,10 +32,8 @@ interface UsePlanoFuncionariosParams {
 }
 
 export const usePlanoFuncionarios = ({ 
-  planoId,
   cnpjId, 
-  tipoSeguro,
-  statusFilter = 'todos', // PADRÃO: 'todos' para mostrar todos os funcionários
+  statusFilter, 
   search, 
   pageIndex = 0,
   pageSize = 10 
@@ -46,44 +41,32 @@ export const usePlanoFuncionarios = ({
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['planoFuncionarios', planoId, cnpjId, tipoSeguro, statusFilter, search, pageIndex, pageSize],
+    queryKey: ['planoFuncionarios', cnpjId, statusFilter, search, pageIndex, pageSize],
     queryFn: async () => {
-      console.log('🔍 usePlanoFuncionarios - Iniciando busca com parâmetros:', {
-        planoId,
+      console.log('🔍 usePlanoFuncionarios - Buscando funcionários via planos_funcionarios:', {
         cnpjId,
-        tipoSeguro,
         statusFilter,
         search,
         pageIndex,
         pageSize
       });
 
-      let resolvedPlanoId = planoId;
+      // Primeiro, buscar o plano_id baseado no cnpj_id
+      const { data: planoData, error: planoError } = await supabase
+        .from('dados_planos')
+        .select('id')
+        .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'vida')
+        .single();
 
-      // Se não temos planoId mas temos cnpjId e tipoSeguro, buscar o plano
-      if (!resolvedPlanoId && cnpjId && tipoSeguro) {
-        console.log('🔍 Buscando plano_id via cnpj_id e tipo_seguro...');
-        const { data: planoData, error: planoError } = await supabase
-          .from('dados_planos')
-          .select('id')
-          .eq('cnpj_id', cnpjId)
-          .eq('tipo_seguro', tipoSeguro)
-          .single();
-
-        if (planoError) {
-          console.error('❌ Erro ao buscar plano via cnpj/tipo:', planoError);
-          throw new Error(`Plano de ${tipoSeguro} não encontrado para este CNPJ`);
-        }
-
-        resolvedPlanoId = planoData.id;
-        console.log('✅ Plano encontrado via cnpj/tipo:', resolvedPlanoId);
+      if (planoError) {
+        console.error('❌ Erro ao buscar plano:', planoError);
+        throw new Error('Plano não encontrado para este CNPJ');
       }
 
-      if (!resolvedPlanoId) {
-        throw new Error('planoId, ou cnpjId + tipoSeguro devem ser fornecidos');
-      }
+      const planoId = planoData.id;
 
-      // Buscar as matrículas com os dados dos funcionários
+      // Agora buscar as matrículas com os dados dos funcionários
       let query = supabase
         .from('planos_funcionarios')
         .select(`
@@ -102,13 +85,10 @@ export const usePlanoFuncionarios = ({
             created_at
           )
         `, { count: 'exact' })
-        .eq('plano_id', resolvedPlanoId);
+        .eq('plano_id', planoId);
 
-      console.log('🔍 Query base configurada para plano_id:', resolvedPlanoId);
-
-      // Aplicar filtro de status - IMPORTANTE: padrão é mostrar TODOS
+      // Aplicar filtro de status
       if (statusFilter && statusFilter !== 'todos') {
-        console.log('🔍 Aplicando filtro de status:', statusFilter);
         const validStatuses: StatusMatricula[] = ['ativo', 'pendente', 'inativo', 'exclusao_solicitada'];
         
         if (statusFilter === 'pendentes') {
@@ -116,13 +96,10 @@ export const usePlanoFuncionarios = ({
         } else if (validStatuses.includes(statusFilter as StatusMatricula)) {
           query = query.eq('status', statusFilter as StatusMatricula);
         }
-      } else {
-        console.log('✅ Sem filtro de status - buscando TODOS os funcionários');
       }
 
       // Aplicar filtro de busca nos dados do funcionário
       if (search) {
-        console.log('🔍 Aplicando filtro de busca:', search);
         query = query.or(`funcionarios.nome.ilike.%${search}%,funcionarios.cpf.ilike.%${search}%,funcionarios.email.ilike.%${search}%`);
       }
 
@@ -139,16 +116,10 @@ export const usePlanoFuncionarios = ({
       }
 
       console.log('✅ usePlanoFuncionarios - Matrículas encontradas:', {
-        planoId: resolvedPlanoId,
         totalRegistros: count,
         paginaAtual: pageIndex + 1,
         totalPaginas: Math.ceil((count || 0) / pageSize),
-        matriculas: data?.length || 0,
-        statusFilter,
-        dadosRetornados: data?.map(m => ({ 
-          nome: m.funcionarios.nome, 
-          status: m.status 
-        }))
+        matriculas: data?.length || 0
       });
 
       // Transformar os dados para o formato esperado
@@ -174,7 +145,7 @@ export const usePlanoFuncionarios = ({
         totalPages: Math.ceil((count || 0) / pageSize)
       };
     },
-    enabled: !!(planoId || (cnpjId && tipoSeguro)),
+    enabled: !!cnpjId,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -187,52 +158,31 @@ export const usePlanoFuncionarios = ({
   });
 
   const updateFuncionario = useMutation({
-    mutationFn: async ({ funcionario_id, status, dados_pendentes, plano_id_override }: { 
+    mutationFn: async ({ funcionario_id, status, dados_pendentes }: { 
       funcionario_id: string; 
       status: StatusMatricula;
       dados_pendentes?: any;
-      plano_id_override?: string;
     }) => {
-      const resolvedPlanoId = plano_id_override || planoId;
-      
-      if (!resolvedPlanoId && cnpjId && tipoSeguro) {
-        // Buscar plano_id se necessário
-        const { data: planoData, error: planoError } = await supabase
-          .from('dados_planos')
-          .select('id')
-          .eq('cnpj_id', cnpjId)
-          .eq('tipo_seguro', tipoSeguro)
-          .single();
+      console.log('🔄 Atualizando matrícula:', { funcionario_id, status });
 
-        if (planoError) {
-          throw new Error(`Plano de ${tipoSeguro} não encontrado`);
-        }
+      // Primeiro, buscar o plano_id
+      const { data: planoData, error: planoError } = await supabase
+        .from('dados_planos')
+        .select('id')
+        .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'vida')
+        .single();
 
-        console.log('🔄 Atualizando matrícula via cnpj/tipo:', { funcionario_id, status, plano_id: planoData.id });
-
-        // Atualizar na tabela planos_funcionarios
-        const { data, error } = await supabase
-          .from('planos_funcionarios')
-          .update({ status })
-          .match({ 
-            plano_id: planoData.id, 
-            funcionario_id 
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
+      if (planoError) {
+        throw new Error('Plano não encontrado');
       }
-
-      console.log('🔄 Atualizando matrícula via planoId:', { funcionario_id, status, plano_id: resolvedPlanoId });
 
       // Atualizar na tabela planos_funcionarios
       const { data, error } = await supabase
         .from('planos_funcionarios')
         .update({ status })
         .match({ 
-          plano_id: resolvedPlanoId, 
+          plano_id: planoData.id, 
           funcionario_id 
         })
         .select()
@@ -255,8 +205,8 @@ export const usePlanoFuncionarios = ({
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', cnpjId] });
     },
     onError: (error: any) => {
       console.error('Erro ao atualizar matrícula:', error);
@@ -265,46 +215,26 @@ export const usePlanoFuncionarios = ({
 
   const deleteFuncionario = useMutation({
     mutationFn: async (funcionarioId: string) => {
-      const resolvedPlanoId = planoId;
-      
-      if (!resolvedPlanoId && cnpjId && tipoSeguro) {
-        console.log('🗑️ Removendo matrícula via cnpj/tipo:', funcionarioId);
+      console.log('🗑️ Removendo matrícula:', funcionarioId);
 
-        // Primeiro, buscar o plano_id
-        const { data: planoData, error: planoError } = await supabase
-          .from('dados_planos')
-          .select('id')
-          .eq('cnpj_id', cnpjId)
-          .eq('tipo_seguro', tipoSeguro)
-          .single();
+      // Primeiro, buscar o plano_id
+      const { data: planoData, error: planoError } = await supabase
+        .from('dados_planos')
+        .select('id')
+        .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'vida')
+        .single();
 
-        if (planoError) {
-          throw new Error(`Plano de ${tipoSeguro} não encontrado`);
-        }
-
-        // Remover da tabela planos_funcionarios
-        const { data, error } = await supabase
-          .from('planos_funcionarios')
-          .delete()
-          .match({ 
-            plano_id: planoData.id, 
-            funcionario_id: funcionarioId 
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
+      if (planoError) {
+        throw new Error('Plano não encontrado');
       }
 
-      console.log('🗑️ Removendo matrícula via planoId:', funcionarioId, resolvedPlanoId);
-
-      // Remover da tabela planos_funcionarios
+      // Remover da tabela planos_funcionarios (não remove o funcionário, só a matrícula)
       const { data, error } = await supabase
         .from('planos_funcionarios')
         .delete()
         .match({ 
-          plano_id: resolvedPlanoId, 
+          plano_id: planoData.id, 
           funcionario_id: funcionarioId 
         })
         .select()
@@ -314,12 +244,12 @@ export const usePlanoFuncionarios = ({
       return data;
     },
     onSuccess: () => {
-      toast.success(`Funcionário removido do plano com sucesso`);
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
+      toast.success('Funcionário removido do plano com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', cnpjId] });
     },
     onError: (error: any) => {
-      toast.error(error?.message || `Erro ao remover funcionário do plano`);
+      toast.error(error?.message || 'Erro ao remover funcionário do plano');
     },
   });
 

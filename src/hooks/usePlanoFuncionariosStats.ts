@@ -1,9 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-
-type TipoSeguro = Database['public']['Enums']['tipo_seguro'];
 
 interface PlanoFuncionariosStats {
   total: number;
@@ -13,60 +10,30 @@ interface PlanoFuncionariosStats {
   custoPorFuncionario: number;
 }
 
-interface UsePlanoFuncionariosStatsParams {
-  planoId?: string; // NOVO: aceita planoId diretamente
-  cnpjId?: string; // Torna opcional quando planoId é fornecido
-  tipoSeguro?: TipoSeguro; // Torna opcional quando planoId é fornecido
-  valorMensal: number;
-}
-
-export const usePlanoFuncionariosStats = (
-  params: UsePlanoFuncionariosStatsParams | string, 
-  tipoSeguro?: TipoSeguro, 
-  valorMensal?: number
-) => {
-  // Suporte para ambas as assinaturas: nova (objeto) e antiga (parâmetros separados)
-  const resolvedParams = typeof params === 'string' 
-    ? { cnpjId: params, tipoSeguro: tipoSeguro!, valorMensal: valorMensal! }
-    : params;
-
-  const { planoId, cnpjId, tipoSeguro: resolvedTipoSeguro, valorMensal: resolvedValorMensal } = resolvedParams;
-
+export const usePlanoFuncionariosStats = (cnpjId: string, valorMensal: number) => {
   return useQuery({
-    queryKey: ['planoFuncionariosStats', planoId, cnpjId, resolvedTipoSeguro],
+    queryKey: ['planoFuncionariosStats', cnpjId],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas com parâmetros:', { planoId, cnpjId, tipoSeguro: resolvedTipoSeguro });
+      console.log('🔍 Buscando estatísticas via planos_funcionarios para cnpjId:', cnpjId);
 
-      let resolvedPlanoId = planoId;
+      // Primeiro, buscar o plano_id
+      const { data: planoData, error: planoError } = await supabase
+        .from('dados_planos')
+        .select('id')
+        .eq('cnpj_id', cnpjId)
+        .eq('tipo_seguro', 'vida')
+        .single();
 
-      // Se não temos planoId mas temos cnpjId e tipoSeguro, buscar o plano
-      if (!resolvedPlanoId && cnpjId && resolvedTipoSeguro) {
-        console.log('🔍 Buscando plano_id via cnpj_id e tipo_seguro...');
-        const { data: planoData, error: planoError } = await supabase
-          .from('dados_planos')
-          .select('id')
-          .eq('cnpj_id', cnpjId)
-          .eq('tipo_seguro', resolvedTipoSeguro)
-          .single();
-
-        if (planoError) {
-          console.error('❌ Erro ao buscar plano para stats:', planoError);
-          throw planoError;
-        }
-
-        resolvedPlanoId = planoData.id;
-        console.log('✅ Plano encontrado para stats:', resolvedPlanoId);
-      }
-
-      if (!resolvedPlanoId) {
-        throw new Error('planoId, ou cnpjId + tipoSeguro devem ser fornecidos para buscar estatísticas');
+      if (planoError) {
+        console.error('❌ Erro ao buscar plano:', planoError);
+        throw planoError;
       }
 
       // Buscar estatísticas das matrículas
       const { data, error } = await supabase
         .from('planos_funcionarios')
         .select('status')
-        .eq('plano_id', resolvedPlanoId);
+        .eq('plano_id', planoData.id);
 
       if (error) {
         console.error('❌ Erro ao buscar estatísticas de matrículas:', error);
@@ -93,17 +60,12 @@ export const usePlanoFuncionariosStats = (
       }, { total: 0, ativos: 0, pendentes: 0, inativos: 0 }) || { total: 0, ativos: 0, pendentes: 0, inativos: 0 };
 
       // Calcular custo por funcionário ativo
-      const custoPorFuncionario = stats.ativos > 0 ? resolvedValorMensal / stats.ativos : 0;
+      const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas calculadas:', { 
-        ...stats, 
-        custoPorFuncionario, 
-        planoId: resolvedPlanoId,
-        tipoSeguro: resolvedTipoSeguro 
-      });
+      console.log('✅ Estatísticas de matrículas calculadas:', { ...stats, custoPorFuncionario });
 
       return { ...stats, custoPorFuncionario };
     },
-    enabled: !!(planoId || (cnpjId && resolvedTipoSeguro)),
+    enabled: !!cnpjId,
   });
 };

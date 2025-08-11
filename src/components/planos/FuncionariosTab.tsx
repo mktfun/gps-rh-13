@@ -3,13 +3,21 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Search, DollarSign } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
 import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
-import type { PlanoDetalhes } from '@/types/planos';
+
+interface PlanoDetalhes {
+  id: string;
+  cnpj_id: string;
+  seguradora: string;
+  valor_mensal: number;
+  cobertura_morte: number;
+}
 
 interface FuncionariosTabProps {
   plano: PlanoDetalhes;
@@ -17,38 +25,25 @@ interface FuncionariosTabProps {
 
 export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos'); // PADRÃO: 'todos'
+  const [statusFilter, setStatusFilter] = useState('todos');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  console.log('🔍 FuncionariosTab - Plano recebido:', plano);
-
-  // Usar o planoId diretamente do plano
+  // Buscar funcionários do plano
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
-    planoId: plano.id, // USAR O PLANO ID DIRETO
+    cnpjId: plano.cnpj_id,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas usando planoId diretamente
-  const { data: stats } = usePlanoFuncionariosStats({
-    planoId: plano.id, // USAR O PLANO ID DIRETO
-    valorMensal: plano.valor_mensal
-  });
+  // Buscar estatísticas
+  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, plano.valor_mensal);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
   const totalPages = funcionariosData?.totalPages || 0;
-
-  console.log('✅ FuncionariosTab - Dados carregados:', {
-    planoId: plano.id,
-    totalCount,
-    funcionarios: funcionarios.length,
-    stats,
-    statusFilter
-  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -59,14 +54,6 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
 
   const resetPagination = () => {
     setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-  };
-
-  const handleAtivarFuncionario = async (funcionarioId: string) => {
-    // Esta funcionalidade será implementada no DataTable
-  };
-
-  const handleRemoverFuncionario = async (funcionarioId: string) => {
-    // Esta funcionalidade será implementada no DataTable
   };
 
   return (
@@ -158,22 +145,28 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
                 <SelectItem value="ativo">Ativos</SelectItem>
                 <SelectItem value="pendente">Pendentes</SelectItem>
                 <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
-                <SelectItem value="inativo">Inativos</SelectItem>
+                <SelectItem value="edicao_solicitada">Edição Solicitada</SelectItem>
+                <SelectItem value="desativado">Desativados</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <FuncionariosPlanoDataTable
-            data={funcionarios}
+            funcionarios={funcionarios}
             isLoading={isLoading}
             totalCount={totalCount}
-            currentPage={pagination.pageIndex}
-            pageSize={pagination.pageSize}
-            onPageChange={(page) => setPagination({ ...pagination, pageIndex: page })}
-            onAtivarFuncionario={handleAtivarFuncionario}
-            onRemoverFuncionario={handleRemoverFuncionario}
-            isUpdating={false}
-            tipoSeguro={plano.tipo_seguro === 'saude' ? 'saude' : 'vida'}
+            totalPages={totalPages}
+            pagination={pagination}
+            setPagination={setPagination}
+            search={search}
+            setSearch={setSearch}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            plano={{
+              seguradora: plano.seguradora,
+              valor_mensal: plano.valor_mensal,
+              cnpj_id: plano.cnpj_id,
+            }}
           />
         </CardContent>
       </Card>

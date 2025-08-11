@@ -25,18 +25,16 @@ import { toast } from 'sonner';
 interface FuncionarioActionsMenuProps {
   funcionario: PlanoFuncionario;
   cnpjId: string;
-  tipoSeguro: 'vida' | 'saude';
   onViewDetails: (funcionario: PlanoFuncionario) => void;
 }
 
 export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   funcionario,
   cnpjId,
-  tipoSeguro,
   onViewDetails,
 }) => {
   const [showExclusaoDialog, setShowExclusaoDialog] = useState(false);
-  const { updateFuncionario } = usePlanoFuncionarios({ cnpjId, tipoSeguro });
+  const { updateFuncionario } = usePlanoFuncionarios({ cnpjId });
 
   const handleViewDetails = () => {
     onViewDetails(funcionario);
@@ -45,7 +43,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   const handleSolicitarEdicao = () => {
     updateFuncionario.mutate({
       funcionario_id: funcionario.funcionario_id,
-      status: 'exclusao_solicitada',
+      status: 'exclusao_solicitada', // Usar o status correto do novo enum
     }, {
       onSuccess: () => {
         toast.success('Solicitação de edição enviada para aprovação da corretora!');
@@ -76,6 +74,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
     });
   };
 
+  // Não mostrar menu para funcionários já com solicitações pendentes
   if (funcionario.status === 'exclusao_solicitada') {
     return (
       <Button
@@ -118,6 +117,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Dialog de Confirmação de Exclusão */}
       <AlertDialog open={showExclusaoDialog} onOpenChange={setShowExclusaoDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

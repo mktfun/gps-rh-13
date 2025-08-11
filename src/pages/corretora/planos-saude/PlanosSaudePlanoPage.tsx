@@ -12,12 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
+import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
-import { PlanoFuncionariosTabSaude } from '@/components/planos-saude/PlanoFuncionariosTabSaude';
 
 interface PlanoDetalhes {
   id: string;
@@ -156,6 +156,39 @@ const PlanosSaudePlanoPage = () => {
     enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
   });
 
+  const { data: funcionarios, isLoading: isLoadingFuncionarios, error: errorFuncionarios } = useQuery({
+    queryKey: ['funcionarios-cnpj', cnpjId],
+    queryFn: async (): Promise<FuncionarioPlano[]> => {
+      if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
+      if (!user?.id) throw new Error('Usuário não autenticado');
+
+      const { data, error } = await supabase
+        .from('funcionarios')
+        .select('*')
+        .eq('cnpj_id', cnpjId);
+
+      if (error) {
+        console.error('Erro ao buscar funcionários:', error);
+        throw new Error('Erro ao buscar funcionários');
+      }
+
+      return (data || []).map(funcionario => ({
+        id: funcionario.id,
+        nome: funcionario.nome,
+        cpf: funcionario.cpf,
+        email: funcionario.email || '',
+        telefone: '',
+        data_nascimento: funcionario.data_nascimento,
+        cargo: funcionario.cargo,
+        salario: funcionario.salario,
+        data_admissao: funcionario.created_at,
+        status: funcionario.status,
+        idade: funcionario.idade
+      }));
+    },
+    enabled: !!cnpjId && !!user?.id && !autocorrectCheck?.needsRedirect,
+  });
+
   const handleAddFuncionario = () => {
     setShouldOpenAddModal(true);
   };
@@ -188,7 +221,7 @@ const PlanosSaudePlanoPage = () => {
     );
   }
 
-  if (isLoadingPlano || isLoadingEmpresa) {
+  if (isLoadingPlano || isLoadingFuncionarios || isLoadingEmpresa) {
     return (
       <div className="container py-8">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
@@ -213,7 +246,7 @@ const PlanosSaudePlanoPage = () => {
     );
   }
 
-  if (errorPlano || errorEmpresa) {
+  if (errorPlano || errorFuncionarios || errorEmpresa) {
     return (
       <div className="container py-8">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
@@ -228,7 +261,7 @@ const PlanosSaudePlanoPage = () => {
               description={
                 errorPlano?.message === 'Plano de saúde não encontrado para este CNPJ' 
                   ? 'Este CNPJ não possui um plano de saúde cadastrado. Configure um plano agora para começar a gerenciar os funcionários.'
-                  : `Erro ao carregar dados: ${errorPlano?.message || errorEmpresa?.message}`
+                  : `Erro ao carregar dados: ${errorPlano?.message || errorFuncionarios?.message || errorEmpresa?.message}`
               }
               primaryAction={{
                 label: "Configurar Plano de Saúde",
@@ -296,7 +329,7 @@ const PlanosSaudePlanoPage = () => {
                 ...planoDetalhes,
                 tipo_seguro: planoDetalhes.tipo_seguro || 'saude'
               }}
-              funcionarios={[]} // Não usado mais na nova arquitetura
+              funcionarios={funcionarios || []}
               onNavigateToFuncionarios={navigateToFuncionarios}
               onAddFuncionario={handleAddFuncionario}
             />
@@ -305,7 +338,7 @@ const PlanosSaudePlanoPage = () => {
 
         <TabsContent value="funcionarios">
           {planoDetalhes && cnpjId && (
-            <PlanoFuncionariosTabSaude 
+            <PlanoFuncionariosTab 
               cnpjId={cnpjId}
               plano={{
                 id: planoDetalhes.id,

@@ -1,7 +1,22 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { PlanoDetalhes } from '@/types/planos';
+
+interface PlanoDetalhes {
+  id: string;
+  seguradora: string;
+  valor_mensal: number;
+  valor_mensal_calculado?: number; // Novo campo para valor calculado
+  cobertura_morte: number;
+  cobertura_morte_acidental: number;
+  cobertura_invalidez_acidente: number;
+  cobertura_auxilio_funeral: number;
+  cnpj_id: string;
+  cnpj_numero: string;
+  cnpj_razao_social: string;
+  empresa_nome: string;
+  tipo_seguro?: string;
+}
 
 export const usePlanoDetalhes = (planoId: string) => {
   return useQuery({
@@ -61,7 +76,7 @@ export const usePlanoDetalhes = (planoId: string) => {
         throw new Error('Dados do plano incompletos');
       }
 
-      // Verificar o tipo de seguro primeiro
+      // Verificar o tipo de seguro para decidir se calcula valor dinâmico
       let valorCalculado = planoData.valor_mensal;
       
       // Buscar o tipo de seguro primeiro
@@ -71,12 +86,7 @@ export const usePlanoDetalhes = (planoId: string) => {
         .eq('id', planoId)
         .single();
       
-      // Garantir que o tipo seja válido, com fallback para 'vida'
-      const tipoSeguroRaw = tipoData?.tipo_seguro;
-      const tipoSeguro: 'vida' | 'saude' | 'outros' = 
-        tipoSeguroRaw === 'vida' || tipoSeguroRaw === 'saude' || tipoSeguroRaw === 'outros' 
-          ? tipoSeguroRaw 
-          : 'vida';
+      const tipoSeguro = tipoData?.tipo_seguro || 'vida';
       
       // Se for plano de saúde, calcular valor estimado baseado em funcionários ativos
       if (tipoSeguro === 'saude') {
@@ -88,7 +98,7 @@ export const usePlanoDetalhes = (planoId: string) => {
             .eq('status', 'ativo');
           
           const totalFuncionarios = funcionariosData?.length || 0;
-          // Estimativa simples: R$ 200 por funcionário ativo
+          // Estimativa simples: R$ 200 por funcionário ativo (será substituído pela função RPC quando os tipos estiverem corretos)
           valorCalculado = totalFuncionarios * 200;
           console.log('✅ Valor estimado para plano de saúde:', valorCalculado, 'funcionários:', totalFuncionarios);
         } catch (error) {
@@ -96,7 +106,7 @@ export const usePlanoDetalhes = (planoId: string) => {
         }
       }
 
-      const resultado: PlanoDetalhes = {
+      const resultado = {
         ...planoData,
         valor_mensal_calculado: valorCalculado,
         tipo_seguro: tipoSeguro
@@ -106,6 +116,7 @@ export const usePlanoDetalhes = (planoId: string) => {
       return resultado;
     },
     enabled: !!planoId,
+    // Adicionar configurações para evitar refetch desnecessário
     staleTime: 1000 * 60 * 5, // 5 minutos
     gcTime: 1000 * 60 * 10, // 10 minutos
   });
