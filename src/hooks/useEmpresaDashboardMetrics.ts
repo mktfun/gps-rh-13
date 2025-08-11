@@ -34,19 +34,19 @@ interface EmpresaDashboardMetrics {
   } | null;
 }
 
-export const useEmpresaDashboardMetrics = (months: number = 6) => {
+export const useEmpresaDashboardMetrics = () => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId, months],
+    queryKey: ['empresa-dashboard-metrics', empresaId],
     queryFn: async (): Promise<EmpresaDashboardMetrics> => {
       if (!empresaId) {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com parâmetros:', { empresaId });
+      console.log('🔍 [useEmpresaDashboardMetrics] Chamando função com empresa ID:', empresaId);
 
-      // CORREÇÃO: Chamando a função com apenas um parâmetro
+      // CORREÇÃO: Chamando a função com apenas o parâmetro empresaId
       const { data: dashboardData, error: dashboardError } = await supabase.rpc(
         'get_empresa_dashboard_metrics',
         { 

@@ -22,7 +22,7 @@ import DashboardCard from '@/components/ui/DashboardCard';
 const EmpresaDashboard = () => {
   const { user } = useAuth();
   const { data: dashboardData } = useEmpresaDashboard();
-  const { data: metrics, isLoading, error } = useEmpresaDashboardMetrics(6);
+  const { data: metrics, isLoading, error } = useEmpresaDashboardMetrics();
   const [activeTab, setActiveTab] = useState('overview');
 
   console.log('🔍 [EmpresaDashboard] Estado atual:', { 
