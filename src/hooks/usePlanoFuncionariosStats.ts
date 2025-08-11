@@ -13,30 +13,60 @@ interface PlanoFuncionariosStats {
   custoPorFuncionario: number;
 }
 
-export const usePlanoFuncionariosStats = (cnpjId: string, tipoSeguro: TipoSeguro, valorMensal: number) => {
+interface UsePlanoFuncionariosStatsParams {
+  planoId?: string; // NOVO: aceita planoId diretamente
+  cnpjId?: string; // Torna opcional quando planoId é fornecido
+  tipoSeguro?: TipoSeguro; // Torna opcional quando planoId é fornecido
+  valorMensal: number;
+}
+
+export const usePlanoFuncionariosStats = (
+  params: UsePlanoFuncionariosStatsParams | string, 
+  tipoSeguro?: TipoSeguro, 
+  valorMensal?: number
+) => {
+  // Suporte para ambas as assinaturas: nova (objeto) e antiga (parâmetros separados)
+  const resolvedParams = typeof params === 'string' 
+    ? { cnpjId: params, tipoSeguro: tipoSeguro!, valorMensal: valorMensal! }
+    : params;
+
+  const { planoId, cnpjId, tipoSeguro: resolvedTipoSeguro, valorMensal: resolvedValorMensal } = resolvedParams;
+
   return useQuery({
-    queryKey: ['planoFuncionariosStats', cnpjId, tipoSeguro],
+    queryKey: ['planoFuncionariosStats', planoId, cnpjId, resolvedTipoSeguro],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via planos_funcionarios para:', { cnpjId, tipoSeguro });
+      console.log('🔍 Buscando estatísticas com parâmetros:', { planoId, cnpjId, tipoSeguro: resolvedTipoSeguro });
 
-      // Primeiro, buscar o plano_id
-      const { data: planoData, error: planoError } = await supabase
-        .from('dados_planos')
-        .select('id')
-        .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', tipoSeguro)
-        .single();
+      let resolvedPlanoId = planoId;
 
-      if (planoError) {
-        console.error('❌ Erro ao buscar plano:', planoError);
-        throw planoError;
+      // Se não temos planoId mas temos cnpjId e tipoSeguro, buscar o plano
+      if (!resolvedPlanoId && cnpjId && resolvedTipoSeguro) {
+        console.log('🔍 Buscando plano_id via cnpj_id e tipo_seguro...');
+        const { data: planoData, error: planoError } = await supabase
+          .from('dados_planos')
+          .select('id')
+          .eq('cnpj_id', cnpjId)
+          .eq('tipo_seguro', resolvedTipoSeguro)
+          .single();
+
+        if (planoError) {
+          console.error('❌ Erro ao buscar plano para stats:', planoError);
+          throw planoError;
+        }
+
+        resolvedPlanoId = planoData.id;
+        console.log('✅ Plano encontrado para stats:', resolvedPlanoId);
+      }
+
+      if (!resolvedPlanoId) {
+        throw new Error('planoId, ou cnpjId + tipoSeguro devem ser fornecidos para buscar estatísticas');
       }
 
       // Buscar estatísticas das matrículas
       const { data, error } = await supabase
         .from('planos_funcionarios')
         .select('status')
-        .eq('plano_id', planoData.id);
+        .eq('plano_id', resolvedPlanoId);
 
       if (error) {
         console.error('❌ Erro ao buscar estatísticas de matrículas:', error);
@@ -63,12 +93,17 @@ export const usePlanoFuncionariosStats = (cnpjId: string, tipoSeguro: TipoSeguro
       }, { total: 0, ativos: 0, pendentes: 0, inativos: 0 }) || { total: 0, ativos: 0, pendentes: 0, inativos: 0 };
 
       // Calcular custo por funcionário ativo
-      const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
+      const custoPorFuncionario = stats.ativos > 0 ? resolvedValorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas de matrículas calculadas:', { ...stats, custoPorFuncionario, tipoSeguro });
+      console.log('✅ Estatísticas calculadas:', { 
+        ...stats, 
+        custoPorFuncionario, 
+        planoId: resolvedPlanoId,
+        tipoSeguro: resolvedTipoSeguro 
+      });
 
       return { ...stats, custoPorFuncionario };
     },
-    enabled: !!cnpjId && !!tipoSeguro,
+    enabled: !!(planoId || (cnpjId && resolvedTipoSeguro)),
   });
 };

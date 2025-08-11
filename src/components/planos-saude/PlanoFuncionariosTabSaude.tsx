@@ -36,13 +36,15 @@ export const PlanoFuncionariosTabSaude = ({
   shouldOpenAddModal = false,
   onAddModalHandled 
 }: PlanoFuncionariosTabSaudeProps) => {
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [statusFilter, setStatusFilter] = useState<string>('todos'); // PADRÃO: 'todos'
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [showAddModal, setShowAddModal] = useState(shouldOpenAddModal);
   const pageSize = 10;
 
-  // Usar o hook com tipoSeguro específico para saúde
+  console.log('🔍 PlanoFuncionariosTabSaude - Usando plano:', plano);
+
+  // Usar o planoId diretamente
   const { 
     data: funcionariosData, 
     isLoading, 
@@ -50,21 +52,32 @@ export const PlanoFuncionariosTabSaude = ({
     updateFuncionario,
     deleteFuncionario
   } = usePlanoFuncionarios({
-    cnpjId,
-    tipoSeguro: 'saude', // Específico para Plano de Saúde
-    statusFilter,
+    planoId: plano.id, // USAR O PLANO ID DIRETO
+    statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search,
     pageIndex: currentPage,
     pageSize
   });
 
-  const { data: stats } = usePlanoFuncionariosStats(cnpjId, 'saude', plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats({
+    planoId: plano.id, // USAR O PLANO ID DIRETO
+    valorMensal: plano.valor_mensal
+  });
+
+  console.log('✅ PlanoFuncionariosTabSaude - Dados carregados:', {
+    planoId: plano.id,
+    totalCount: funcionariosData?.totalCount,
+    funcionarios: funcionariosData?.funcionarios?.length,
+    stats,
+    statusFilter
+  });
 
   const handleAtivarFuncionario = async (funcionarioId: string) => {
     try {
       await updateFuncionario.mutateAsync({
         funcionario_id: funcionarioId,
-        status: 'ativo'
+        status: 'ativo',
+        plano_id_override: plano.id
       });
       toast.success('Funcionário ativado no plano de saúde com sucesso!');
     } catch (error) {
@@ -137,7 +150,7 @@ export const PlanoFuncionariosTabSaude = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <CardTitle className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
-              Funcionários do Plano de Saúde
+              Funcionários do Plano de Saúde ({funcionariosData?.totalCount || 0})
             </CardTitle>
             <div className="flex flex-col sm:flex-row gap-2">
               <Button 
@@ -187,6 +200,7 @@ export const PlanoFuncionariosTabSaude = ({
             onAtivarFuncionario={handleAtivarFuncionario}
             onRemoverFuncionario={handleRemoverFuncionario}
             isUpdating={updateFuncionario.isPending || deleteFuncionario.isPending}
+            tipoSeguro="saude"
           />
         </CardContent>
       </Card>

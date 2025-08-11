@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,13 +36,15 @@ export const PlanoFuncionariosTab = ({
   shouldOpenAddModal = false,
   onAddModalHandled 
 }: PlanoFuncionariosTabProps) => {
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [statusFilter, setStatusFilter] = useState<string>('todos'); // PADRÃO: 'todos'
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [showAddModal, setShowAddModal] = useState(shouldOpenAddModal);
   const pageSize = 10;
 
-  // Usar o hook com tipoSeguro específico para vida
+  console.log('🔍 PlanoFuncionariosTab - Usando plano:', plano);
+
+  // Usar o planoId diretamente
   const { 
     data: funcionariosData, 
     isLoading, 
@@ -49,21 +52,32 @@ export const PlanoFuncionariosTab = ({
     updateFuncionario,
     deleteFuncionario
   } = usePlanoFuncionarios({
-    cnpjId,
-    tipoSeguro: 'vida', // Específico para Seguro de Vida
-    statusFilter,
+    planoId: plano.id, // USAR O PLANO ID DIRETO
+    statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search,
     pageIndex: currentPage,
     pageSize
   });
 
-  const { data: stats } = usePlanoFuncionariosStats(cnpjId, 'vida', plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats({
+    planoId: plano.id, // USAR O PLANO ID DIRETO
+    valorMensal: plano.valor_mensal
+  });
+
+  console.log('✅ PlanoFuncionariosTab - Dados carregados:', {
+    planoId: plano.id,
+    totalCount: funcionariosData?.totalCount,
+    funcionarios: funcionariosData?.funcionarios?.length,
+    stats,
+    statusFilter
+  });
 
   const handleAtivarFuncionario = async (funcionarioId: string) => {
     try {
       await updateFuncionario.mutateAsync({
         funcionario_id: funcionarioId,
-        status: 'ativo'
+        status: 'ativo',
+        plano_id_override: plano.id
       });
       toast.success('Funcionário ativado com sucesso!');
     } catch (error) {
@@ -134,7 +148,7 @@ export const PlanoFuncionariosTab = ({
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <CardTitle>Funcionários do Plano</CardTitle>
+            <CardTitle>Funcionários do Plano ({funcionariosData?.totalCount || 0})</CardTitle>
             <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={() => setShowAddModal(true)}

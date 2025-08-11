@@ -17,29 +17,38 @@ interface FuncionariosTabProps {
 
 export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
+  const [statusFilter, setStatusFilter] = useState('todos'); // PADRÃO: 'todos'
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Garantir que temos um tipo válido, com fallback para 'vida'
-  const tipoSeguro = plano.tipo_seguro === 'saude' ? 'saude' : 'vida';
+  console.log('🔍 FuncionariosTab - Plano recebido:', plano);
 
-  // Buscar funcionários do plano
+  // Usar o planoId diretamente do plano
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
-    cnpjId: plano.cnpj_id,
-    tipoSeguro,
+    planoId: plano.id, // USAR O PLANO ID DIRETO
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  // Buscar estatísticas
-  const { data: stats } = usePlanoFuncionariosStats(plano.cnpj_id, tipoSeguro, plano.valor_mensal);
+  // Buscar estatísticas usando planoId diretamente
+  const { data: stats } = usePlanoFuncionariosStats({
+    planoId: plano.id, // USAR O PLANO ID DIRETO
+    valorMensal: plano.valor_mensal
+  });
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
   const totalPages = funcionariosData?.totalPages || 0;
+
+  console.log('✅ FuncionariosTab - Dados carregados:', {
+    planoId: plano.id,
+    totalCount,
+    funcionarios: funcionarios.length,
+    stats,
+    statusFilter
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -164,7 +173,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
             onAtivarFuncionario={handleAtivarFuncionario}
             onRemoverFuncionario={handleRemoverFuncionario}
             isUpdating={false}
-            tipoSeguro={tipoSeguro}
+            tipoSeguro={plano.tipo_seguro === 'saude' ? 'saude' : 'vida'}
           />
         </CardContent>
       </Card>
