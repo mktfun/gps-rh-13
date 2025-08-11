@@ -1,10 +1,15 @@
 
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-const RootLayout = ({ children }: { children: React.ReactNode }) => {
+interface RootLayoutProps {
+  children?: React.ReactNode;
+}
+
+const RootLayout = ({ children }: RootLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
-      {children}
+      {children || <Outlet />}
     </div>
   );
 };
