@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +17,7 @@ import { ContratoTab } from '@/components/planos/ContratoTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { formatCurrency } from '@/lib/utils';
 
-export const PlanosSaudePlanoPage = () => {
+const PlanosSaudePlanoPage = () => {
   const { empresaId, cnpjId } = useParams();
   const { role } = useAuth();
   const [activeTab, setActiveTab] = useState('geral');
@@ -200,5 +199,4 @@ export const PlanosSaudePlanoPage = () => {
   );
 };
 
-// Add default export to fix the import error
 export default PlanosSaudePlanoPage;
