@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,10 +25,30 @@ import { useCreateFuncionario } from '@/hooks/useCreateFuncionario';
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
 const EmpresaDetalhes = () => {
-  // CORREÇÃO: Usar 'empresaId' em vez de 'id' para corresponder à rota
   const { empresaId } = useParams<{ empresaId: string }>();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const filtroStatus = searchParams.get('filtroStatus');
+  
+  // Checagem de sanidade obrigatória LOGO NO INÍCIO
+  if (!empresaId) {
+    console.error("❌ FATAL: empresaId não encontrado nos parâmetros da URL. Verifique a rota em App.tsx.");
+    return (
+      <div className="container mx-auto p-8">
+        <EmptyState 
+          icon={AlertCircle}
+          title="ID da Empresa Não Encontrado"
+          description="O ID da empresa não foi encontrado na URL. Verifique se o endereço está correto."
+          action={{
+            label: "Voltar às Empresas",
+            onClick: () => navigate('/corretora/empresas')
+          }}
+        />
+      </div>
+    );
+  }
+
+  console.log(`✅ [EmpresaDetalhes] empresaId capturado com sucesso: ${empresaId}`);
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(filtroStatus || 'all');
@@ -145,20 +165,6 @@ const EmpresaDetalhes = () => {
       await refreshEmpresa(empresaId);
     }
   };
-
-  // VERIFICAÇÃO DE SEGURANÇA: Garantir que empresaId existe
-  if (!empresaId) {
-    console.error('❌ [EmpresaDetalhes] empresaId não encontrado na URL');
-    return (
-      <div className="container mx-auto p-8">
-        <EmptyState 
-          icon={AlertCircle}
-          title="ID da Empresa Não Encontrado"
-          description="O ID da empresa não foi encontrado na URL. Verifique se o endereço está correto."
-        />
-      </div>
-    );
-  }
 
   // ESTADO 1: CARREGANDO (apenas se realmente não temos dados)
   if (isLoadingEmpresa && !empresa) {

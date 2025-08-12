@@ -88,7 +88,7 @@ function AppContent() {
             <Route path="dashboard" element={<CorretoraDashboard />} />
             <Route index element={<CorretoraDashboard />} />
             <Route path="empresas" element={<Empresas />} />
-            <Route path="empresas/:id" element={<EmpresaDetalhes />} />
+            <Route path="empresas/:empresaId" element={<EmpresaDetalhes />} />
             <Route path="auditoria" element={<AuditoriaPage />} />
             <Route path="ativar-funcionario/:id" element={<AtivarFuncionario />} />
             
@@ -121,7 +121,7 @@ function AppContent() {
           <Route path="empresa/planos/:id" element={<PlanoDetalhesPage />} />
           <Route path="empresa/planos-saude/:id" element={<PlanoSaudeDetalhesPage />} />
           
-          {/* Rota corrigida para seguro de vida da empresa - ESTA ERA A QUE ESTAVA FALTANDO */}
+          {/* Rota corrigida para seguro de vida da empresa */}
           <Route path="empresa/seguros-de-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
           {/* Alias para compatibilidade com links antigos */}
           <Route path="empresa/seguros-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
