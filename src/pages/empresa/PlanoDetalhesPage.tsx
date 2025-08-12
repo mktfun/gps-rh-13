@@ -240,9 +240,7 @@ const PlanoDetalhesPage: React.FC = () => {
 
                 <TabsContent value="funcionarios" className="mt-6">
                   <FuncionariosTab 
-                    cnpjId={plano.cnpj_id}
                     plano={plano}
-                    tipoSeguro={plano.tipo_seguro || 'vida'}
                   />
                 </TabsContent>
 
