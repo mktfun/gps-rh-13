@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useAuth, AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedCorretoraRoute from "@/components/ProtectedCorretoraRoute";
 import RootLayout from "@/components/layout/RootLayout";
@@ -68,12 +68,6 @@ import EmBrevePage from "./pages/EmBrevePage";
 const queryClient = new QueryClient();
 
 function AppContent() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <BrowserRouter>
       <Routes>
@@ -103,10 +97,10 @@ function AppContent() {
             <Route path="seguros-de-vida/empresas/:empresaId/cnpjs" element={<SegurosVidaCnpjsPage />} />
             <Route path="seguros-de-vida/plano/:planoId" element={<SegurosVidaPlanoPage />} />
             
-            {/* Planos de Saúde */}
-            <Route path="planos-de-saude/empresas" element={<PlanosSaudeEmpresasPage />} />
-            <Route path="planos-de-saude/empresas/:empresaId/cnpjs" element={<PlanosSaudeCnpjsPage />} />
-            <Route path="planos-de-saude/plano/:planoId" element={<PlanosSaudePlanoPage />} />
+            {/* Planos de Saúde - USANDO EMBREVEPAGE */}
+            <Route path="planos-de-saude/empresas" element={<EmBrevePage />} />
+            <Route path="planos-de-saude/empresas/:empresaId/cnpjs" element={<EmBrevePage />} />
+            <Route path="planos-de-saude/plano/:planoId" element={<EmBrevePage />} />
             
             {/* Relatórios */}
             <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
