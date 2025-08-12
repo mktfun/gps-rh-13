@@ -1,44 +1,40 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Grid, List, Upload } from 'lucide-react';
+import { Search, Grid, List, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useCnpjsComPlanos } from '@/hooks/useCnpjsComPlanos';
-import { CnpjsCardView } from '@/components/seguros-vida/CnpjsCardView';
-import { CnpjsListView } from '@/components/seguros-vida/CnpjsListView';
-import { BulkImportModal } from '@/components/import/BulkImportModal';
+import { useEmpresasComPlanos, EmpresaComPlano } from '@/hooks/useEmpresasComPlanos';
+import { EmpresasCardView } from '@/components/seguros-vida/EmpresasCardView';
+import { EmpresasListView } from '@/components/seguros-vida/EmpresasListView';
 
 export default function SegurosVidaEmpresasPage() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedCnpj, setSelectedCnpj] = useState<any>(null);
-  const [showImportModal, setShowImportModal] = useState(false);
   const navigate = useNavigate();
 
-  const { data: cnpjs = [], isLoading } = useCnpjsComPlanos(search);
+  const { data: empresas = [], isLoading } = useEmpresasComPlanos({ 
+    tipoSeguro: 'vida',
+    search
+  });
 
-  const handleCnpjClick = (cnpj: any) => {
-    // ✅ CORREÇÃO: Navegar para a página da empresa que contém os CNPJs
-    console.log('🔗 Navegando para empresa:', cnpj.empresa_id);
-    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/${cnpj.empresa_id}`);
-    navigate(`/corretora/seguros-de-vida/${cnpj.empresa_id}`);
-  };
-
-  const handleImportClick = (cnpj: any) => {
-    setSelectedCnpj(cnpj);
-    setShowImportModal(true);
+  const handleEmpresaClick = (empresa: EmpresaComPlano) => {
+    console.log('🔗 Navegando para empresa:', empresa.id);
+    console.log('🎯 Rota correta:', `/corretora/seguros-de-vida/${empresa.id}`);
+    navigate(`/corretora/seguros-de-vida/${empresa.id}`);
   };
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Seguros de Vida - CENTRAL EMBALAGENS</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Seguros de Vida - Empresas
+          </CardTitle>
           <CardDescription>
-            Gerencie os planos de seguro de vida por CNPJ
+            Gerencie os seguros de vida por empresa da sua carteira
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -47,7 +43,7 @@ export default function SegurosVidaEmpresasPage() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar por CNPJ ou razão social..."
+                placeholder="Buscar por nome da empresa..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -69,39 +65,20 @@ export default function SegurosVidaEmpresasPage() {
 
           {/* Conteúdo principal */}
           {viewMode === 'grid' ? (
-            <CnpjsCardView
-              cnpjs={cnpjs}
+            <EmpresasCardView
+              empresas={empresas}
               isLoading={isLoading}
-              onCnpjClick={handleCnpjClick}
-              onImportClick={handleImportClick}
+              onEmpresaClick={handleEmpresaClick}
             />
           ) : (
-            <CnpjsListView
-              cnpjs={cnpjs}
+            <EmpresasListView
+              empresas={empresas}
               isLoading={isLoading}
-              onCnpjClick={handleCnpjClick}
-              onImportClick={handleImportClick}
+              onEmpresaClick={handleEmpresaClick}
             />
           )}
         </CardContent>
       </Card>
-
-      {/* Modal de Importação */}
-      {selectedCnpj && (
-        <BulkImportModal
-          isOpen={showImportModal}
-          onClose={() => {
-            setShowImportModal(false);
-            setSelectedCnpj(null);
-          }}
-          cnpjId={selectedCnpj.id}
-          plano={{
-            id: selectedCnpj.plano_id || 'default',
-            seguradora: selectedCnpj.seguradora || 'Seguradora',
-            valor_mensal: selectedCnpj.valor_mensal || 0
-          }}
-        />
-      )}
     </div>
   );
 }

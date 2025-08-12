@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +10,11 @@ import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
-import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
-import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { FuncionariosTab } from '@/components/planos/FuncionariosTab';
+import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
 import { 
-  Shield, 
-  Building2, 
   FileText, 
+  Building2, 
   AlertTriangle, 
   Users, 
   UserCheck, 
@@ -36,7 +36,7 @@ const PlanoDetalhesPage: React.FC = () => {
   
   const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
   
-  // Usar o valor calculado se for plano de saúde, senão usar valor original
+  // Para planos de saúde, usar o valor calculado se disponível
   const valorReal = plano?.tipo_seguro === 'saude' 
     ? (plano?.valor_mensal_calculado ?? plano?.valor_mensal ?? 0)
     : (plano?.valor_mensal ?? 0);
@@ -47,7 +47,7 @@ const PlanoDetalhesPage: React.FC = () => {
     valorReal
   );
 
-  // Debugging detalhado no componente
+  // Debugging específico para plano genérico
   console.log('🏠 DEBUGGING PlanoDetalhesPage:', {
     planoId,
     isLoading,
@@ -82,7 +82,7 @@ const PlanoDetalhesPage: React.FC = () => {
           <Card className="sticky top-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Shield className="h-5 w-5" />
+                <FileText className="h-5 w-5" />
                 Resumo do Plano
               </CardTitle>
             </CardHeader>
@@ -99,26 +99,17 @@ const PlanoDetalhesPage: React.FC = () => {
                   <p className="text-sm font-medium">{plano.empresa_nome}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    {plano.tipo_seguro === 'saude' ? 'Valor Mensal Total' : 'Valor Mensal'}
-                  </label>
+                  <label className="text-sm font-medium text-muted-foreground">Valor Mensal</label>
                   <p className="text-lg font-bold text-green-600">
                     {formatCurrency(valorReal)}
                   </p>
-                  {plano.tipo_seguro === 'saude' && plano.valor_mensal_calculado !== plano.valor_mensal && (
-                    <p className="text-xs text-muted-foreground">
-                      * Calculado com base nas faixas etárias
-                    </p>
-                  )}
                 </div>
-                {plano.tipo_seguro && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Tipo de Seguro</label>
-                    <Badge variant="outline" className="block w-fit mt-1">
-                      {plano.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro de Vida'}
-                    </Badge>
-                  </div>
-                )}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Tipo de Seguro</label>
+                  <Badge variant="outline" className="block w-fit mt-1">
+                    {plano.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro de Vida'}
+                  </Badge>
+                </div>
               </div>
               
               {/* KPIs */}
@@ -170,7 +161,7 @@ const PlanoDetalhesPage: React.FC = () => {
                   size="sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Funcionário
+                  Adicionar Funcionários
                 </Button>
                 
                 <Button 
@@ -208,10 +199,14 @@ const PlanoDetalhesPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="funcionarios">
                     <Users className="h-4 w-4 mr-2" />
                     Funcionários
+                  </TabsTrigger>
+                  <TabsTrigger value="informacoes">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Informações
                   </TabsTrigger>
                   <TabsTrigger value="contrato">
                     <FileText className="h-4 w-4 mr-2" />
@@ -224,15 +219,19 @@ const PlanoDetalhesPage: React.FC = () => {
                 </TabsList>
 
                 <TabsContent value="funcionarios" className="mt-6">
-                  <PlanoFuncionariosTab 
+                  <FuncionariosTab 
                     cnpjId={plano.cnpj_id}
                     plano={{
                       id: plano.id,
                       seguradora: plano.seguradora,
-                      valor_mensal: valorReal,
-                      tipoSeguro: plano.tipo_seguro || 'vida'
+                      valor_mensal: valorReal
                     }}
+                    tipoSeguro={plano.tipo_seguro || 'vida'}
                   />
+                </TabsContent>
+
+                <TabsContent value="informacoes" className="mt-6">
+                  {plano && <InformacoesGeraisTab plano={plano} />}
                 </TabsContent>
 
                 <TabsContent value="contrato" className="mt-6">
@@ -248,15 +247,14 @@ const PlanoDetalhesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal para Adicionar Funcionário */}
-      <AdicionarFuncionarioModal
-        cnpjId={plano.cnpj_id}
-        planoSeguradora={plano.seguradora}
+      {/* Modal para Adicionar Funcionários */}
+      <AdicionarFuncionariosModal
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
-        onFuncionarioAdded={() => {
-          toast.success('Funcionário adicionado com sucesso!');
-        }}
+        planoId={plano.id}
+        cnpjId={plano.cnpj_id}
+        planoSeguradora={plano.seguradora}
+        tipoSeguro={plano.tipo_seguro || 'vida'}
       />
     </div>
   );
