@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { SmartBreadcrumbs } from './SmartBreadcrumbs';
+import SmartBreadcrumbs from './SmartBreadcrumbs';
 import { UserProfileMenu } from './UserProfileMenu';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { SystemStatusIndicator } from '@/components/system/SystemStatusIndicator';
