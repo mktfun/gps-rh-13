@@ -1,76 +1,153 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Shield, Plus, Building2, Users, DollarSign } from 'lucide-react';
 import { ConfigurarPlanoModal } from '@/components/planos/ConfigurarPlanoModal';
+import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
 
 interface CnpjPlanoStatusProps {
   cnpjId: string;
   tipoSeguro: 'vida' | 'saude';
-  hasPlano: boolean;
+  planoExiste: boolean;
+  planoDetalhes?: {
+    id: string;
+    seguradora: string;
+    valor_mensal: number;
+    total_funcionarios: number;
+    funcionarios_ativos: number;
+  };
+  empresaNome?: string;
+  cnpjNumero?: string;
 }
 
 export const CnpjPlanoStatus: React.FC<CnpjPlanoStatusProps> = ({
   cnpjId,
   tipoSeguro,
-  hasPlano
+  planoExiste,
+  planoDetalhes,
+  empresaNome,
+  cnpjNumero
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const getPlanoTitle = () => {
-    return tipoSeguro === 'vida' 
-      ? 'Plano de seguro de vida não encontrado'
-      : 'Plano de saúde não encontrado';
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
   };
 
-  const getPlanoDescription = () => {
-    return `Este CNPJ não possui um plano de ${tipoSeguro === 'vida' ? 'seguro de vida' : 'saúde'} cadastrado. Configure um plano agora para começar a gerenciar os funcionários.`;
+  const getTipoSeguroLabel = () => {
+    return tipoSeguro === 'vida' ? 'Seguro de Vida' : 'Plano de Saúde';
   };
 
-  const getButtonText = () => {
-    return tipoSeguro === 'vida' 
-      ? 'Configurar Plano de Vida'
-      : 'Configurar Plano de Saúde';
+  const getTipoSeguroIcon = () => {
+    return tipoSeguro === 'vida' ? Shield : Building2;
   };
 
-  if (hasPlano) {
-    return null; // Se já tem plano, não mostra este componente
+  const Icon = getTipoSeguroIcon();
+
+  if (planoExiste && planoDetalhes) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Icon className="h-5 w-5" />
+            {getTipoSeguroLabel()} Configurado
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Seguradora</p>
+              <Badge variant="secondary">{planoDetalhes.seguradora}</Badge>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Valor Mensal</p>
+              <p className="font-semibold text-green-600">
+                {formatCurrency(planoDetalhes.valor_mensal)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total de Funcionários</p>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span className="font-semibold">{planoDetalhes.total_funcionarios}</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Funcionários Ativos</p>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-green-600" />
+                <span className="font-semibold text-green-600">{planoDetalhes.funcionarios_ativos}</span>
+              </div>
+            </div>
+          </div>
+          
+          {empresaNome && (
+            <div className="pt-2 border-t">
+              <p className="text-sm text-muted-foreground">Empresa</p>
+              <p className="font-medium">{empresaNome}</p>
+              {cnpjNumero && (
+                <p className="text-xs text-muted-foreground">CNPJ: {cnpjNumero}</p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <>
-      <Card className="max-w-md mx-auto">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-            <AlertCircle className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <CardTitle className="text-lg">{getPlanoTitle()}</CardTitle>
-          <CardDescription className="text-center">
-            {getPlanoDescription()}
-          </CardDescription>
+      <Card className="border-dashed border-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-muted-foreground">
+            <Icon className="h-5 w-5" />
+            {getTipoSeguroLabel()} não configurado
+          </CardTitle>
         </CardHeader>
-        <CardContent className="text-center space-y-4">
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            Este CNPJ ainda não possui um {getTipoSeguroLabel().toLowerCase()} configurado.
+          </p>
+          
+          {empresaNome && (
+            <div className="pt-2 border-t">
+              <p className="text-sm text-muted-foreground">Empresa</p>
+              <p className="font-medium">{empresaNome}</p>
+              {cnpjNumero && (
+                <p className="text-xs text-muted-foreground">CNPJ: {cnpjNumero}</p>
+              )}
+            </div>
+          )}
+          
           <Button 
             onClick={() => setIsModalOpen(true)}
             className="w-full"
-            size="lg"
           >
-            <Shield className="mr-2 h-4 w-4" />
-            {getButtonText()}
-          </Button>
-          <Button variant="outline" className="w-full">
-            Voltar
+            <Plus className="h-4 w-4 mr-2" />
+            Configurar {getTipoSeguroLabel()}
           </Button>
         </CardContent>
       </Card>
 
-      <ConfigurarPlanoModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        cnpjId={cnpjId}
-        tipoSeguro={tipoSeguro}
-      />
+      {/* Modal condicional baseado no tipo de seguro */}
+      {tipoSeguro === 'vida' ? (
+        <ConfigurarPlanoModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          cnpjId={cnpjId}
+        />
+      ) : (
+        <ConfigurarPlanoSaudeModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          cnpjId={cnpjId}
+        />
+      )}
     </>
   );
 };

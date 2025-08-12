@@ -63,32 +63,42 @@ export const useCreatePlanoMutation = () => {
       return newPlano;
     },
     onSuccess: (data, variables) => {
-      toast.success('Plano configurado com sucesso!');
+      const tipoLabel = variables.tipo_seguro === 'vida' ? 'Seguro de Vida' : 'Plano de Saúde';
+      toast.success(`${tipoLabel} configurado com sucesso!`);
       
-      console.log('🎯 Invalidação CIRÚRGICA de cache iniciada para:', {
+      console.log('🎯 Invalidação de cache iniciada para:', {
         cnpj_id: variables.cnpj_id,
         tipo_seguro: variables.tipo_seguro,
         plano_id: data.id
       });
 
-      // INVALIDAÇÃO CIRÚRGICA:
-      
-      // 1. Invalida a lista de empresas APENAS para o tipo de plano que mudou
-      queryClient.invalidateQueries({ 
-        queryKey: ['empresasComPlanos', variables.tipo_seguro] 
-      });
+      // Invalidar queries relevantes baseadas no tipo de seguro
+      if (variables.tipo_seguro === 'vida') {
+        queryClient.invalidateQueries({ 
+          queryKey: ['empresasComPlanos', 'vida'] 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ['plano-detalhes-cnpj-vida', variables.cnpj_id] 
+        });
+      } else {
+        queryClient.invalidateQueries({ 
+          queryKey: ['empresasComPlanos', 'saude'] 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ['plano-detalhes-cnpj-saude', variables.cnpj_id] 
+        });
+      }
 
-      // 2. Invalida os detalhes do plano para ESTE CNPJ e ESTE tipo, forçando a tela a recarregar
-      queryClient.invalidateQueries({ 
-        queryKey: ['plano-detalhes', variables.cnpj_id, variables.tipo_seguro] 
-      });
-
-      // 3. Invalida o plano específico recém-criado
+      // Invalidar o plano específico
       queryClient.invalidateQueries({ 
         queryKey: ['plano-detalhes', data.id] 
       });
 
-      console.log('✅ Cache invalidado com sucesso - apenas queries afetadas foram atualizadas');
+      // Invalidar listas gerais
+      queryClient.invalidateQueries({ queryKey: ['dados-planos-cards'] });
+      queryClient.invalidateQueries({ queryKey: ['cnpjs-com-planos'] });
+
+      console.log('✅ Cache invalidado com sucesso');
     },
     onError: (error: any) => {
       console.error('❌ Erro na criação do plano:', error);
