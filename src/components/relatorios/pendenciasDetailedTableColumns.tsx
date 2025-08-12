@@ -1,4 +1,3 @@
-
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -164,6 +163,12 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
               id: row.original.id,
               protocolo: row.original.protocolo,
               funcionario_nome: row.original.funcionario_nome,
+              cpf: row.original.funcionario_cpf,
+              cargo: 'N/A', // This field might not be available in this context
+              status: row.original.status_prioridade, // Using status_prioridade as status
+              cnpj_razao_social: row.original.razao_social,
+              data_solicitacao: row.original.data_criacao,
+              motivo: row.original.descricao, // Using description as motivo
               descricao: row.original.descricao,
               comentarios_count: row.original.comentarios_count
             }}
