@@ -17,7 +17,7 @@ import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
-import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
+import { ConfigurarPlanoModal } from '@/components/planos/ConfigurarPlanoModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -276,10 +276,11 @@ const PlanosSaudePlanoPage = () => {
         </Card>
 
         {cnpjId && (
-          <ConfigurarPlanoSaudeModal
+          <ConfigurarPlanoModal
             open={showConfigurarModal}
             onOpenChange={setShowConfigurarModal}
             cnpjId={cnpjId}
+            tipoSeguro="saude"
           />
         )}
       </div>
@@ -369,10 +370,11 @@ const PlanosSaudePlanoPage = () => {
       </Tabs>
 
       {cnpjId && (
-        <ConfigurarPlanoSaudeModal
+        <ConfigurarPlanoModal
           open={showConfigurarModal}
           onOpenChange={setShowConfigurarModal}
           cnpjId={cnpjId}
+          tipoSeguro="saude"
         />
       )}
     </div>

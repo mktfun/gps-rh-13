@@ -62,13 +62,18 @@ export const useCreatePlanoMutation = () => {
       console.log('✅ Plano criado com sucesso:', newPlano);
       return newPlano;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast.success('Plano configurado com sucesso!');
       
       // Invalidar queries relevantes para atualizar as telas
       queryClient.invalidateQueries({ queryKey: ['empresasComPlanos'] });
       queryClient.invalidateQueries({ queryKey: ['cnpjs-com-planos'] });
       queryClient.invalidateQueries({ queryKey: ['dados-planos-cards'] });
+      
+      // CRUCIAL: Invalidar as queries específicas dos detalhes do plano
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj', variables.cnpj_id] });
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj-saude', variables.cnpj_id] });
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes', data.id] });
     },
     onError: (error: any) => {
       console.error('❌ Erro na criação do plano:', error);

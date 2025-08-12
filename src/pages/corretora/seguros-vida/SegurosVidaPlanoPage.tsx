@@ -15,6 +15,7 @@ import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
+import { ConfigurarPlanoModal } from '@/components/planos/ConfigurarPlanoModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -52,6 +53,7 @@ const SegurosVidaPlanoPage = () => {
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isConfigurarModalOpen, setIsConfigurarModalOpen] = useState(false);
 
   console.log('🔍 SegurosVidaPlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
@@ -200,6 +202,11 @@ const SegurosVidaPlanoPage = () => {
     setActiveTab('funcionarios');
   };
 
+  const handleConfigurarPlano = () => {
+    console.log('🔧 Abrindo modal de configuração de plano de vida para CNPJ:', cnpjId);
+    setIsConfigurarModalOpen(true);
+  };
+
   // Show loading while redirecting
   if (isRedirecting || autocorrectCheck?.needsRedirect) {
     return (
@@ -260,11 +267,7 @@ const SegurosVidaPlanoPage = () => {
               }
               primaryAction={{
                 label: "Configurar Plano de Vida",
-                onClick: () => {
-                  console.log('🔧 Abrindo modal de configuração de plano de vida para CNPJ:', cnpjId);
-                  toast.info('Modal de configuração de plano em desenvolvimento');
-                  // TODO: Integrar com modal de criação de plano
-                }
+                onClick: handleConfigurarPlano
               }}
               secondaryAction={{
                 label: "Voltar",
@@ -273,6 +276,15 @@ const SegurosVidaPlanoPage = () => {
             />
           </CardContent>
         </Card>
+
+        {cnpjId && (
+          <ConfigurarPlanoModal
+            open={isConfigurarModalOpen}
+            onOpenChange={setIsConfigurarModalOpen}
+            cnpjId={cnpjId}
+            tipoSeguro="vida"
+          />
+        )}
       </div>
     );
   }
@@ -338,6 +350,15 @@ const SegurosVidaPlanoPage = () => {
           <PlanoHistoricoTab />
         </TabsContent>
       </Tabs>
+
+      {cnpjId && (
+        <ConfigurarPlanoModal
+          open={isConfigurarModalOpen}
+          onOpenChange={setIsConfigurarModalOpen}
+          cnpjId={cnpjId}
+          tipoSeguro="vida"
+        />
+      )}
     </div>
   );
 };
