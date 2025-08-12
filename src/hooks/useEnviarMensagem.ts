@@ -32,13 +32,24 @@ export const useEnviarMensagem = (conversaId: string) => {
         throw new Error('Dados insuficientes para enviar mensagem');
       }
 
-      console.log('📤 Enviando mensagem:', { conversaId, tipo, conteudo: conteudo?.substring(0, 50) + '...' });
+      // Validar e sanitizar o conteúdo
+      const conteudoLimpo = conteudo?.trim() || '';
+      
+      if (!conteudoLimpo) {
+        throw new Error('Conteúdo da mensagem não pode estar vazio');
+      }
+
+      if (conteudoLimpo.length > 5000) {
+        throw new Error('Conteúdo da mensagem muito longo (máximo 5000 caracteres)');
+      }
+
+      console.log('📤 Enviando mensagem:', { conversaId, tipo, conteudo: conteudoLimpo.substring(0, 50) + '...' });
 
       const mensagemData: any = {
         conversa_id: conversaId,
         remetente_id: user.id,
-        conteudo: conteudo?.trim() || '',
-        tipo
+        conteudo: conteudoLimpo,
+        tipo: tipo || 'texto'
       };
 
       if (metadata) {
@@ -66,17 +77,24 @@ export const useEnviarMensagem = (conversaId: string) => {
       // Snapshot do estado anterior
       const previousMensagens = queryClient.getQueryData(['mensagens', conversaId]);
 
+      // Validar conteúdo antes de criar mensagem otimista
+      const conteudoLimpo = conteudo?.trim() || '';
+      
+      if (!conteudoLimpo) {
+        throw new Error('Conteúdo da mensagem não pode estar vazio');
+      }
+
       // Criar mensagem otimista
       const mensagemOtimista: MensagemOtimista = {
         id: `temp-${Date.now()}`, // ID temporário
         conversa_id: conversaId,
         remetente_id: user!.id,
-        conteudo: conteudo?.trim() || '',
+        conteudo: conteudoLimpo,
         lida: false,
         lida_em: null,
         created_at: new Date().toISOString(),
         status: 'enviando',
-        tipo,
+        tipo: tipo || 'texto',
         metadata
       };
 

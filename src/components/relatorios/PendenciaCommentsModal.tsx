@@ -10,6 +10,7 @@ import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useEnviarMensagem } from '@/hooks/useEnviarMensagem';
 import { openChatWidget } from '@/utils/chatWidgetEvents';
 
 interface PendenciaCommentsModalProps {
@@ -36,11 +37,11 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
   pendencia
 }) => {
   const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [empresaId, setEmpresaId] = useState<string | null>(null);
   const [conversaId, setConversaId] = useState<string | null>(null);
   const [isLinking, setIsLinking] = useState(false);
   const { toast } = useToast();
+  const enviarMensagem = useEnviarMensagem(conversaId || '');
 
   // Buscar empresa_id a partir da pendência e vincular/obter a conversa pelo protocolo
   useEffect(() => {
@@ -182,7 +183,8 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
   };
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    const mensagemPersonalizada = message.trim();
+    if (!mensagemPersonalizada) return;
 
     if (!conversaId) {
       toast({
@@ -193,53 +195,40 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
     try {
       console.log('✉️ Enviando mensagem para conversa:', conversaId);
 
       // Combinar dados contextuais + mensagem personalizada
-      const mensagemCompleta = dadosContextuais + message.trim();
+      const mensagemCompleta = dadosContextuais + mensagemPersonalizada;
 
-      // Enviar mensagem diretamente para a tabela "mensagens"
-      const { data: userInfo } = await supabase.auth.getUser();
-      const remetenteId = userInfo.user?.id;
-
-      const { error: insertError } = await supabase.from('mensagens').insert([
-        {
-          conversa_id: conversaId,
-          remetente_id: remetenteId,
-          conteudo: mensagemCompleta,
-          tipo: 'texto',
-          metadata: {
-            origem: 'relatorio_pendencias',
-            pendencia_id: pendencia.id,
-            protocolo: pendencia.protocolo,
-            funcionario_nome: pendencia.funcionario_nome,
-            cpf: pendencia.cpf,
-            cnpj_razao_social: pendencia.cnpj_razao_social,
-            status: pendencia.status,
-            dias_atraso: diasAtraso,
-          },
-        } as any,
-      ]);
-
-      if (insertError) {
-        console.error('❌ Erro ao enviar mensagem:', insertError);
-        toast({
-          title: 'Erro ao enviar',
-          description: 'Não foi possível enviar sua mensagem. Tente novamente.',
-          variant: 'destructive',
-        });
-        return;
-      }
+      // Usar o hook useEnviarMensagem
+      await enviarMensagem.mutateAsync({
+        conteudo: mensagemCompleta,
+        tipo: 'texto',
+        metadata: {
+          origem: 'relatorio_pendencias',
+          pendencia_id: pendencia.id,
+          protocolo: pendencia.protocolo,
+          funcionario_nome: pendencia.funcionario_nome,
+          cpf: pendencia.cpf,
+          cnpj_razao_social: pendencia.cnpj_razao_social,
+          status: pendencia.status,
+          dias_atraso: diasAtraso,
+        },
+      });
 
       toast({
         title: 'Mensagem enviada',
         description: 'Sua mensagem sobre a pendência foi enviada para a corretora.',
       });
       setMessage('');
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      console.error('❌ Erro ao enviar mensagem:', error);
+      toast({
+        title: 'Erro ao enviar',
+        description: 'Não foi possível enviar sua mensagem. Tente novamente.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -365,6 +354,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
+              maxLength={1000}
             />
             <div className="flex justify-between items-center">
               <p className="text-xs text-muted-foreground">
@@ -372,11 +362,11 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
               </p>
               <Button
                 onClick={handleSend}
-                disabled={!message.trim() || isSubmitting || !conversaId}
+                disabled={!message.trim() || enviarMensagem.isPending || !conversaId}
                 className="gap-2"
               >
                 <Send className="h-4 w-4" />
-                {isSubmitting ? 'Enviando...' : 'Enviar mensagem'}
+                {enviarMensagem.isPending ? 'Enviando...' : 'Enviar mensagem'}
               </Button>
             </div>
           </div>
