@@ -180,7 +180,7 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                   <p className="text-lg font-bold text-green-600">
                     {formatCurrency(valorReal)}
                   </p>
-                  {plano.tipo_seguro === 'saude' && plano.valor_mensal_calculado !== plano.valor_mensal && (
+                  {plano.tipo_seguro === 'saude' && plano.valor_mensal_calculado && plano.valor_mensal_calculado !== plano.valor_mensal && (
                     <p className="text-xs text-muted-foreground">
                       * Calculado com base nas faixas etárias
                     </p>
@@ -309,11 +309,11 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="contrato" className="mt-6">
-                  {plano && <ContratoTab planoId={plano.id} isCorretora={false} />}
+                  <ContratoTab planoId={plano.id} isCorretora={false} />
                 </TabsContent>
 
                 <TabsContent value="documentos" className="mt-6">
-                  {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
+                  <DemonstrativosTab planoId={plano.id} isCorretora={false} />
                 </TabsContent>
               </Tabs>
             </CardContent>

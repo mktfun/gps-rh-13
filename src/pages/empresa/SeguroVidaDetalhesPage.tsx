@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -185,7 +184,6 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                 </div>
               </div>
               
-              {/* KPIs */}
               <div className="pt-4 border-t space-y-3">
                 <h4 className="font-medium text-sm">Estatísticas</h4>
                 
@@ -224,7 +222,6 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Ações Rápidas */}
               <div className="pt-4 border-t space-y-2">
                 <h4 className="font-medium text-sm mb-3">Ações Rápidas</h4>
                 
@@ -261,7 +258,6 @@ const SeguroVidaDetalhesPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Coluna Direita - Conteúdo Principal (70%) */}
         <div className="lg:col-span-7">
           <Card>
             <CardHeader>
@@ -300,11 +296,11 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="contrato" className="mt-6">
-                  {plano && <ContratoTab planoId={plano.id} isCorretora={false} />}
+                  <ContratoTab planoId={plano.id} isCorretora={false} />
                 </TabsContent>
 
                 <TabsContent value="documentos" className="mt-6">
-                  {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
+                  <DemonstrativosTab planoId={plano.id} isCorretora={false} />
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -312,7 +308,6 @@ const SeguroVidaDetalhesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal para Adicionar Funcionários */}
       <AdicionarFuncionariosModal
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}

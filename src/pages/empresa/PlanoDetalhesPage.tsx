@@ -239,21 +239,19 @@ const PlanoDetalhesPage: React.FC = () => {
                 </TabsList>
 
                 <TabsContent value="funcionarios" className="mt-6">
-                  <FuncionariosTab 
-                    plano={plano}
-                  />
+                  <FuncionariosTab plano={plano} />
                 </TabsContent>
 
                 <TabsContent value="informacoes" className="mt-6">
-                  {plano && <InformacoesGeraisTab plano={plano} />}
+                  <InformacoesGeraisTab plano={plano} />
                 </TabsContent>
 
                 <TabsContent value="contrato" className="mt-6">
-                  {plano && <ContratoTab planoId={plano.id} isCorretora={false} />}
+                  <ContratoTab planoId={plano.id} isCorretora={false} />
                 </TabsContent>
 
                 <TabsContent value="documentos" className="mt-6">
-                  {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
+                  <DemonstrativosTab planoId={plano.id} isCorretora={false} />
                 </TabsContent>
               </Tabs>
             </CardContent>
