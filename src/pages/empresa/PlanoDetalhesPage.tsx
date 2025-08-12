@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,7 +42,8 @@ const PlanoDetalhesPage: React.FC = () => {
     : (plano?.valor_mensal ?? 0);
     
   const { data: stats } = usePlanoFuncionariosStats(
-    plano?.cnpj_id || '', 
+    plano?.id || '', 
+    plano?.tipo_seguro || 'vida',
     valorReal
   );
 
@@ -70,78 +70,6 @@ const PlanoDetalhesPage: React.FC = () => {
   const handleExportReport = () => {
     toast.info('Funcionalidade de exportação em desenvolvimento');
   };
-
-  // Early return if no planoId
-  if (!planoId) {
-    console.log('❌ Nenhum planoId fornecido na URL');
-    return (
-      <div className="container mx-auto py-6">
-        <Link to="/empresa/planos">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Planos
-          </Button>
-        </Link>
-        <EmptyState
-          icon={AlertTriangle}
-          title="ID do Plano Inválido"
-          description="Não foi possível identificar o plano a partir da URL."
-        />
-      </div>
-    );
-  }
-
-  // Loading state - mostrar enquanto está carregando
-  if (isLoading) {
-    console.log('🔄 Mostrando loading state...');
-    return <DashboardLoadingState />;
-  }
-
-  // Error state - só mostrar se houve erro E não está carregando
-  if (error && !isLoading) {
-    console.log('❌ Mostrando error state:', error.message);
-    return (
-      <div className="container mx-auto py-6">
-        <Link to="/empresa/planos">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Planos
-          </Button>
-        </Link>
-        <EmptyState
-          icon={AlertTriangle}
-          title="Erro ao Carregar Plano"
-          description={error instanceof Error ? error.message : 'Ocorreu um erro inesperado'}
-        />
-      </div>
-    );
-  }
-
-  // Not found state - só mostrar se NÃO está carregando E NÃO há plano E NÃO há erro
-  if (!isLoading && !plano && !error) {
-    console.log('🔍 Mostrando not found state...');
-    return (
-      <div className="container mx-auto py-6">
-        <Link to="/empresa/planos">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Planos
-          </Button>
-        </Link>
-        <EmptyState
-          icon={FileText}
-          title="Plano não encontrado"
-          description="Não foi possível encontrar os detalhes para este plano."
-        />
-      </div>
-    );
-  }
-
-  // Success state - só renderizar se temos plano
-  if (!plano) {
-    console.log('⚠️ Plano ainda é null/undefined, aguardando...');
-    return <DashboardLoadingState />;
-  }
 
   console.log('✅ Renderizando plano com sucesso!', plano.seguradora);
 
@@ -301,7 +229,8 @@ const PlanoDetalhesPage: React.FC = () => {
                     plano={{
                       id: plano.id,
                       seguradora: plano.seguradora,
-                      valor_mensal: valorReal
+                      valor_mensal: valorReal,
+                      tipoSeguro: plano.tipo_seguro || 'vida'
                     }}
                   />
                 </TabsContent>
