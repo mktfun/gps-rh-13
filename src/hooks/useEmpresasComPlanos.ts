@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface EmpresaComPlano {
   id: string;
@@ -14,68 +15,50 @@ interface UseEmpresasComPlanosParams {
 }
 
 export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlanosParams) => {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: ['empresasComPlanos', tipoSeguro, search],
+    queryKey: ['empresasComPlanos', tipoSeguro, user?.id],
     queryFn: async (): Promise<EmpresaComPlano[]> => {
-      console.log('🔍 Buscando empresas com planos do tipo:', tipoSeguro);
-
-      let query = supabase
-        .from('empresas')
-        .select(`
-          id,
-          nome,
-          cnpjs!inner (
-            id,
-            dados_planos!inner (
-              id,
-              tipo_seguro
-            )
-          )
-        `)
-        .eq('cnpjs.dados_planos.tipo_seguro', tipoSeguro)
-        .eq('corretora_id', (await supabase.auth.getUser()).data.user?.id);
-
-      if (search && search.trim()) {
-        query = query.ilike('nome', `%${search}%`);
+      if (!user?.id) {
+        console.warn('⚠️ [useEmpresasComPlanos] Usuário não autenticado - retornando lista vazia');
+        return [];
       }
 
-      const { data, error } = await query;
+      console.log('🔍 [useEmpresasComPlanos] Chamando RPC get_empresas_com_planos_por_tipo:', {
+        tipoSeguro,
+        corretoraId: user.id
+      });
+
+      const { data, error } = await supabase.rpc('get_empresas_com_planos_por_tipo', {
+        p_tipo_seguro: tipoSeguro,
+        p_corretora_id: user.id,
+      });
 
       if (error) {
-        console.error('❌ Erro ao buscar empresas com planos:', error);
+        console.error('❌ [useEmpresasComPlanos] Erro ao executar RPC:', error);
         throw error;
       }
 
-      // Processar os dados para contar os planos únicos por empresa
-      const empresasMap = new Map<string, EmpresaComPlano>();
+      const normalized = (data || []).map((row: any) => ({
+        id: String(row.id),
+        nome: String(row.nome),
+        total_planos_ativos: Number(row.total_planos_ativos) || 0,
+      })) as EmpresaComPlano[];
 
-      data?.forEach((empresa: any) => {
-        if (!empresasMap.has(empresa.id)) {
-          empresasMap.set(empresa.id, {
-            id: empresa.id,
-            nome: empresa.nome,
-            total_planos_ativos: 0
-          });
-        }
-
-        // Contar planos únicos através dos CNPJs
-        const planosUnicos = new Set();
-        empresa.cnpjs?.forEach((cnpj: any) => {
-          cnpj.dados_planos?.forEach((plano: any) => {
-            planosUnicos.add(plano.id);
-          });
-        });
-
-        const empresaAtual = empresasMap.get(empresa.id)!;
-        empresaAtual.total_planos_ativos = planosUnicos.size;
-      });
-
-      const empresas = Array.from(empresasMap.values());
-      console.log('✅ Empresas com planos encontradas:', empresas.length);
-
+      console.log('✅ [useEmpresasComPlanos] RPC retornou empresas:', normalized.length);
+      return normalized;
+    },
+    enabled: !!user?.id && !!tipoSeguro,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
+    // Filtro de busca no client-side para evitar roundtrips desnecessários
+    select: (empresas: EmpresaComPlano[]) => {
+      if (search && search.trim()) {
+        const s = search.toLowerCase();
+        return empresas.filter(e => e.nome.toLowerCase().includes(s));
+      }
       return empresas;
     },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
   });
 };
