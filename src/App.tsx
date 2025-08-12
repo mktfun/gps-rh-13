@@ -13,6 +13,7 @@ import ProtectedCorretoraRoute from '@/components/ProtectedCorretoraRoute';
 import LandingPage from '@/pages/LandingPage';
 import Login from '@/pages/auth/Login';
 import NotFound from '@/pages/NotFound';
+import EmBrevePage from '@/pages/EmBrevePage';
 
 // Páginas de Admin
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -84,11 +85,11 @@ function App() {
                 {/* === ROTAS CORRIGIDAS E SEPARADAS === */}
                 {/* Listagem de planos */}
                 <Route path="/empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
-                <Route path="/empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
+                <Route path="/empresa/planos-de-saude" element={<EmBrevePage />} />
                 
-                {/* Detalhes dos planos (NOVAS ROTAS USANDO AS NOVAS PÁGINAS) */}
+                {/* Detalhes dos planos */}
                 <Route path="/empresa/seguros-de-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
-                <Route path="/empresa/planos-de-saude/:planoId" element={<PlanoSaudeDetalhesPage />} />
+                <Route path="/empresa/planos-de-saude/:planoId" element={<EmBrevePage />} />
                 
                 {/* Relatórios - Empresa */}
                 <Route path="/empresa/relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
@@ -118,10 +119,10 @@ function App() {
                   <Route path="/corretora/seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
                   <Route path="/corretora/seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
 
-                  {/* Planos de Saúde */}
-                  <Route path="/corretora/planos-de-saude/empresas" element={<PlanosSaudeEmpresasPage />} />
-                  <Route path="/corretora/planos-de-saude/:empresaId" element={<PlanosSaudeCnpjsPage />} />
-                  <Route path="/corretora/planos-de-saude/:empresaId/cnpj/:cnpjId" element={<PlanosSaudePlanoPage />} />
+                  {/* Planos de Saúde - REDIRECIONADOS PARA EM BREVE */}
+                  <Route path="/corretora/planos-de-saude/empresas" element={<EmBrevePage />} />
+                  <Route path="/corretora/planos-de-saude/:empresaId" element={<EmBrevePage />} />
+                  <Route path="/corretora/planos-de-saude/:empresaId/cnpj/:cnpjId" element={<EmBrevePage />} />
 
                   {/* Relatórios */}
                   <Route path="/corretora/relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
