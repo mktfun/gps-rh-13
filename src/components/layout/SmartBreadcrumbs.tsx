@@ -1,210 +1,128 @@
+
 import React from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { useEmpresa } from '@/hooks/useEmpresa';
-import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
-import { Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
+import { ChevronRight, Home } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
-export const SmartBreadcrumbs: React.FC = () => {
+const SmartBreadcrumbs = () => {
   const location = useLocation();
-  const params = useParams();
-  
-  // Get all possible parameters from the route
-  const empresaId = params.id || params.empresaId;
-  const { funcionarioId, planoId, cnpjId } = params;
+  const pathnames = location.pathname.split('/').filter((x) => x);
 
-  // Hooks for data fetching
-  const { data: empresa } = useEmpresa(empresaId);
-  const { data: cnpjData } = useEmpresaPorCnpj(cnpjId);
+  const breadcrumbNameMap: Record<string, string> = {
+    'admin': 'Administração',
+    'dashboard': 'Dashboard',
+    'corretoras': 'Corretoras',
+    'corretora': 'Corretora',
+    'empresa': 'Empresa',
+    'empresas': 'Empresas',
+    'funcionarios': 'Funcionários',
+    'seguros-de-vida': 'Seguros de Vida',
+    'planos-de-saude': 'Planos de Saúde',
+    'cnpjs': 'CNPJs',
+    'cnpj': 'CNPJ',
+    'plano': 'Plano',
+    'relatorios': 'Relatórios',
+    'financeiro': 'Financeiro',
+    'movimentacao': 'Movimentação',
+    'pendencias': 'Pendências',
+    'auditoria': 'Auditoria',
+    'ativar-funcionario': 'Ativar Funcionário',
+    'perfil': 'Perfil',
+    'configuracoes': 'Configurações',
+    'custos-empresa': 'Custos da Empresa',
+    'custos-detalhado': 'Custos Detalhado',
+    'funcionarios-detalhado': 'Funcionários Detalhado',
+    'planos': 'Planos',
+    'planos-saude': 'Planos de Saúde',
+    'seguros-vida': 'Seguros de Vida'
+  };
 
-  const generateBreadcrumbs = () => {
-    const pathSegments = location.pathname.split('/').filter(Boolean);
+  const isUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
+  const buildBreadcrumbs = () => {
     const breadcrumbs = [];
+    let currentPath = '';
 
-    // Always add the root breadcrumb based on context
-    if (pathSegments[0] === 'corretora') {
-      breadcrumbs.push({
-        label: 'Dashboard',
-        href: '/corretora/dashboard',
-      });
-    } else if (pathSegments[0] === 'empresa') {
-      breadcrumbs.push({
-        label: 'Dashboard',
-        href: '/empresa/dashboard',
-      });
-    }
+    // Home/Dashboard sempre primeiro
+    breadcrumbs.push({
+      name: 'Home',
+      path: '/',
+      icon: <Home className="h-4 w-4" />
+    });
 
-    // Breadcrumbs specific to each route
-    if (pathSegments.includes('empresas')) {
-      breadcrumbs.push({
-        label: 'Empresas',
-        href: '/corretora/empresas',
-      });
-
-      if (empresaId && empresa) {
-        breadcrumbs.push({
-          label: empresa.nome,
-          href: `/corretora/empresas/${empresaId}`,
-        });
-      }
-    }
-
-    if (pathSegments.includes('seguros-de-vida')) {
-      breadcrumbs.push({
-        label: 'Seguros de Vida',
-        href: '/corretora/seguros-de-vida',
-      });
-
-      if (empresaId && empresa) {
-        breadcrumbs.push({
-          label: empresa.nome,
-          href: `/corretora/seguros-de-vida/${empresaId}`,
-        });
-      }
-
-      // For CNPJ routes, add the CNPJ breadcrumb
-      if (cnpjId && cnpjData?.cnpj) {
-        const cnpjLabel = cnpjData.cnpj.razao_social || `CNPJ ${cnpjData.cnpj.cnpj}`;
-        breadcrumbs.push({
-          label: cnpjLabel,
-          href: `/corretora/seguros-de-vida/${empresaId}/cnpj/${cnpjId}`,
-        });
-      }
-    }
-
-    if (pathSegments.includes('dados-planos')) {
-      breadcrumbs.push({
-        label: 'Dados dos Planos',
-        href: '/corretora/dados-planos',
-      });
-    }
-
-    if (pathSegments.includes('plano') && planoId) {
-      breadcrumbs.push({
-        label: 'Detalhes do Plano',
-        href: `/corretora/plano/${planoId}`,
-      });
-    }
-
-    if (pathSegments.includes('ativar-funcionario') && funcionarioId) {
-      breadcrumbs.push({
-        label: 'Ativar Funcionário',
-        href: `/corretora/ativar-funcionario/${funcionarioId}`,
-      });
-    }
-
-    if (pathSegments.includes('funcionarios') && pathSegments[0] === 'empresa') {
-      breadcrumbs.push({
-        label: 'Funcionários',
-        href: '/empresa/funcionarios',
-      });
-    }
-
-    // Breadcrumbs for company plans
-    if (pathSegments.includes('planos') && pathSegments[0] === 'empresa') {
-      breadcrumbs.push({
-        label: 'Planos',
-        href: '/empresa/planos',
-      });
-    }
-
-    if (pathSegments.includes('planos-saude') && pathSegments[0] === 'empresa') {
-      breadcrumbs.push({
-        label: 'Planos de Saúde',
-        href: '/empresa/planos-saude',
-      });
-    }
-
-    if (pathSegments.includes('relatorios')) {
-      const reportType = pathSegments[pathSegments.length - 1];
-      const context = pathSegments[0];
+    pathnames.forEach((pathname, index) => {
+      currentPath += `/${pathname}`;
+      const isLast = index === pathnames.length - 1;
       
-      if (reportType === 'funcionarios') {
-        breadcrumbs.push({
-          label: 'Relatórios',
-          href: `/${context}/relatorios`,
-        });
-        breadcrumbs.push({
-          label: 'Funcionários',
-          href: `/${context}/relatorios/funcionarios`,
-        });
-      } else if (reportType === 'custos') {
-        breadcrumbs.push({
-          label: 'Relatórios',
-          href: `/${context}/relatorios`,
-        });
-        breadcrumbs.push({
-          label: 'Custos',
-          href: `/${context}/relatorios/custos`,
-        });
-      } else if (reportType === 'pendencias') {
-        breadcrumbs.push({
-          label: 'Relatórios',
-          href: `/${context}/relatorios`,
-        });
-        breadcrumbs.push({
-          label: 'Pendências',
-          href: `/${context}/relatorios/pendencias`,
-        });
-      } else if (reportType === 'financeiro') {
-        breadcrumbs.push({
-          label: 'Relatórios',
-          href: `/${context}/relatorios`,
-        });
-        breadcrumbs.push({
-          label: 'Financeiro',
-          href: `/${context}/relatorios/financeiro`,
-        });
-      } else if (reportType === 'movimentacao') {
-        breadcrumbs.push({
-          label: 'Relatórios',
-          href: `/${context}/relatorios`,
-        });
-        breadcrumbs.push({
-          label: 'Movimentação',
-          href: `/${context}/relatorios/movimentacao`,
-        });
+      // Skip UUIDs nos breadcrumbs (mas mantém no path)
+      if (isUUID(pathname)) {
+        return;
       }
-    }
 
-    if (pathSegments.includes('auditoria')) {
+      let displayName = breadcrumbNameMap[pathname] || pathname;
+      let linkPath = currentPath;
+
+      // Casos especiais para links corretos
+      if (pathname === 'seguros-de-vida' && pathnames[0] === 'corretora') {
+        linkPath = '/corretora/seguros-de-vida/empresas';
+      }
+
       breadcrumbs.push({
-        label: 'Auditoria',
-        href: '/corretora/auditoria',
+        name: displayName,
+        path: linkPath,
+        isLast
       });
-    }
+    });
 
     return breadcrumbs;
   };
 
-  const breadcrumbs = generateBreadcrumbs();
+  const breadcrumbs = buildBreadcrumbs();
 
   if (breadcrumbs.length <= 1) {
     return null;
   }
 
   return (
-    <nav className="flex items-center space-x-2 text-sm text-muted-foreground">
-      <Breadcrumb>
-        <BreadcrumbList>
-          {breadcrumbs.map((breadcrumb, index) => (
-            <div key={breadcrumb.href}>
-              <BreadcrumbItem>
-                {index === breadcrumbs.length - 1 ? (
-                  <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link to={breadcrumb.href}>
-                      {breadcrumb.label}
-                    </Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-            </div>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
-    </nav>
+    <Breadcrumb className="mb-4">
+      <BreadcrumbList>
+        {breadcrumbs.map((breadcrumb, index) => (
+          <React.Fragment key={breadcrumb.path}>
+            <BreadcrumbItem>
+              {breadcrumb.isLast ? (
+                <BreadcrumbPage className="flex items-center gap-1">
+                  {breadcrumb.icon}
+                  {breadcrumb.name}
+                </BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink asChild>
+                  <Link to={breadcrumb.path} className="flex items-center gap-1 hover:text-foreground">
+                    {breadcrumb.icon}
+                    {breadcrumb.name}
+                  </Link>
+                </BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+            {index < breadcrumbs.length - 1 && (
+              <BreadcrumbSeparator>
+                <ChevronRight className="h-4 w-4" />
+              </BreadcrumbSeparator>
+            )}
+          </React.Fragment>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 };
+
+export default SmartBreadcrumbs;

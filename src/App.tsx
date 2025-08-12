@@ -92,10 +92,13 @@ function AppContent() {
             <Route path="auditoria" element={<AuditoriaPage />} />
             <Route path="ativar-funcionario/:id" element={<AtivarFuncionario />} />
             
-            {/* Seguros de Vida */}
+            {/* Seguros de Vida - rotas principais */}
             <Route path="seguros-de-vida/empresas" element={<SegurosVidaEmpresasPage />} />
             <Route path="seguros-de-vida/empresas/:empresaId/cnpjs" element={<SegurosVidaCnpjsPage />} />
-            <Route path="seguros-de-vida/plano/:planoId" element={<SegurosVidaPlanoPage />} />
+            
+            {/* Seguros de Vida - rotas alias para compatibilidade */}
+            <Route path="seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
+            <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
             
             {/* Planos de Saúde - USANDO EMBREVEPAGE */}
             <Route path="planos-de-saude/empresas" element={<EmBrevePage />} />
@@ -116,7 +119,11 @@ function AppContent() {
           <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
           <Route path="empresa/planos/:id" element={<PlanoDetalhesPage />} />
           <Route path="empresa/planos-saude/:id" element={<PlanoSaudeDetalhesPage />} />
-          <Route path="empresa/seguros-vida/:id" element={<SeguroVidaDetalhesPage />} />
+          
+          {/* Rota corrigida para seguro de vida da empresa */}
+          <Route path="empresa/seguros-de-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
+          {/* Alias para compatibilidade com links antigos */}
+          <Route path="empresa/seguros-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
           
           {/* Empresa - Relatórios */}
           <Route path="empresa/relatorios/funcionarios" element={<RelatorioFuncionariosEmpresaPage />} />
