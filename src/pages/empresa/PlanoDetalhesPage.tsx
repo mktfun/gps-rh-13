@@ -71,6 +71,26 @@ const PlanoDetalhesPage: React.FC = () => {
     toast.info('Funcionalidade de exportação em desenvolvimento');
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <DashboardLoadingState />
+      </div>
+    );
+  }
+
+  if (error || !plano) {
+    return (
+      <div className="container mx-auto py-6">
+        <EmptyState
+          icon={AlertTriangle}
+          title="Erro ao carregar plano"
+          description="Não foi possível carregar os detalhes do plano. Tente novamente."
+        />
+      </div>
+    );
+  }
+
   console.log('✅ Renderizando plano com sucesso!', plano.seguradora);
 
   return (
@@ -221,11 +241,7 @@ const PlanoDetalhesPage: React.FC = () => {
                 <TabsContent value="funcionarios" className="mt-6">
                   <FuncionariosTab 
                     cnpjId={plano.cnpj_id}
-                    plano={{
-                      id: plano.id,
-                      seguradora: plano.seguradora,
-                      valor_mensal: valorReal
-                    }}
+                    plano={plano}
                     tipoSeguro={plano.tipo_seguro || 'vida'}
                   />
                 </TabsContent>
