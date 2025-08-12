@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,7 +34,7 @@ import AuditoriaPage from "./pages/corretora/AuditoriaPage";
 
 // Relatorios corretora
 import RelatorioFinanceiroPage from "./pages/corretora/relatorios/RelatorioFinanceiroPage";
-import RelatorioFuncionariosPage from "./pages/corretora/relatorios/RelatorioFuncionariosPage";
+import RelatorioFuncionariosCorretoraPage from "./pages/corretora/relatorios/RelatorioFuncionariosPage";
 import RelatorioMovimentacaoPage from "./pages/corretora/relatorios/RelatorioMovimentacaoPage";
 
 // Seguros de vida corretora
@@ -109,7 +110,7 @@ function App() {
                   
                   {/* Corretora Relatórios */}
                   <Route path="corretora/relatorios/financeiro" element={<ProtectedCorretoraRoute><RelatorioFinanceiroPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/relatorios/funcionarios" element={<ProtectedCorretoraRoute><RelatorioFuncionariosPage /></ProtectedCorretoraRoute>} />
+                  <Route path="corretora/relatorios/funcionarios" element={<ProtectedCorretoraRoute><RelatorioFuncionariosCorretoraPage /></ProtectedCorretoraRoute>} />
                   <Route path="corretora/relatorios/movimentacao" element={<ProtectedCorretoraRoute><RelatorioMovimentacaoPage /></ProtectedCorretoraRoute>} />
                   
                   {/* Corretora Seguros de Vida */}
