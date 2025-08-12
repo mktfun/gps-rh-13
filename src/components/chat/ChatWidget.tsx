@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useConversasWidget } from '@/hooks/useConversasWidget';
 import { useTotalUnreadCount } from '@/hooks/useTotalUnreadCount';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { ActiveChatWindow } from './ActiveChatWindow';
 import { NovaConversaComProtocoloModal } from './NovaConversaComProtocoloModal';
 import { NovaConversaModal } from './NovaConversaModal';
 import { useAuth } from '@/hooks/useAuth';
+import { OpenChatWidgetDetail } from '@/utils/chatWidgetEvents';
 
 interface ChatWidgetProps {
   onOpenChat?: () => void;
@@ -26,6 +28,22 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
   const [showNovaConversaModal, setShowNovaConversaModal] = useState(false);
   const [showNovaConversaCorretoraModal, setShowNovaConversaCorretoraModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Ouvir eventos para abrir o widget
+  useEffect(() => {
+    const handleOpenWidget = (e: Event) => {
+      const customEvent = e as CustomEvent<OpenChatWidgetDetail>;
+      setIsExpanded(true);
+      
+      if (customEvent.detail?.conversaId) {
+        setSelectedConversaId(customEvent.detail.conversaId);
+        setSelectedEmpresaNome(customEvent.detail.empresaNome || 'Conversa');
+      }
+    };
+
+    window.addEventListener('open-chat-widget', handleOpenWidget);
+    return () => window.removeEventListener('open-chat-widget', handleOpenWidget);
+  }, []);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -145,18 +163,6 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ onOpenChat }) => {
                   className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
                 >
                   <Plus className="h-4 w-4" />
-                </Button>
-              )}
-              {onOpenChat && (
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenChat();
-                  }}
-                >
-                  Abrir Chat
                 </Button>
               )}
               <ChevronDown className="h-4 w-4" />

@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, Send, Calendar, Link as LinkIcon, Sparkles, Info } from 'lucide-react';
+import { MessageSquare, Send, Calendar, Sparkles, Info, MessageCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
+import { openChatWidget } from '@/utils/chatWidgetEvents';
 
 interface PendenciaCommentsModalProps {
   isOpen: boolean;
@@ -121,73 +121,61 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
   // Gerar dados contextuais da pendência
   const dadosContextuais = useMemo(() => {
-    const statusLabels = {
-      'pendente': 'Ativação Pendente',
-      'exclusao_solicitada': 'Exclusão Solicitada',
-      'inativo': 'Funcionário Inativo'
-    };
-
     const dados = [
-      `📋 COBRANÇA DE PENDÊNCIA - PROTOCOLO ${pendencia.protocolo}`,
+      `📋 MENSAGEM DA EMPRESA PARA A CORRETORA - PROTOCOLO ${pendencia.protocolo}`,
       ``,
       `👤 Funcionário: ${pendencia.funcionario_nome}`,
       `📄 CPF: ${pendencia.cpf}`,
       `💼 Cargo: ${pendencia.cargo}`,
       `🏢 Empresa: ${pendencia.cnpj_razao_social}`,
-      `📊 Status: ${statusLabels[pendencia.status as keyof typeof statusLabels] || pendencia.status}`,
+      `📊 Motivo: ${pendencia.motivo}`,
       `📅 Data da Solicitação: ${format(new Date(pendencia.data_solicitacao), 'dd/MM/yyyy', { locale: ptBR })}`,
       `⏰ Tempo em Aberto: ${diasAtraso} ${diasAtraso === 1 ? 'dia' : 'dias'}`,
-      `🔍 Motivo: ${pendencia.motivo}`,
+      `🔍 Descrição: ${pendencia.descricao}`,
       ``,
       `---`,
-      `MENSAGEM DA SEGURADORA:`,
+      `MENSAGEM DA EMPRESA:`,
       ``
     ];
 
     return dados.join('\n');
   }, [pendencia, diasAtraso]);
 
-  // Sugestões direcionadas à corretora/empresa como se fosse da seguradora
+  // Sugestões de mensagem da empresa para a corretora
   const suggestions = useMemo(() => {
     const nome = pendencia.funcionario_nome?.split(' ')?.[0] || pendencia.funcionario_nome;
     const desc = (pendencia.descricao || '').toLowerCase();
-    const status = pendencia.status;
     const dias = diasAtraso;
 
     const base: string[] = [];
 
-    // Sugestões baseadas no status - como se fosse da seguradora
-    if (status === 'pendente') {
-      if (dias > 7) {
-        base.push(`Olá, a ativação do funcionário ${nome} (CPF: ${pendencia.cpf}) está pendente há ${dias} dias e ainda não recebemos nenhum retorno. Precisamos de uma posição urgente sobre esta solicitação.`);
-      } else if (dias > 3) {
-        base.push(`Olá, notamos que a ativação do funcionário ${nome} (CPF: ${pendencia.cpf}) está em aberto há ${dias} dias. Poderiam nos dar um retorno sobre o andamento?`);
-      } else {
-        base.push(`Olá, sobre a ativação do funcionário ${nome} (CPF: ${pendencia.cpf}), há alguma documentação adicional necessária para prosseguirmos?`);
-      }
-    }
-
-    if (status === 'exclusao_solicitada') {
-      base.push(`Olá, recebemos a solicitação de exclusão do funcionário ${nome} (CPF: ${pendencia.cpf}). Poderiam confirmar os próximos passos para finalizarmos este processo?`);
-      if (dias > 5) {
-        base.push(`A solicitação de exclusão do funcionário ${nome} (CPF: ${pendencia.cpf}) está em análise há ${dias} dias. Há alguma pendência para concluirmos este processo?`);
-      }
+    // Sugestões baseadas no tempo em aberto
+    if (dias > 7) {
+      base.push(`Olá, equipe da corretora, o funcionário ${nome} (CPF: ${pendencia.cpf}) está com pendência há ${dias} dias e ainda não recebemos nenhum retorno. Precisamos de uma posição urgente sobre esta solicitação.`);
+    } else if (dias > 3) {
+      base.push(`Olá, equipe da corretora, notamos que a pendência do funcionário ${nome} (CPF: ${pendencia.cpf}) está em aberto há ${dias} dias. Poderiam nos dar um retorno sobre o andamento?`);
+    } else {
+      base.push(`Olá, equipe da corretora, sobre a pendência do funcionário ${nome} (CPF: ${pendencia.cpf}), há alguma documentação adicional necessária para prosseguirmos?`);
     }
 
     // Sugestões baseadas na descrição
     if (desc.includes('document') || desc.includes('doc') || desc.includes('anexo')) {
-      base.push(`Sobre o funcionário ${nome} (CPF: ${pendencia.cpf}), ainda aguardamos os documentos pendentes para darmos continuidade ao processo. Poderiam providenciar o quanto antes?`);
+      base.push(`Sobre o funcionário ${nome} (CPF: ${pendencia.cpf}), ainda aguardamos os documentos pendentes. Poderiam providenciar o quanto antes?`);
     }
 
     if (desc.includes('cpf') || desc.includes('dados') || desc.includes('informação')) {
       base.push(`Identificamos uma divergência nos dados do funcionário ${nome} (CPF: ${pendencia.cpf}). Poderiam confirmar as informações cadastrais para prosseguirmos?`);
     }
 
-    // Sugestão padrão mais formal
-    base.push(`Olá, sobre a pendência do funcionário ${nome} (CPF: ${pendencia.cpf}), estamos acompanhando este caso há ${dias} ${dias === 1 ? 'dia' : 'dias'} e gostaríamos de saber quando poderemos ter uma resolução.`);
+    if (desc.includes('ativacao') || desc.includes('ativar')) {
+      base.push(`A ativação do funcionário ${nome} (CPF: ${pendencia.cpf}) está pendente há ${dias} ${dias === 1 ? 'dia' : 'dias'}. Há previsão para conclusão?`);
+    }
+
+    // Sugestão padrão
+    base.push(`Olá, equipe da corretora, sobre a pendência do funcionário ${nome} (CPF: ${pendencia.cpf}), estamos acompanhando este caso há ${dias} ${dias === 1 ? 'dia' : 'dias'} e gostaríamos de saber quando poderemos ter uma resolução.`);
 
     return Array.from(new Set(base));
-  }, [pendencia.funcionario_nome, pendencia.cpf, pendencia.descricao, pendencia.status, diasAtraso]);
+  }, [pendencia.funcionario_nome, pendencia.cpf, pendencia.descricao, diasAtraso]);
 
   const handleUseSuggestion = (text: string) => {
     setMessage(text);
@@ -246,12 +234,21 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
       }
 
       toast({
-        title: 'Cobrança enviada',
-        description: 'Sua cobrança sobre a pendência foi enviada para a empresa.',
+        title: 'Mensagem enviada',
+        description: 'Sua mensagem sobre a pendência foi enviada para a corretora.',
       });
       setMessage('');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenChatWidget = () => {
+    if (conversaId) {
+      openChatWidget({ 
+        conversaId, 
+        empresaNome: pendencia.cnpj_razao_social 
+      });
     }
   };
 
@@ -261,7 +258,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Cobrar Pendência - Protocolo {pendencia.protocolo}
+            Enviar Mensagem - Protocolo {pendencia.protocolo}
           </DialogTitle>
         </DialogHeader>
 
@@ -294,8 +291,8 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
             </div>
             <div className="mt-3 flex items-center gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <Badge variant={pendencia.status === 'exclusao_solicitada' ? 'destructive' : 'secondary'}>
+                <p className="text-sm font-medium text-muted-foreground">Motivo</p>
+                <Badge variant="secondary">
                   {pendencia.motivo}
                 </Badge>
               </div>
@@ -308,12 +305,15 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
             </div>
             <div className="mt-3 flex items-center gap-2">
               {conversaId && (
-                <Link to={`/chat?conversa=${conversaId}`} className="inline-flex">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <LinkIcon className="h-4 w-4" />
-                    Abrir chat completo
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={handleOpenChatWidget}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Abrir conversa no widget
+                </Button>
               )}
             </div>
           </div>
@@ -324,7 +324,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-blue-500" />
-              <h4 className="font-medium">Dados que serão incluídos automaticamente na cobrança</h4>
+              <h4 className="font-medium">Dados que serão incluídos automaticamente na mensagem</h4>
             </div>
             <div className="bg-gray-50 p-3 rounded-md border text-sm font-mono whitespace-pre-line text-gray-700 max-h-32 overflow-y-auto">
               {dadosContextuais}
@@ -333,11 +333,11 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
           <Separator />
 
-          {/* Sugestões de cobrança */}
+          {/* Sugestões de mensagem */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <h4 className="font-medium">Sugestões de cobrança para a empresa</h4>
+              <h4 className="font-medium">Sugestões de mensagem para a corretora</h4>
             </div>
 
             <div className="space-y-2">
@@ -359,9 +359,9 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
           {/* Composer */}
           <div className="space-y-3">
-            <h4 className="font-medium">Sua mensagem de cobrança personalizada</h4>
+            <h4 className="font-medium">Sua mensagem personalizada</h4>
             <Textarea
-              placeholder="Digite sua mensagem de cobrança personalizada (será enviada após os dados da pendência)..."
+              placeholder="Digite sua mensagem personalizada (será enviada após os dados da pendência)..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
@@ -376,7 +376,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
                 className="gap-2"
               >
                 <Send className="h-4 w-4" />
-                {isSubmitting ? 'Enviando...' : 'Enviar cobrança'}
+                {isSubmitting ? 'Enviando...' : 'Enviar mensagem'}
               </Button>
             </div>
           </div>
@@ -384,10 +384,10 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
           {/* Histórico note */}
           <Separator />
           <div className="text-xs text-muted-foreground">
-            💡 <strong>Dica:</strong> A cobrança será enviada como seguradora para a empresa com todos os dados da pendência incluídos automaticamente. 
-            A empresa receberá as informações completas e poderá responder diretamente no chat.
+            💡 <strong>Dica:</strong> A mensagem será enviada da empresa para a corretora com todos os dados da pendência incluídos automaticamente. 
+            A corretora receberá as informações completas e poderá responder diretamente no chat.
             {conversaId && (
-              <> Você pode acompanhar e continuar a conversa na <Link to={`/chat?conversa=${conversaId}`} className="text-primary hover:underline">Central de Mensagens</Link>.</>
+              <> Você pode acompanhar e continuar a conversa no widget de chat.</>
             )}
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, MessageSquare } from "lucide-react";
 import { TipoPendenciaBadge, PrioridadePendenciaBadge } from "./PendenciasBadges";
 import { PendenciaCommentsModal } from "./PendenciaCommentsModal";
+import { PendenciaQuickViewModal } from "./PendenciaQuickViewModal";
 import { useState } from "react";
 
 interface TabelaPendencias {
@@ -128,14 +130,16 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
     header: 'Ações',
     cell: ({ row }) => {
       const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+      const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
       
       return (
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => console.log('Ver detalhes:', row.original.id)}
+            onClick={() => setIsQuickViewOpen(true)}
             className="h-8 w-8 p-0"
+            title="Visualizar resumo"
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -144,6 +148,7 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
             size="sm"
             onClick={() => setIsCommentsOpen(true)}
             className="h-8 w-8 p-0 relative"
+            title="Enviar mensagem"
           >
             <MessageSquare className="h-4 w-4" />
             {row.original.comentarios_count > 0 && (
@@ -155,6 +160,24 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
               </Badge>
             )}
           </Button>
+          
+          <PendenciaQuickViewModal
+            isOpen={isQuickViewOpen}
+            onClose={() => setIsQuickViewOpen(false)}
+            pendencia={{
+              protocolo: row.original.protocolo,
+              funcionario_nome: row.original.funcionario_nome,
+              funcionario_cpf: row.original.funcionario_cpf,
+              razao_social: row.original.razao_social,
+              cnpj: row.original.cnpj,
+              descricao: row.original.descricao,
+              data_criacao: row.original.data_criacao,
+              data_vencimento: row.original.data_vencimento,
+              status_prioridade: row.original.status_prioridade,
+              dias_em_aberto: row.original.dias_em_aberto,
+              tipo: row.original.tipo
+            }}
+          />
           
           <PendenciaCommentsModal
             isOpen={isCommentsOpen}
