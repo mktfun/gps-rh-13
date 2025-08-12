@@ -2,7 +2,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, User, Briefcase, DollarSign, Shield } from 'lucide-react';
+import { Eye, User, Briefcase, DollarSign, Shield, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatCurrency } from '@/lib/utils';
 
 interface FuncionarioEmpresa {
@@ -26,7 +27,8 @@ interface FuncionarioEmpresa {
 }
 
 export const createFuncionariosEmpresaTableColumns = (
-  onViewDetails: (funcionario: FuncionarioEmpresa) => void
+  onViewDetails: (funcionario: FuncionarioEmpresa) => void,
+  onSolicitarExclusao?: (funcionario: FuncionarioEmpresa) => void
 ): ColumnDef<FuncionarioEmpresa>[] => [
   {
     accessorKey: 'nome',
@@ -74,6 +76,8 @@ export const createFuncionariosEmpresaTableColumns = (
             return 'secondary';
           case 'desativado':
             return 'destructive';
+          case 'exclusao_solicitada':
+            return 'destructive';
           default:
             return 'outline';
         }
@@ -81,7 +85,7 @@ export const createFuncionariosEmpresaTableColumns = (
 
       return (
         <Badge variant={getStatusVariant(status)}>
-          {status}
+          {status === 'exclusao_solicitada' ? 'Exclusão Solicitada' : status}
         </Badge>
       );
     },
@@ -152,16 +156,36 @@ export const createFuncionariosEmpresaTableColumns = (
   {
     id: 'actions',
     header: 'Ações',
-    cell: ({ row }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onViewDetails(row.original)}
-        className="h-8 px-2"
-      >
-        <Eye className="h-4 w-4 mr-2" />
-        Ver Detalhes
-      </Button>
-    ),
+    cell: ({ row }) => {
+      const funcionario = row.original;
+      const canSolicitarExclusao = funcionario.status === 'ativo' && onSolicitarExclusao;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onViewDetails(funcionario)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Ver Detalhes
+            </DropdownMenuItem>
+            
+            {canSolicitarExclusao && (
+              <DropdownMenuItem 
+                onClick={() => onSolicitarExclusao!(funcionario)}
+                className="text-orange-600"
+              >
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Solicitar Exclusão
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];

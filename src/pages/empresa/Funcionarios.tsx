@@ -50,6 +50,7 @@ const Funcionarios = () => {
     totalCount,
     totalPages,
     isLoading,
+    archiveFuncionario,
   } = useFuncionarios({
     search,
     page: currentPage,
@@ -65,6 +66,12 @@ const Funcionarios = () => {
     setModalOpen(true);
   };
 
+  const handleSolicitarExclusao = (funcionario: FuncionarioEmpresa) => {
+    if (window.confirm(`Tem certeza que deseja solicitar a exclusão do funcionário "${funcionario.nome}"? A corretora precisará aprovar.`)) {
+      archiveFuncionario.mutate(funcionario.id);
+    }
+  };
+
   const handleCreateFuncionario = async (data: any) => {
     try {
       await createFuncionario.mutateAsync(data);
@@ -75,7 +82,7 @@ const Funcionarios = () => {
     }
   };
 
-  const columns = createFuncionariosEmpresaTableColumns(handleViewDetails);
+  const columns = createFuncionariosEmpresaTableColumns(handleViewDetails, handleSolicitarExclusao);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -161,6 +168,7 @@ const Funcionarios = () => {
                     <SelectItem value="ativo">Ativo</SelectItem>
                     <SelectItem value="pendente">Pendente</SelectItem>
                     <SelectItem value="desativado">Desativado</SelectItem>
+                    <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

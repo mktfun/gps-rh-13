@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DataTable } from '@/components/ui/data-table';
 import FuncionarioModal from './FuncionarioModal';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
+import { useAuth } from '@/hooks/useAuth';
 import { Tables } from '@/integrations/supabase/types';
 
 type Funcionario = Tables<'funcionarios'> & {
@@ -60,7 +61,11 @@ export const FuncionariosTable = ({
 }: FuncionariosTableProps) => {
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState<Funcionario | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const { role } = useAuth();
   const { archiveFuncionario, approveExclusao, denyExclusao, updateFuncionario } = useFuncionarios();
+
+  const isCorretora = role === 'corretora';
+  const isEmpresa = role === 'empresa';
 
   const handleEdit = (funcionario: Funcionario) => {
     setFuncionarioSelecionado(funcionario);
@@ -165,14 +170,16 @@ export const FuncionariosTable = ({
                 Editar
               </DropdownMenuItem>
               
-              {status === 'ativo' && (
+              {/* Ações para EMPRESA */}
+              {isEmpresa && status === 'ativo' && (
                 <DropdownMenuItem onClick={() => handleArchive(funcionario.id)}>
                   <Archive className="mr-2 h-4 w-4" />
                   Solicitar Exclusão
                 </DropdownMenuItem>
               )}
               
-              {status === 'exclusao_solicitada' && (
+              {/* Ações para CORRETORA */}
+              {isCorretora && status === 'exclusao_solicitada' && (
                 <>
                   <DropdownMenuItem onClick={() => handleApprove(funcionario.id)}>
                     <UserCheck className="mr-2 h-4 w-4" />

@@ -22,7 +22,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   cnpjId,
   onViewDetails
 }) => {
-  const { user } = useAuth();
+  const { role } = useAuth();
   const { updateFuncionario, deleteFuncionario } = usePlanoFuncionarios({
     planoId,
     tipoSeguro,
@@ -32,8 +32,8 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
     pageSize: 10,
   });
 
-  const isCorretora = user?.user_metadata?.role === 'corretora';
-  const isEmpresa = user?.user_metadata?.role === 'empresa';
+  const isCorretora = role === 'corretora';
+  const isEmpresa = role === 'empresa';
 
   const handleStatusChange = (newStatus: 'ativo' | 'inativo' | 'exclusao_solicitada') => {
     updateFuncionario.mutate({
@@ -83,6 +83,19 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
                 <Edit className="mr-2 h-4 w-4" />
                 Desativar
               </DropdownMenuItem>
+            )}
+            
+            {funcionario.status === 'exclusao_solicitada' && (
+              <>
+                <DropdownMenuItem onClick={() => handleStatusChange('ativo')} className="text-green-600">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Negar exclusão (Reativar)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleRemove} className="text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Aprovar exclusão
+                </DropdownMenuItem>
+              </>
             )}
             
             <DropdownMenuItem onClick={handleRemove} className="text-red-600">
