@@ -62,14 +62,9 @@ const Sidebar = () => {
   // Corretora navigation - Operacional (dia a dia)
   const corretoraOperacional = [
     {
-      name: 'Funcionários Pendentes',
-      href: '/corretora/funcionarios-pendentes',
-      icon: Users,
-    },
-    {
-      name: 'Pendências Exclusão',
-      href: '/corretora/pendencias-exclusao',
-      icon: AlertTriangle,
+      name: 'Relatório de Pendências',
+      href: '/corretora/relatorios/pendencias',
+      icon: ClipboardList,
     },
     {
       name: 'Auditoria',

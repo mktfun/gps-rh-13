@@ -1,149 +1,149 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import { ThemeProvider } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedCorretoraRoute from "@/components/ProtectedCorretoraRoute";
+import RootLayout from "@/components/layout/RootLayout";
+import PublicLayout from "@/components/layout/PublicLayout";
 
-// Public pages
-import LandingPage from "./pages/LandingPage";
+// Auth pages
 import Login from "./pages/auth/Login";
 
-// Protected pages
+// Public pages
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import PerfilPage from "./pages/PerfilPage";
-import ConfiguracoesPage from "./pages/ConfiguracoesPage";
-import EmBrevePage from "./pages/EmBrevePage";
+import LandingPage from "./pages/LandingPage";
 
 // Admin pages
-import Dashboard from "./pages/admin/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import CorretoraspPage from "./pages/admin/CorretoraspPage";
 
 // Corretora pages
 import CorretoraDashboard from "./pages/corretora/Dashboard";
-import EnhancedDashboard from "./pages/corretora/EnhancedDashboard";
 import Empresas from "./pages/corretora/Empresas";
 import EmpresaDetalhes from "./pages/corretora/EmpresaDetalhes";
-import FuncionariosPendentes from "./pages/corretora/FuncionariosPendentes";
-import PendenciasExclusao from "./pages/corretora/PendenciasExclusao";
-import AtivarFuncionario from "./pages/corretora/AtivarFuncionario";
 import AuditoriaPage from "./pages/corretora/AuditoriaPage";
+import AtivarFuncionario from "./pages/corretora/AtivarFuncionario";
 
-// Relatorios corretora
-import RelatorioFinanceiroPage from "./pages/corretora/relatorios/RelatorioFinanceiroPage";
-import RelatorioFuncionariosCorretoraPage from "./pages/corretora/relatorios/RelatorioFuncionariosPage";
-import RelatorioMovimentacaoPage from "./pages/corretora/relatorios/RelatorioMovimentacaoPage";
-
-// Seguros de vida corretora
+// Corretora - Seguros de Vida
 import SegurosVidaEmpresasPage from "./pages/corretora/seguros-vida/SegurosVidaEmpresasPage";
 import SegurosVidaCnpjsPage from "./pages/corretora/seguros-vida/SegurosVidaCnpjsPage";
 import SegurosVidaPlanoPage from "./pages/corretora/seguros-vida/SegurosVidaPlanoPage";
 
-// Planos de saúde corretora
+// Corretora - Planos de Saúde
 import PlanosSaudeEmpresasPage from "./pages/corretora/planos-saude/PlanosSaudeEmpresasPage";
 import PlanosSaudeCnpjsPage from "./pages/corretora/planos-saude/PlanosSaudeCnpjsPage";
 import PlanosSaudePlanoPage from "./pages/corretora/planos-saude/PlanosSaudePlanoPage";
 
+// Corretora - Relatórios
+import RelatorioFinanceiroPage from "./pages/corretora/relatorios/RelatorioFinanceiroPage";
+import RelatorioFuncionariosPage from "./pages/corretora/relatorios/RelatorioFuncionariosPage";
+import RelatorioMovimentacaoPage from "./pages/corretora/relatorios/RelatorioMovimentacaoPage";
+import RelatorioPendenciasCorretoraPage from "./pages/corretora/relatorios/RelatorioPendenciasCorretoraPage";
+
 // Empresa pages
 import EmpresaDashboard from "./pages/empresa/Dashboard";
-import Funcionarios from "./pages/empresa/Funcionarios";
+import EmpresaFuncionarios from "./pages/empresa/Funcionarios";
 import EmpresaPlanosPage from "./pages/empresa/EmpresaPlanosPage";
 import EmpresaPlanosSaudePage from "./pages/empresa/EmpresaPlanosSaudePage";
 import PlanoDetalhesPage from "./pages/empresa/PlanoDetalhesPage";
 import PlanoSaudeDetalhesPage from "./pages/empresa/PlanoSaudeDetalhesPage";
 import SeguroVidaDetalhesPage from "./pages/empresa/SeguroVidaDetalhesPage";
 
-// Relatorios empresa
+// Empresa - Relatórios
 import RelatorioFuncionariosEmpresaPage from "./pages/empresa/relatorios/RelatorioFuncionariosEmpresaPage";
-import RelatorioFuncionariosPage from "./pages/empresa/relatorios/RelatorioFuncionariosPage";
+import RelatorioFuncionariosPageEmpresa from "./pages/empresa/relatorios/RelatorioFuncionariosPage";
 import RelatorioCustosEmpresaPage from "./pages/empresa/relatorios/RelatorioCustosEmpresaPage";
 import RelatorioCustosDetalhadoPage from "./pages/empresa/relatorios/RelatorioCustosDetalhadoPage";
 import RelatorioPendenciasEmpresaPage from "./pages/empresa/relatorios/RelatorioPendenciasEmpresaPage";
 
-// Layout and protection - CORRIGIDO: importando o RootLayout completo
-import RootLayout from "./components/layout/RootLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProtectedCorretoraRoute from "./components/ProtectedCorretoraRoute";
+// Shared pages
+import PerfilPage from "./pages/PerfilPage";
+import ConfiguracoesPage from "./pages/ConfiguracoesPage";
+import NotFound from "./pages/NotFound";
+import EmBrevePage from "./pages/EmBrevePage";
 
 const queryClient = new QueryClient();
 
 function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-        <TooltipProvider>
-          <AuthProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/landing" element={<LandingPage />} />
-                <Route path="/login" element={<Login />} />
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<PublicLayout />}>
+              <Route index element={<LandingPage />} />
+              <Route path="login" element={<Login />} />
+            </Route>
+
+            {/* Protected routes */}
+            <Route path="/" element={<ProtectedRoute><RootLayout /></ProtectedRoute>}>
+              {/* Admin routes */}
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route path="admin/corretoras" element={<CorretoraspPage />} />
+
+              {/* Corretora routes */}
+              <Route path="corretora" element={<ProtectedCorretoraRoute />}>
+                <Route path="dashboard" element={<CorretoraDashboard />} />
+                <Route index element={<CorretoraDashboard />} />
+                <Route path="empresas" element={<Empresas />} />
+                <Route path="empresas/:id" element={<EmpresaDetalhes />} />
+                <Route path="auditoria" element={<AuditoriaPage />} />
+                <Route path="ativar-funcionario/:id" element={<AtivarFuncionario />} />
                 
-                {/* Protected Routes */}
-                <Route path="/" element={<ProtectedRoute><RootLayout /></ProtectedRoute>}>
-                  <Route index element={<Index />} />
-                  <Route path="perfil" element={<PerfilPage />} />
-                  <Route path="configuracoes" element={<ConfiguracoesPage />} />
-                  <Route path="em-breve" element={<EmBrevePage />} />
-                  
-                  {/* Admin Routes */}
-                  <Route path="admin/dashboard" element={<Dashboard />} />
-                  <Route path="admin/corretoras" element={<CorretoraspPage />} />
-                  
-                  {/* Corretora Routes */}
-                  <Route path="corretora/dashboard" element={<ProtectedCorretoraRoute><CorretoraDashboard /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/enhanced-dashboard" element={<ProtectedCorretoraRoute><EnhancedDashboard /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/empresas" element={<ProtectedCorretoraRoute><Empresas /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/empresa/:empresaId" element={<ProtectedCorretoraRoute><EmpresaDetalhes /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/funcionarios-pendentes" element={<ProtectedCorretoraRoute><FuncionariosPendentes /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/pendencias-exclusao" element={<ProtectedCorretoraRoute><PendenciasExclusao /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/ativar-funcionario" element={<ProtectedCorretoraRoute><AtivarFuncionario /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/auditoria" element={<ProtectedCorretoraRoute><AuditoriaPage /></ProtectedCorretoraRoute>} />
-                  
-                  {/* Corretora Relatórios */}
-                  <Route path="corretora/relatorios/financeiro" element={<ProtectedCorretoraRoute><RelatorioFinanceiroPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/relatorios/funcionarios" element={<ProtectedCorretoraRoute><RelatorioFuncionariosCorretoraPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/relatorios/movimentacao" element={<ProtectedCorretoraRoute><RelatorioMovimentacaoPage /></ProtectedCorretoraRoute>} />
-                  
-                  {/* Corretora Seguros de Vida */}
-                  <Route path="corretora/seguros-de-vida/empresas" element={<ProtectedCorretoraRoute><SegurosVidaEmpresasPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/seguros-de-vida/empresa/:empresaId/cnpjs" element={<ProtectedCorretoraRoute><SegurosVidaCnpjsPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/seguros-de-vida/empresa/:empresaId/cnpj/:cnpjId" element={<ProtectedCorretoraRoute><SegurosVidaPlanoPage /></ProtectedCorretoraRoute>} />
-                  
-                  {/* Corretora Planos de Saúde */}
-                  <Route path="corretora/planos-de-saude/empresas" element={<ProtectedCorretoraRoute><PlanosSaudeEmpresasPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/planos-de-saude/empresa/:empresaId/cnpjs" element={<ProtectedCorretoraRoute><PlanosSaudeCnpjsPage /></ProtectedCorretoraRoute>} />
-                  <Route path="corretora/planos-de-saude/empresa/:empresaId/cnpj/:cnpjId" element={<ProtectedCorretoraRoute><PlanosSaudePlanoPage /></ProtectedCorretoraRoute>} />
-                  
-                  {/* Empresa Routes - CORRIGIDO: Todas agora estão dentro do RootLayout */}
-                  <Route path="empresa/dashboard" element={<EmpresaDashboard />} />
-                  <Route path="empresa/funcionarios" element={<Funcionarios />} />
-                  <Route path="empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
-                  <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
-                  <Route path="empresa/plano/:planoId" element={<PlanoDetalhesPage />} />
-                  <Route path="empresa/plano-saude/:planoId" element={<PlanoSaudeDetalhesPage />} />
-                  <Route path="empresa/seguro-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
-                  
-                  {/* Empresa Relatórios */}
-                  <Route path="empresa/relatorios/funcionarios" element={<RelatorioFuncionariosEmpresaPage />} />
-                  <Route path="empresa/relatorios/funcionarios-completo" element={<RelatorioFuncionariosPage />} />
-                  <Route path="empresa/relatorios/custos-empresa" element={<RelatorioCustosEmpresaPage />} />
-                  <Route path="empresa/relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
-                  <Route path="empresa/relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
-                </Route>
+                {/* Seguros de Vida */}
+                <Route path="seguros-de-vida/empresas" element={<SegurosVidaEmpresasPage />} />
+                <Route path="seguros-de-vida/empresas/:empresaId/cnpjs" element={<SegurosVidaCnpjsPage />} />
+                <Route path="seguros-de-vida/plano/:planoId" element={<SegurosVidaPlanoPage />} />
                 
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </AuthProvider>
-        </TooltipProvider>
-      </ThemeProvider>
+                {/* Planos de Saúde */}
+                <Route path="planos-de-saude/empresas" element={<PlanosSaudeEmpresasPage />} />
+                <Route path="planos-de-saude/empresas/:empresaId/cnpjs" element={<PlanosSaudeCnpjsPage />} />
+                <Route path="planos-de-saude/plano/:planoId" element={<PlanosSaudePlanoPage />} />
+                
+                {/* Relatórios */}
+                <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
+                <Route path="relatorios/funcionarios" element={<RelatorioFuncionariosPage />} />
+                <Route path="relatorios/movimentacao" element={<RelatorioMovimentacaoPage />} />
+                <Route path="relatorios/pendencias" element={<RelatorioPendenciasCorretoraPage />} />
+              </Route>
+
+              {/* Empresa routes */}
+              <Route path="empresa/dashboard" element={<EmpresaDashboard />} />
+              <Route path="empresa/funcionarios" element={<EmpresaFuncionarios />} />
+              <Route path="empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
+              <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
+              <Route path="empresa/planos/:id" element={<PlanoDetalhesPage />} />
+              <Route path="empresa/planos-saude/:id" element={<PlanoSaudeDetalhesPage />} />
+              <Route path="empresa/seguros-vida/:id" element={<SeguroVidaDetalhesPage />} />
+              
+              {/* Empresa - Relatórios */}
+              <Route path="empresa/relatorios/funcionarios" element={<RelatorioFuncionariosEmpresaPage />} />
+              <Route path="empresa/relatorios/funcionarios-detalhado" element={<RelatorioFuncionariosPageEmpresa />} />
+              <Route path="empresa/relatorios/custos-empresa" element={<RelatorioCustosEmpresaPage />} />
+              <Route path="empresa/relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
+              <Route path="empresa/relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
+
+              {/* Shared routes */}
+              <Route path="perfil" element={<PerfilPage />} />
+              <Route path="configuracoes" element={<ConfiguracoesPage />} />
+            </Route>
+
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
