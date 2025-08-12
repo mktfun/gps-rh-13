@@ -11,11 +11,11 @@ interface RelatorioCustoEmpresaPaginado {
   status: string;
   total_cnpj: number;
   total_count: number;
-  // Novos campos retornados pela função com totais globais
-  total_funcionarios_ativos?: number;
-  total_cnpjs_com_plano?: number;
-  total_geral?: number;
-  custo_medio_por_cnpj?: number;
+  // Campos de totais globais retornados pela função SQL
+  total_funcionarios_ativos: number;
+  total_cnpjs_com_plano: number;
+  total_geral: number;
+  custo_medio_por_cnpj: number;
 }
 
 interface UseRelatorioCustosEmpresaPaginadoParams {
@@ -57,7 +57,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
       const totalCount = results.length > 0 ? Number(first?.total_count || 0) : 0;
       const totalPages = Math.ceil((totalCount || 0) / pageSize);
 
-      // Totais globais (iguais em todas as linhas, extraídos da primeira)
+      // Totais globais vindos da função SQL (iguais em todas as linhas)
       const totalFuncionariosAtivos = Number(first?.total_funcionarios_ativos || 0);
       const totalCnpjsComPlano = Number(first?.total_cnpjs_com_plano || 0);
       const totalGeral = Number(first?.total_geral || 0);
@@ -69,7 +69,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         totalPages,
         currentPage: pageIndex,
         pageSize,
-        // Expor totais globais para a UI não variar com a paginação
+        // Expor totais globais para a UI
         totalFuncionariosAtivos,
         totalCnpjsComPlano,
         totalGeral,
