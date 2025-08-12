@@ -63,13 +63,10 @@ import RelatorioCustosEmpresaPage from "./pages/empresa/relatorios/RelatorioCust
 import RelatorioCustosDetalhadoPage from "./pages/empresa/relatorios/RelatorioCustosDetalhadoPage";
 import RelatorioPendenciasEmpresaPage from "./pages/empresa/relatorios/RelatorioPendenciasEmpresaPage";
 
-// Layout and protection
-import RootLayout from "./layouts/RootLayout";
+// Layout and protection - CORRIGIDO: importando o RootLayout completo
+import RootLayout from "./components/layout/RootLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedCorretoraRoute from "./components/ProtectedCorretoraRoute";
-
-// Chat Widget
-import { ChatWidget } from "./components/chat/ChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -143,9 +140,6 @@ function App() {
                 {/* Catch-all route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              
-              {/* Chat Widget - only show on protected routes */}
-              <ChatWidget />
             </BrowserRouter>
           </AuthProvider>
         </TooltipProvider>
