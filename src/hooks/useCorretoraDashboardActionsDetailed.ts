@@ -22,43 +22,51 @@ export const useCorretoraDashboardActionsDetailed = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Pendências de exclusão por empresa
+      // 1) Pendências de exclusão (fonte: pendencias, tipo = 'cancelamento', status = 'pendente')
       const { data: pendenciasExclusao, error: errorPendencias } = await supabase
-        .from('funcionarios')
+        .from('pendencias')
         .select(`
+          id,
+          tipo,
+          status,
           cnpj:cnpjs!inner(
             empresa_id,
             empresas!inner(nome)
           )
         `)
-        .eq('cnpjs.empresas.corretora_id', user.id)
-        .eq('status', 'exclusao_solicitada');
+        .eq('corretora_id', user.id as any)
+        .eq('status', 'pendente' as any)
+        .eq('tipo', 'cancelamento' as any);
 
       if (errorPendencias) throw errorPendencias;
 
-      // Novos funcionários por empresa
+      // 2) Novos funcionários (fonte: pendencias, tipo = 'ativacao', status = 'pendente')
       const { data: novosFuncionarios, error: errorNovos } = await supabase
-        .from('funcionarios')
+        .from('pendencias')
         .select(`
+          id,
+          tipo,
+          status,
           cnpj:cnpjs!inner(
             empresa_id,
             empresas!inner(nome)
           )
         `)
-        .eq('cnpjs.empresas.corretora_id', user.id)
-        .eq('status', 'pendente');
+        .eq('corretora_id', user.id as any)
+        .eq('status', 'pendente' as any)
+        .eq('tipo', 'ativacao' as any);
 
       if (errorNovos) throw errorNovos;
 
-      // Configuração pendente por empresa
+      // 3) Configuração pendente por empresa (mantém fonte cnpjs)
       const { data: configuracaoPendente, error: errorConfiguracao } = await supabase
         .from('cnpjs')
         .select(`
           empresa_id,
           empresas!inner(nome)
         `)
-        .eq('empresas.corretora_id', user.id)
-        .eq('status', 'configuracao');
+        .eq('empresas.corretora_id', user.id as any)
+        .eq('status', 'configuracao' as any);
 
       if (errorConfiguracao) throw errorConfiguracao;
 
@@ -68,6 +76,8 @@ export const useCorretoraDashboardActionsDetailed = () => {
           const empresaId = item.cnpj?.empresa_id || item.empresa_id;
           const empresaNome = item.cnpj?.empresas?.nome || item.empresas?.nome;
           
+          if (!empresaId) return acc;
+
           if (!acc[empresaId]) {
             acc[empresaId] = {
               empresa_id: empresaId,

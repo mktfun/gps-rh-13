@@ -35,7 +35,7 @@ export const useCorretoraDashboardActions = () => {
 
       console.log('Buscando ações necessárias via RPC para corretora:', user.id);
 
-      // Buscar contadores via RPC
+      // Contadores via RPC já unificados para pendencias
       const { data: acoesData, error: acoesError } = await supabase.rpc('get_acoes_necessarias_corretora');
 
       if (acoesError) {
@@ -45,48 +45,54 @@ export const useCorretoraDashboardActions = () => {
 
       console.log('Ações necessárias carregadas via RPC:', acoesData);
 
-      // Buscar últimas pendências de exclusão (detalhadas)
+      // Últimas pendências de exclusão (pendencias: tipo = 'cancelamento')
       const { data: ultimasPendenciasExclusao, error: pendenciasError } = await supabase
-        .from('funcionarios')
+        .from('pendencias')
         .select(`
           id,
-          nome,
-          data_solicitacao_exclusao,
+          data_criacao,
+          funcionarios!left(
+            id,
+            nome
+          ),
           cnpjs!inner(
             empresas!inner(id, nome)
           )
         `)
-        .eq('cnpjs.empresas.corretora_id', user.id as any)
-        .eq('status', 'exclusao_solicitada' as any)
-        .order('data_solicitacao_exclusao', { ascending: false })
-        .limit(5);
-
-      // Buscar últimos funcionários pendentes (detalhadas)
-      const { data: ultimosFuncionariosPendentes, error: funcionariosError } = await supabase
-        .from('funcionarios')
-        .select(`
-          id,
-          nome,
-          created_at,
-          cnpjs!inner(
-            empresas!inner(id, nome)
-          )
-        `)
-        .eq('cnpjs.empresas.corretora_id', user.id as any)
+        .eq('corretora_id', user.id as any)
         .eq('status', 'pendente' as any)
-        .order('created_at', { ascending: false })
+        .eq('tipo', 'cancelamento' as any)
+        .order('data_criacao', { ascending: false })
         .limit(5);
 
-      // Verificar se as queries retornaram erro
+      // Últimas pendências de ativação (pendencias: tipo = 'ativacao')
+      const { data: ultimosFuncionariosPendentes, error: funcionariosError } = await supabase
+        .from('pendencias')
+        .select(`
+          id,
+          data_criacao,
+          funcionarios!left(
+            id,
+            nome
+          ),
+          cnpjs!inner(
+            empresas!inner(id, nome)
+          )
+        `)
+        .eq('corretora_id', user.id as any)
+        .eq('status', 'pendente' as any)
+        .eq('tipo', 'ativacao' as any)
+        .order('data_criacao', { ascending: false })
+        .limit(5);
+
       if (pendenciasError) {
         console.error('Erro ao buscar pendências de exclusão:', pendenciasError);
       }
 
       if (funcionariosError) {
-        console.error('Erro ao buscar funcionários pendentes:', funcionariosError);
+        console.error('Erro ao buscar pendências de ativação:', funcionariosError);
       }
 
-      // Função auxiliar para verificar se o item não é um erro
       const isValidData = (item: any): boolean => {
         return item && typeof item === 'object' && 'id' in item;
       };
@@ -95,24 +101,24 @@ export const useCorretoraDashboardActions = () => {
         pendenciasExclusao: (acoesData as any)?.pendencias_exclusao || 0,
         funcionariosPendentes: (acoesData as any)?.novos_funcionarios || 0,
         empresasConfiguracaoPendente: (acoesData as any)?.configuracao_pendente || 0,
-        ultimasPendenciasExclusao: ultimasPendenciasExclusao?.filter(isValidData).map(item => ({
+        ultimasPendenciasExclusao: (ultimasPendenciasExclusao || []).filter(isValidData).map((item: any) => ({
           id: item.id,
-          nome: item.nome,
+          nome: (item.funcionarios as any)?.nome || '—',
           empresa_nome: (item.cnpjs as any).empresas.nome,
           empresa_id: (item.cnpjs as any).empresas.id,
-          data_solicitacao: item.data_solicitacao_exclusao || ''
-        })) || [],
-        ultimosFuncionariosPendentes: ultimosFuncionariosPendentes?.filter(isValidData).map(item => ({
+          data_solicitacao: item.data_criacao || ''
+        })),
+        ultimosFuncionariosPendentes: (ultimosFuncionariosPendentes || []).filter(isValidData).map((item: any) => ({
           id: item.id,
-          nome: item.nome,
+          nome: (item.funcionarios as any)?.nome || '—',
           empresa_nome: (item.cnpjs as any).empresas.nome,
           empresa_id: (item.cnpjs as any).empresas.id,
-          data_criacao: item.created_at
-        })) || []
+          data_criacao: item.data_criacao || ''
+        }))
       };
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // Cache por 2 minutos
+    staleTime: 1000 * 60 * 2,
     refetchOnWindowFocus: true
   });
 };
