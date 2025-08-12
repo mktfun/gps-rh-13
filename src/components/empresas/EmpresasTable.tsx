@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -22,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { EmpresaTableActions } from './EmpresaTableActions';
 
 interface EmpresasTableProps {
   empresas: EmpresaComMetricas[];
@@ -44,13 +44,15 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
     onEdit(empresa);
   };
 
-  const handleDeleteEmpresa = async (empresa: EmpresaComMetricas) => {
-    setDeletingId(empresa.id);
+  const handleDeleteEmpresa = async (empresaId: string) => {
+    setDeletingId(empresaId);
     try {
-      await onDelete(empresa.id);
-      toast.success(`Empresa "${empresa.nome}" excluída com sucesso`);
+      await onDelete(empresaId);
+      const empresa = empresas.find(e => e.id === empresaId);
+      toast.success(`Empresa "${empresa?.nome}" excluída com sucesso`);
     } catch (error) {
-      toast.error(`Erro ao excluir empresa "${empresa.nome}"`);
+      const empresa = empresas.find(e => e.id === empresaId);
+      toast.error(`Erro ao excluir empresa "${empresa?.nome}"`);
     } finally {
       setDeletingId(null);
     }
@@ -68,29 +70,6 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
       <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
         Ativo
       </Badge>
-    );
-  };
-
-  const getPendenciasBadge = (empresa: EmpresaComMetricas) => {
-    // ✅ CORREÇÃO: Verificação defensiva para evitar erros com valores undefined/null
-    const totalPendencias = empresa?.total_pendencias || 0;
-    
-    if (totalPendencias === 0) {
-      return (
-        <span className="text-muted-foreground">0</span>
-      );
-    }
-    
-    return (
-      <Link 
-        to={`/corretora/empresas/${empresa.id}?filtroStatus=pendente,exclusao_solicitada`}
-        className="inline-block"
-      >
-        <Badge variant="destructive" className="flex items-center gap-1 cursor-pointer hover:bg-red-700 transition-colors">
-          <AlertTriangle className="h-3 w-3" />
-          {totalPendencias}
-        </Badge>
-      </Link>
     );
   };
 
@@ -213,58 +192,12 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
                     </TableCell>
 
                     <TableCell className="text-center">
-                      {getPendenciasBadge(empresa)}
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditEmpresa(empresa)}
-                          className="hover:bg-primary/10 transition-colors"
-                          title="Editar dados da empresa"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="hover:bg-red-100 hover:text-red-600 transition-colors"
-                              title="Excluir empresa"
-                              disabled={deletingId === empresa.id}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                              <AlertDialogDescription className="space-y-2">
-                                <p>
-                                  Tem certeza que deseja excluir a empresa <strong>"{empresa.nome}"</strong>?
-                                </p>
-                                <p className="text-sm text-red-600 font-medium">
-                                  ⚠️ Esta ação é irreversível e irá remover todos os dados relacionados: CNPJs, funcionários e planos.
-                                </p>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteEmpresa(empresa)}
-                                className="bg-red-600 hover:bg-red-700"
-                                disabled={deletingId === empresa.id}
-                              >
-                                {deletingId === empresa.id ? 'Excluindo...' : 'Excluir Empresa'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                      <EmpresaTableActions 
+                        empresa={empresa}
+                        onEdit={handleEditEmpresa}
+                        onDelete={handleDeleteEmpresa}
+                        deletingId={deletingId}
+                      />
                     </TableCell>
                   </TableRow>
                 ))

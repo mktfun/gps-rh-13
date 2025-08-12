@@ -2,9 +2,10 @@
 import React from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { PlanoFuncionario } from '@/hooks/usePlanoFuncionarios';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FuncionarioActionsMenuProps {
   funcionario: PlanoFuncionario;
@@ -21,6 +22,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   cnpjId,
   onViewDetails
 }) => {
+  const { user } = useAuth();
   const { updateFuncionario, deleteFuncionario } = usePlanoFuncionarios({
     planoId,
     tipoSeguro,
@@ -29,6 +31,9 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const isCorretora = user?.user_metadata?.role === 'corretora';
+  const isEmpresa = user?.user_metadata?.role === 'empresa';
 
   const handleStatusChange = (newStatus: 'ativo' | 'inativo' | 'exclusao_solicitada') => {
     updateFuncionario.mutate({
@@ -40,6 +45,12 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   const handleRemove = () => {
     if (window.confirm('Tem certeza que deseja remover este funcionário do plano?')) {
       deleteFuncionario.mutate(funcionario.funcionario_id);
+    }
+  };
+
+  const handleSolicitarExclusao = () => {
+    if (window.confirm('Tem certeza que deseja solicitar a exclusão deste funcionário? A corretora precisará aprovar.')) {
+      handleStatusChange('exclusao_solicitada');
     }
   };
 
@@ -57,31 +68,37 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
           Ver detalhes
         </DropdownMenuItem>
         
-        {funcionario.status === 'pendente' && (
-          <DropdownMenuItem onClick={() => handleStatusChange('ativo')}>
-            <Edit className="mr-2 h-4 w-4" />
-            Ativar
-          </DropdownMenuItem>
+        {/* Ações para CORRETORA */}
+        {isCorretora && (
+          <>
+            {funcionario.status === 'pendente' && (
+              <DropdownMenuItem onClick={() => handleStatusChange('ativo')}>
+                <Edit className="mr-2 h-4 w-4" />
+                Ativar
+              </DropdownMenuItem>
+            )}
+            
+            {funcionario.status === 'ativo' && (
+              <DropdownMenuItem onClick={() => handleStatusChange('inativo')}>
+                <Edit className="mr-2 h-4 w-4" />
+                Desativar
+              </DropdownMenuItem>
+            )}
+            
+            <DropdownMenuItem onClick={handleRemove} className="text-red-600">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir definitivamente
+            </DropdownMenuItem>
+          </>
         )}
-        
-        {funcionario.status === 'ativo' && (
-          <DropdownMenuItem onClick={() => handleStatusChange('inativo')}>
-            <Edit className="mr-2 h-4 w-4" />
-            Desativar
-          </DropdownMenuItem>
-        )}
-        
-        {funcionario.status === 'ativo' && (
-          <DropdownMenuItem onClick={() => handleStatusChange('exclusao_solicitada')}>
-            <Trash2 className="mr-2 h-4 w-4" />
+
+        {/* Ações para EMPRESA */}
+        {isEmpresa && funcionario.status === 'ativo' && (
+          <DropdownMenuItem onClick={handleSolicitarExclusao} className="text-orange-600">
+            <AlertTriangle className="mr-2 h-4 w-4" />
             Solicitar exclusão
           </DropdownMenuItem>
         )}
-        
-        <DropdownMenuItem onClick={handleRemove} className="text-red-600">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Remover do plano
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
