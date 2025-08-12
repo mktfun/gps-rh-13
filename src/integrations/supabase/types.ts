@@ -535,6 +535,7 @@ export type Database = {
         Row: {
           cnpj_id: string
           comentarios_count: number
+          corretora_id: string
           created_at: string
           data_criacao: string
           data_vencimento: string
@@ -549,6 +550,7 @@ export type Database = {
         Insert: {
           cnpj_id: string
           comentarios_count?: number
+          corretora_id: string
           created_at?: string
           data_criacao?: string
           data_vencimento: string
@@ -563,6 +565,7 @@ export type Database = {
         Update: {
           cnpj_id?: string
           comentarios_count?: number
+          corretora_id?: string
           created_at?: string
           data_criacao?: string
           data_vencimento?: string
@@ -580,6 +583,13 @@ export type Database = {
             columns: ["cnpj_id"]
             isOneToOne: false
             referencedRelation: "cnpjs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pendencias_corretora_id_fkey"
+            columns: ["corretora_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
