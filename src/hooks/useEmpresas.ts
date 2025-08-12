@@ -180,13 +180,21 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
 
   const deleteEmpresa = useMutation({
     mutationFn: async (id: string) => {
+      console.log('🗑️ Iniciando exclusão da empresa:', id);
+      
       // Usar a função delete_empresa_with_cleanup para garantir a limpeza completa
       const { data, error } = await supabase.rpc('delete_empresa_with_cleanup', {
         empresa_id_param: id
       });
 
       if (error) {
-        console.error('Erro ao excluir empresa:', error);
+        console.error('❌ Erro ao excluir empresa:', error);
+        
+        // Tratamento específico para erro de auditoria
+        if (error.code === '23502' && error.message?.includes('audit_log')) {
+          throw new Error('Erro interno no sistema de auditoria. Tente novamente em alguns instantes.');
+        }
+        
         throw error;
       }
 
@@ -194,15 +202,19 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
         throw new Error('Empresa não encontrada ou não pôde ser excluída');
       }
 
+      console.log('✅ Empresa excluída com sucesso');
       return data;
     },
     onSuccess: () => {
+      console.log('🔄 Invalidando cache após exclusão bem-sucedida');
       queryClient.invalidateQueries({ queryKey: ['empresas-com-metricas'] });
       toast.success('Empresa excluída com sucesso');
     },
-    onError: (error) => {
-      console.error('Erro ao excluir empresa:', error);
-      toast.error('Erro ao excluir empresa');
+    onError: (error: any) => {
+      console.error('❌ Erro na exclusão da empresa:', error);
+      
+      const errorMessage = error.message || 'Erro ao excluir empresa';
+      toast.error(errorMessage);
     }
   });
 
