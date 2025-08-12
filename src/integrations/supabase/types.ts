@@ -1015,6 +1015,14 @@ export type Database = {
           custo_mensal_total: number
         }[]
       }
+      get_empresas_com_planos_por_tipo: {
+        Args: { p_tipo_seguro: string; p_corretora_id: string }
+        Returns: {
+          id: string
+          nome: string
+          total_planos_ativos: number
+        }[]
+      }
       get_funcionarios_arquivados: {
         Args: { p_cnpj_id: string }
         Returns: {
