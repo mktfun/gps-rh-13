@@ -17,8 +17,8 @@ interface ConfigurarPlanoModalProps {
   tipoSeguro: 'vida' | 'saude';
 }
 
-// Schema para planos de vida
-const planoVidaSchema = z.object({
+// Schema unificado (superset) para ambos os tipos de plano
+const planoFormSchema = z.object({
   seguradora: z.string().min(1, 'Seguradora é obrigatória'),
   valor_mensal: z.preprocess(
     (val) => {
@@ -72,24 +72,7 @@ const planoVidaSchema = z.object({
   ),
 });
 
-// Schema para planos de saúde
-const planoSaudeSchema = z.object({
-  seguradora: z.string().min(1, 'Seguradora é obrigatória'),
-  valor_mensal: z.preprocess(
-    (val) => {
-      if (typeof val === 'string') {
-        const cleanValue = val.replace(/[R$\s]/g, '').replace(',', '.');
-        return parseFloat(cleanValue) || 0;
-      }
-      return Number(val) || 0;
-    },
-    z.number().positive('Valor mensal deve ser positivo')
-  ),
-});
-
-type PlanoVidaFormData = z.infer<typeof planoVidaSchema>;
-type PlanoSaudeFormData = z.infer<typeof planoSaudeSchema>;
-type PlanoFormData = PlanoVidaFormData | PlanoSaudeFormData;
+type PlanoFormData = z.infer<typeof planoFormSchema>;
 
 const formatCurrency = (value: string) => {
   const numericValue = value.replace(/[^0-9,]/g, '');
@@ -107,9 +90,6 @@ export const ConfigurarPlanoModal: React.FC<ConfigurarPlanoModalProps> = ({
 }) => {
   const createPlanoMutation = useCreatePlanoMutation();
 
-  // Escolher schema baseado no tipo de seguro
-  const schema = tipoSeguro === 'vida' ? planoVidaSchema : planoSaudeSchema;
-
   const {
     register,
     handleSubmit,
@@ -117,7 +97,7 @@ export const ConfigurarPlanoModal: React.FC<ConfigurarPlanoModalProps> = ({
     setValue,
     formState: { errors, isValid }
   } = useForm<PlanoFormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(planoFormSchema),
     mode: 'onChange'
   });
 
@@ -128,10 +108,10 @@ export const ConfigurarPlanoModal: React.FC<ConfigurarPlanoModalProps> = ({
         tipo_seguro: tipoSeguro,
         seguradora: data.seguradora,
         valor_mensal: data.valor_mensal,
-        cobertura_morte: tipoSeguro === 'vida' ? (data as PlanoVidaFormData).cobertura_morte || 0 : 0,
-        cobertura_morte_acidental: tipoSeguro === 'vida' ? (data as PlanoVidaFormData).cobertura_morte_acidental || 0 : 0,
-        cobertura_invalidez_acidente: tipoSeguro === 'vida' ? (data as PlanoVidaFormData).cobertura_invalidez_acidente || 0 : 0,
-        cobertura_auxilio_funeral: tipoSeguro === 'vida' ? (data as PlanoVidaFormData).cobertura_auxilio_funeral || 0 : 0,
+        cobertura_morte: tipoSeguro === 'vida' ? (data.cobertura_morte || 0) : 0,
+        cobertura_morte_acidental: tipoSeguro === 'vida' ? (data.cobertura_morte_acidental || 0) : 0,
+        cobertura_invalidez_acidente: tipoSeguro === 'vida' ? (data.cobertura_invalidez_acidente || 0) : 0,
+        cobertura_auxilio_funeral: tipoSeguro === 'vida' ? (data.cobertura_auxilio_funeral || 0) : 0,
       };
       
       await createPlanoMutation.mutateAsync(planoData);

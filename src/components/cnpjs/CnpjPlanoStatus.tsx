@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -140,6 +139,7 @@ export const CnpjPlanoStatus: React.FC<CnpjPlanoStatusProps> = ({
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
           cnpjId={cnpjId}
+          tipoSeguro="vida"
         />
       ) : (
         <ConfigurarPlanoSaudeModal

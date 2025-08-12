@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { useEmpresa } from '@/hooks/useEmpresa';
-import { useCnpj } from '@/hooks/useCnpj';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
@@ -35,7 +35,22 @@ const SegurosVidaCnpjDetalhesPage = () => {
   }
 
   const { data: empresaData, isLoading: isLoadingEmpresa, error: errorEmpresa } = useEmpresa(empresaId);
-  const { data: cnpjData, isLoading: isLoadingCnpj, error: errorCnpj } = useCnpj(cnpjId);
+
+  // Query local para buscar CNPJ por ID
+  const { data: cnpjData, isLoading: isLoadingCnpj, error: errorCnpj } = useQuery({
+    queryKey: ['cnpj', cnpjId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cnpjs')
+        .select('*')
+        .eq('id', cnpjId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!cnpjId,
+  });
 
   // Get plan details for this CNPJ
   const { data: planoData, isLoading: isLoadingPlano, error: errorPlano } = useQuery({
