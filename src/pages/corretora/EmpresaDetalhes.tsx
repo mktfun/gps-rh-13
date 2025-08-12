@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,8 @@ import { Search } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
+import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
+import { useCreateFuncionario } from '@/hooks/useCreateFuncionario';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -39,8 +42,10 @@ const EmpresaDetalhes = () => {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCnpj, setEditingCnpj] = useState<Cnpj | null>(null);
+  const [funcionarioModalOpen, setFuncionarioModalOpen] = useState(false);
 
   const { clearEmpresaCache, refreshEmpresa } = useEmpresaCache();
+  const { createFuncionario, isCreating } = useCreateFuncionario();
 
   // Atualizar o filtro quando o parâmetro da URL mudar
   useEffect(() => {
@@ -48,9 +53,6 @@ const EmpresaDetalhes = () => {
       setStatusFilter(filtroStatus);
     }
   }, [filtroStatus]);
-
-  // CORREÇÃO: Removido o useEffect que causava loop infinito
-  // O cache será gerenciado apenas quando necessário via botão refresh
 
   const { data: empresa, isLoading: isLoadingEmpresa, error: erroEmpresa } = useEmpresa(empresaId);
   
@@ -124,6 +126,16 @@ const EmpresaDetalhes = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCnpj(null);
+  };
+
+  const handleCreateFuncionario = async (data: any) => {
+    try {
+      await createFuncionario.mutateAsync(data);
+      setFuncionarioModalOpen(false);
+      setPagination({ pageIndex: 0, pageSize: pagination.pageSize }); // Reset to first page to see the new employee
+    } catch (error) {
+      console.error('Erro ao criar funcionário:', error);
+    }
   };
 
   const handleForceRefresh = async () => {
@@ -230,10 +242,18 @@ const EmpresaDetalhes = () => {
           <TabsContent value="funcionarios">
             <Card>
               <CardHeader>
-                <CardTitle>Funcionários da Empresa</CardTitle>
-                <CardDescription>
-                  Gerencie os funcionários desta empresa
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Funcionários da Empresa</CardTitle>
+                    <CardDescription>
+                      Gerencie os funcionários desta empresa
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setFuncionarioModalOpen(true)} className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar Funcionário
+                  </Button>
+                </div>
                 
                 {/* Filtros */}
                 <div className="flex gap-4 mt-4">
@@ -313,6 +333,15 @@ const EmpresaDetalhes = () => {
           empresaId={empresaId!}
           onSubmit={editingCnpj ? handleUpdateCnpj : handleAddCnpj}
           isLoading={editingCnpj ? updateCnpj.isPending : addCnpj.isPending}
+        />
+
+        {/* Modal para adicionar funcionário */}
+        <FuncionarioModal
+          isOpen={funcionarioModalOpen}
+          onClose={() => setFuncionarioModalOpen(false)}
+          onSubmit={handleCreateFuncionario}
+          isLoading={isCreating}
+          empresaId={empresaId}
         />
       </div>
     );
