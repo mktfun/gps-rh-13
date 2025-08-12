@@ -120,11 +120,11 @@ function App() {
                   <Route path="corretora/planos-de-saude/empresa/:empresaId/cnpjs" element={<ProtectedCorretoraRoute><PlanosSaudeCnpjsPage /></ProtectedCorretoraRoute>} />
                   <Route path="corretora/planos-de-saude/empresa/:empresaId/cnpj/:cnpjId" element={<ProtectedCorretoraRoute><PlanosSaudePlanoPage /></ProtectedCorretoraRoute>} />
                   
-                  {/* Empresa Routes */}
+                  {/* Empresa Routes - CORRIGIDO: Todas agora estão dentro do RootLayout */}
                   <Route path="empresa/dashboard" element={<EmpresaDashboard />} />
                   <Route path="empresa/funcionarios" element={<Funcionarios />} />
-                  <Route path="empresa/planos" element={<EmpresaPlanosPage />} />
-                  <Route path="empresa/planos-saude" element={<EmpresaPlanosSaudePage />} />
+                  <Route path="empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
+                  <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
                   <Route path="empresa/plano/:planoId" element={<PlanoDetalhesPage />} />
                   <Route path="empresa/plano-saude/:planoId" element={<PlanoSaudeDetalhesPage />} />
                   <Route path="empresa/seguro-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
@@ -132,7 +132,7 @@ function App() {
                   {/* Empresa Relatórios */}
                   <Route path="empresa/relatorios/funcionarios" element={<RelatorioFuncionariosEmpresaPage />} />
                   <Route path="empresa/relatorios/funcionarios-completo" element={<RelatorioFuncionariosPage />} />
-                  <Route path="empresa/relatorios/custos" element={<RelatorioCustosEmpresaPage />} />
+                  <Route path="empresa/relatorios/custos-empresa" element={<RelatorioCustosEmpresaPage />} />
                   <Route path="empresa/relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
                   <Route path="empresa/relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
                 </Route>
