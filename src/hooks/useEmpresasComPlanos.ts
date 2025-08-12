@@ -30,7 +30,8 @@ export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlano
         corretoraId: user.id
       });
 
-      const { data, error } = await supabase.rpc('get_empresas_com_planos_por_tipo', {
+      // Cast temporário para evitar erro de tipagem enquanto os tipos do Supabase não são regenerados
+      const { data, error } = await (supabase as any).rpc('get_empresas_com_planos_por_tipo', {
         p_tipo_seguro: tipoSeguro,
         p_corretora_id: user.id,
       });
@@ -40,10 +41,12 @@ export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlano
         throw error;
       }
 
-      const normalized = (data || []).map((row: any) => ({
+      const rows = (data ?? []) as Array<{ id: string | number; nome: string; total_planos_ativos: string | number | null }>;
+
+      const normalized = rows.map((row) => ({
         id: String(row.id),
         nome: String(row.nome),
-        total_planos_ativos: Number(row.total_planos_ativos) || 0,
+        total_planos_ativos: Number(row.total_planos_ativos ?? 0) || 0,
       })) as EmpresaComPlano[];
 
       console.log('✅ [useEmpresasComPlanos] RPC retornou empresas:', normalized.length);
