@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Download, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { useRelatorioCustosEmpresaPaginado } from '@/hooks/useRelatorioCustosEmp
 import { useExportData } from '@/hooks/useExportData';
 import { createCustoEmpresaTableColumns } from '@/components/empresa/custoEmpresaTableColumns';
 import type { PaginationState } from '@tanstack/react-table';
+import { ExportModal } from '@/components/ui/export-modal';
 
 const RelatorioCustosEmpresaPage = () => {
   const [pagination, setPagination] = useState<PaginationState>({
