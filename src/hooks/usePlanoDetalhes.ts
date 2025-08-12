@@ -1,38 +1,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { PlanoDetalhes } from '@/types/planos';
 
-interface PlanoDetalhes {
-  id: string;
-  cnpj_id: string;
-  tipo_seguro: 'vida' | 'saude';
-  seguradora: string;
-  valor_mensal: number;
-  cobertura_morte: number;
-  cobertura_morte_acidental: number;
-  cobertura_invalidez_acidente: number;
-  cobertura_auxilio_funeral: number;
-  created_at: string;
-  updated_at: string;
-  cnpj: {
-    id: string;
-    cnpj: string;
-    razao_social: string;
-    empresa_id: string;
-  };
-  // Estatísticas dos funcionários DO PLANO (não do CNPJ)
-  total_funcionarios: number;
-  funcionarios_ativos: number;
-  funcionarios_pendentes: number;
-}
-
-export const usePlanoDetalhes = (cnpjId: string, tipoSeguro: 'vida' | 'saude') => {
+export const usePlanoDetalhes = (planoId: string) => {
   return useQuery({
-    queryKey: ['plano-detalhes', cnpjId, tipoSeguro],
+    queryKey: ['plano-detalhes', planoId],
     queryFn: async (): Promise<PlanoDetalhes | null> => {
-      if (!cnpjId || !tipoSeguro) return null;
+      if (!planoId) return null;
 
-      console.log('🔍 Buscando detalhes do plano:', { cnpjId, tipoSeguro });
+      console.log('🔍 Buscando detalhes do plano por ID:', planoId);
 
       // Buscar o plano básico
       const { data: plano, error: planoError } = await supabase
@@ -43,19 +20,17 @@ export const usePlanoDetalhes = (cnpjId: string, tipoSeguro: 'vida' | 'saude') =
             id,
             cnpj,
             razao_social,
-            empresa_id
+            empresa_id,
+            empresas (
+              nome
+            )
           )
         `)
-        .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', tipoSeguro)
+        .eq('id', planoId)
         .single();
 
       if (planoError) {
-        if (planoError.code === 'PGRST116') {
-          console.log('ℹ️ Nenhum plano encontrado para este CNPJ e tipo');
-          return null;
-        }
-        console.error('❌ Erro ao buscar plano:', planoError);
+        console.error('❌ Erro ao buscar plano por ID:', planoError);
         throw planoError;
       }
 
@@ -88,12 +63,16 @@ export const usePlanoDetalhes = (cnpjId: string, tipoSeguro: 'vida' | 'saude') =
         funcionarios_pendentes: 0 
       });
 
-      const result = {
+      const result: PlanoDetalhes = {
         ...plano,
-        ...funcionariosStats
+        ...funcionariosStats,
+        // Campos derivados para compatibilidade
+        empresa_nome: plano.cnpj?.empresas?.nome,
+        cnpj_numero: plano.cnpj?.cnpj,
+        cnpj_razao_social: plano.cnpj?.razao_social,
       };
 
-      console.log('✅ Detalhes do plano carregados:', {
+      console.log('✅ Detalhes do plano carregados por ID:', {
         planoId: result.id,
         tipoSeguro: result.tipo_seguro,
         funcionarios: funcionariosStats
@@ -101,6 +80,6 @@ export const usePlanoDetalhes = (cnpjId: string, tipoSeguro: 'vida' | 'saude') =
 
       return result;
     },
-    enabled: !!cnpjId && !!tipoSeguro,
+    enabled: !!planoId,
   });
 };
