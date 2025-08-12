@@ -65,15 +65,30 @@ export const useCreatePlanoMutation = () => {
     onSuccess: (data, variables) => {
       toast.success('Plano configurado com sucesso!');
       
-      // Invalidar queries relevantes para atualizar as telas
-      queryClient.invalidateQueries({ queryKey: ['empresasComPlanos'] });
-      queryClient.invalidateQueries({ queryKey: ['cnpjs-com-planos'] });
-      queryClient.invalidateQueries({ queryKey: ['dados-planos-cards'] });
+      console.log('🎯 Invalidação CIRÚRGICA de cache iniciada para:', {
+        cnpj_id: variables.cnpj_id,
+        tipo_seguro: variables.tipo_seguro,
+        plano_id: data.id
+      });
+
+      // INVALIDAÇÃO CIRÚRGICA:
       
-      // CRUCIAL: Invalidar as queries específicas dos detalhes do plano
-      queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj', variables.cnpj_id] });
-      queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj-saude', variables.cnpj_id] });
-      queryClient.invalidateQueries({ queryKey: ['plano-detalhes', data.id] });
+      // 1. Invalida a lista de empresas APENAS para o tipo de plano que mudou
+      queryClient.invalidateQueries({ 
+        queryKey: ['empresasComPlanos', variables.tipo_seguro] 
+      });
+
+      // 2. Invalida os detalhes do plano para ESTE CNPJ e ESTE tipo, forçando a tela a recarregar
+      queryClient.invalidateQueries({ 
+        queryKey: ['plano-detalhes', variables.cnpj_id, variables.tipo_seguro] 
+      });
+
+      // 3. Invalida o plano específico recém-criado
+      queryClient.invalidateQueries({ 
+        queryKey: ['plano-detalhes', data.id] 
+      });
+
+      console.log('✅ Cache invalidado com sucesso - apenas queries afetadas foram atualizadas');
     },
     onError: (error: any) => {
       console.error('❌ Erro na criação do plano:', error);
