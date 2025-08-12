@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -97,6 +98,34 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
     );
   };
 
+  const getPendenciasLink = (empresa: EmpresaComMetricas) => {
+    const total = empresa?.total_pendencias || 0;
+    
+    if (total === 0) {
+      return (
+        <Badge variant="outline" className="text-muted-foreground">
+          {total}
+        </Badge>
+      );
+    }
+    
+    return (
+      <Link
+        to="/corretora/relatorios/pendencias"
+        state={{ 
+          empresaId: empresa.id,
+          empresaNome: empresa.nome 
+        }}
+        className="inline-flex hover:opacity-80 transition-opacity"
+      >
+        <Badge variant="destructive" className="gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          {total}
+        </Badge>
+      </Link>
+    );
+  };
+
   // ✅ CORREÇÃO: Filtrar empresas válidas antes de renderizar
   const empresasValidas = empresas.filter(empresa => {
     if (!empresa || typeof empresa !== 'object') {
@@ -192,6 +221,10 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
                     </TableCell>
 
                     <TableCell className="text-center">
+                      {getPendenciasLink(empresa)}
+                    </TableCell>
+
+                    <TableCell className="text-right">
                       <EmpresaTableActions 
                         empresa={empresa}
                         onEdit={handleEditEmpresa}

@@ -1,123 +1,281 @@
 
-import React, { useMemo, useState } from 'react';
-import { usePendenciasDaCorretora } from '@/hooks/usePendenciasDaCorretora';
-import FiltrosPendencias, { FiltrosState } from '@/components/relatorios/FiltrosPendencias';
-import KpiCardGrid from '@/components/relatorios/KpiCardGrid';
-import GraficoPendenciasPorTipo from '@/components/relatorios/GraficoPendenciasPorTipo';
-import GraficoTimelineVencimentos from '@/components/relatorios/GraficoTimelineVencimentos';
-import GraficoPendenciasPorCnpj from '@/components/relatorios/GraficoPendenciasPorCnpj';
-import TabelaPendenciasDetalhadas from '@/components/relatorios/TabelaPendenciasDetalhadas';
-import ModalConversaPendencia from '@/components/relatorios/ModalConversaPendencia';
-import { Card } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { DateRangePicker } from '@/components/relatorios/DateRangePicker';
+import { DataTable } from '@/components/ui/data-table';
+import { PendenciasKPICards } from '@/components/relatorios/PendenciasKPICards';
+import PendenciasByTypeChart from '@/components/relatorios/PendenciasByTypeChart';
+import PendenciasTimelineChart from '@/components/relatorios/PendenciasTimelineChart';
+import PendenciasByCNPJChart from '@/components/relatorios/PendenciasByCNPJChart';
+import { createPendenciasTableColumns } from '@/components/relatorios/pendenciasDetailedTableColumns';
+import { usePendenciasReport } from '@/hooks/usePendenciasReport';
+import { useAllCnpjs } from '@/hooks/useAllCnpjs';
+import { useExportData, ExportField } from '@/hooks/useExportData';
+import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
+import { addDays, subDays } from 'date-fns';
+import { useLocation } from 'react-router-dom';
+import type { DateRange } from 'react-day-picker';
 
-const useEmpresasDaCorretora = () => {
-  return useQuery({
-    queryKey: ['empresas-da-corretora'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('id, nome')
-        .eq('corretora_id', user.id)
-        .order('nome', { ascending: true });
-      if (error) throw error;
-      return (data || []) as { id: string; nome: string }[];
-    },
+const RelatorioPendenciasCorretoraPage = () => {
+  const location = useLocation();
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: subDays(new Date(), 30),
+    to: new Date()
   });
-};
+  const [statusFilter, setStatusFilter] = useState<string>('todas');
+  const [tipoFilter, setTipoFilter] = useState<string>('todas');
+  const [cnpjFilter, setCnpjFilter] = useState<string>('todas');
+  const [searchValue, setSearchValue] = useState<string>('');
 
-const useCnpjsDaEmpresa = (empresaId?: string) => {
-  return useQuery({
-    queryKey: ['cnpjs-da-empresa', empresaId],
-    queryFn: async () => {
-      if (!empresaId) return [];
-      const { data, error } = await supabase
-        .from('cnpjs')
-        .select('id, cnpj, razao_social')
-        .eq('empresa_id', empresaId)
-        .order('razao_social', { ascending: true });
-      if (error) throw error;
-      return (data || []) as { id: string; cnpj: string; razao_social: string }[];
-    },
-    enabled: !!empresaId,
-  });
-};
+  const { cnpjs } = useAllCnpjs();
 
-const RelatorioPendenciasCorretoraPage: React.FC = () => {
-  const [filtros, setFiltros] = useState<FiltrosState>({
-    status: 'todas',
-    tipo: 'todas',
-  });
-  const { data: empresas = [] } = useEmpresasDaCorretora();
-  const { data: cnpjs = [], isLoading: loadingCnpjs } = useCnpjsDaEmpresa(filtros.empresaId);
+  // ✅ NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
+  useEffect(() => {
+    const state = location.state as { empresaId?: string; empresaNome?: string } | null;
+    if (state?.empresaId) {
+      console.log('🔗 Aplicando filtro pré-selecionado para empresa:', state.empresaNome);
+      
+      // Encontrar o CNPJ da empresa selecionada
+      const cnpjDaEmpresa = cnpjs?.find(cnpj => 
+        cnpj.empresa_id === state.empresaId
+      );
+      
+      if (cnpjDaEmpresa) {
+        setCnpjFilter(cnpjDaEmpresa.id);
+        console.log('✅ Filtro aplicado para CNPJ:', cnpjDaEmpresa.razao_social);
+      }
+    }
+  }, [location.state, cnpjs]);
 
-  const queryFilters = useMemo(() => ({
-    periodo: {
-      inicio: filtros.inicio ? new Date(filtros.inicio) : undefined,
-      fim: filtros.fim ? new Date(filtros.fim) : undefined,
-    },
-    status: filtros.status,
-    tipo: filtros.tipo === 'todas' ? undefined : (filtros.tipo as any),
-    empresaId: filtros.empresaId,
-    cnpjId: filtros.cnpjId,
-    search: filtros.search,
-  }), [filtros]);
+  const { data: reportData, isLoading } = usePendenciasReport(
+    dateRange.from,
+    dateRange.to,
+    statusFilter,
+    tipoFilter,
+    cnpjFilter
+  );
 
-  const { data: pendencias = [], isLoading } = usePendenciasDaCorretora(queryFilters);
+  const {
+    openExportPreview,
+    formatCurrency,
+    formatCPF,
+    formatDate,
+    formatDateTime
+  } = useExportData();
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selecionada, setSelecionada] = useState<any>(null);
+  const columns = createPendenciasTableColumns();
 
-  const abrirConversa = (p: any) => {
-    setSelecionada(p);
-    setModalOpen(true);
+  // Filtrar dados da tabela por busca
+  const filteredTableData = reportData?.tabela_detalhada?.filter(item => {
+    if (!searchValue) return true;
+    const searchLower = searchValue.toLowerCase();
+    return (
+      item.protocolo.toLowerCase().includes(searchLower) ||
+      item.funcionario_nome.toLowerCase().includes(searchLower) ||
+      item.descricao.toLowerCase().includes(searchLower) ||
+      item.razao_social.toLowerCase().includes(searchLower)
+    );
+  }) || [];
+
+  const handleExport = () => {
+    if (!filteredTableData || filteredTableData.length === 0) {
+      console.log('Nenhum dado para exportar');
+      return;
+    }
+
+    const exportFields: ExportField[] = [
+      { key: 'protocolo', label: 'Protocolo', selected: true },
+      { key: 'tipo', label: 'Tipo', selected: true },
+      { key: 'funcionario_nome', label: 'Nome do Funcionário', selected: true },
+      { key: 'funcionario_cpf', label: 'CPF do Funcionário', selected: true, format: formatCPF },
+      { key: 'razao_social', label: 'Razão Social', selected: true },
+      { key: 'cnpj', label: 'CNPJ', selected: true },
+      { key: 'descricao', label: 'Descrição', selected: true },
+      { key: 'data_criacao', label: 'Data de Criação', selected: true, format: formatDate },
+      { key: 'data_vencimento', label: 'Data de Vencimento', selected: true, format: formatDate },
+      { key: 'status_prioridade', label: 'Prioridade', selected: true },
+      { key: 'dias_em_aberto', label: 'Dias em Aberto', selected: true },
+      { key: 'comentarios_count', label: 'Qtd. Comentários', selected: true }
+    ];
+
+    const filename = `relatorio-pendencias-${new Date().toISOString().split('T')[0]}`;
+    
+    openExportPreview(filteredTableData, exportFields, filename);
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range?.from && range?.to) {
+      setDateRange({
+        from: range.from,
+        to: range.to
+      });
+    }
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6 p-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Relatório de Pendências — Corretora</h1>
-        <Button variant="outline" onClick={() => window.print()}>Exportar</Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Relatório de Pendências</h1>
+          <p className="text-muted-foreground">
+            Análise completa de pendências e solicitações em aberto
+          </p>
+        </div>
+        <Button onClick={handleExport} className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar Excel
+        </Button>
       </div>
 
-      <FiltrosPendencias
-        value={filtros}
-        onChange={setFiltros}
-        empresas={empresas}
-        cnpjs={cnpjs}
-        loadingCnpjs={loadingCnpjs}
-        onBuscar={() => setFiltros({ ...filtros })}
-      />
-
-      {isLoading ? (
-        <Card className="p-8 flex items-center justify-center">
-          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-          Carregando pendências...
-        </Card>
-      ) : (
-        <>
-          <KpiCardGrid pendencias={pendencias} />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <GraficoPendenciasPorTipo pendencias={pendencias} />
-            <GraficoTimelineVencimentos pendencias={pendencias} />
-            <GraficoPendenciasPorCnpj pendencias={pendencias} />
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Período</label>
+              <DateRangePicker
+                dateRange={dateRange}
+                onDateRangeChange={handleDateRangeChange}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas</SelectItem>
+                  <SelectItem value="critica">Críticas</SelectItem>
+                  <SelectItem value="urgente">Urgentes</SelectItem>
+                  <SelectItem value="normal">Normais</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Tipo</label>
+              <Select value={tipoFilter} onValueChange={setTipoFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas</SelectItem>
+                  <SelectItem value="documentacao">Documentação</SelectItem>
+                  <SelectItem value="ativacao">Ativação</SelectItem>
+                  <SelectItem value="alteracao">Alteração</SelectItem>
+                  <SelectItem value="cancelamento">Cancelamento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">CNPJ</label>
+              <Select value={cnpjFilter} onValueChange={setCnpjFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o CNPJ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas empresas</SelectItem>
+                  {cnpjs?.map(cnpj => (
+                    <SelectItem key={cnpj.id} value={cnpj.id}>
+                      {cnpj.razao_social}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Buscar</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Protocolo, funcionário..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <TabelaPendenciasDetalhadas pendencias={pendencias} onAbrirConversa={abrirConversa} />
-        </>
-      )}
-
-      <ModalConversaPendencia
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        pendencia={selecionada}
+      {/* KPIs */}
+      <PendenciasKPICards
+        totalPendencias={reportData?.kpis.total_pendencias || 0}
+        pendenciasCriticas={reportData?.kpis.pendencias_criticas || 0}
+        pendenciasUrgentes={reportData?.kpis.pendencias_urgentes || 0}
+        pendenciasNormais={reportData?.kpis.pendencias_normais || 0}
+        isLoading={isLoading}
       />
+
+      {/* Gráficos */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5" />
+              Pendências por Tipo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PendenciasByTypeChart dados={reportData?.pendencias_por_tipo || []} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Timeline de Vencimentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PendenciasTimelineChart dados={reportData?.timeline_vencimentos || []} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Pendências por CNPJ
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PendenciasByCNPJChart dados={reportData?.pendencias_por_cnpj || []} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabela Detalhada */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Table className="h-5 w-5" />
+            Pendências Detalhadas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={columns}
+            data={filteredTableData}
+            isLoading={isLoading}
+            emptyStateTitle="Nenhuma pendência encontrada"
+            emptyStateDescription="Tente ajustar os filtros para encontrar pendências."
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };
