@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
 import { TableLoadingState } from '@/components/ui/loading-state';
-import { ExportModal } from '@/components/ui/export-modal';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
+// Removido breadcrumb local para usar o do cabeçalho (SmartBreadcrumbs)
 import { useRelatorioCustosEmpresaPaginado } from '@/hooks/useRelatorioCustosEmpresaPaginado';
 import { useExportData } from '@/hooks/useExportData';
 import { createCustoEmpresaTableColumns } from '@/components/empresa/custoEmpresaTableColumns';
@@ -26,6 +25,12 @@ const RelatorioCustosEmpresaPage = () => {
   const custos = result?.data || [];
   const totalCount = result?.totalCount || 0;
   const totalPages = result?.totalPages || 0;
+
+  // Totais globais vindos do backend (não variam com a paginação)
+  const totalGeral = result?.totalGeral || 0;
+  const funcionariosAtivos = result?.totalFuncionariosAtivos || 0;
+  const cnpjsComPlano = result?.totalCnpjsComPlano || 0;
+  const mediaPorCnpj = result?.custoMedioPorCnpj || 0;
 
   const {
     isExporting,
@@ -57,34 +62,10 @@ const RelatorioCustosEmpresaPage = () => {
     openExportPreview(custos || [], exportFields, 'relatorio_custos_empresa');
   };
 
-  const breadcrumbItems = [
-    { label: 'Empresa', href: '/empresa' },
-    { label: 'Relatórios' },
-    { label: 'Custos Detalhado' }
-  ];
-
-  // Calcular métricas corrigidas usando os valores do plano
-  const custosUnicos = custos?.reduce((acc, item) => {
-    if (!acc[item.cnpj_razao_social]) {
-      acc[item.cnpj_razao_social] = {
-        razao_social: item.cnpj_razao_social,
-        valor_plano: item.valor_individual, // Valor do plano (mesmo para todos do CNPJ)
-        funcionarios: []
-      };
-    }
-    acc[item.cnpj_razao_social].funcionarios.push(item);
-    return acc;
-  }, {} as Record<string, any>) || {};
-
-  const totalGeral = Object.values(custosUnicos).reduce((sum: number, cnpj: any) => sum + (cnpj.valor_plano || 0), 0);
-  const funcionariosAtivos = custos?.filter(item => item.status === 'ativo').length || 0;
-  const cnpjsComPlano = Object.values(custosUnicos).filter((cnpj: any) => cnpj.valor_plano > 0).length;
-  const mediaPorCnpj = cnpjsComPlano > 0 ? totalGeral / cnpjsComPlano : 0;
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
+        {/* Breadcrumbs removido: SmartBreadcrumbs do cabeçalho já cobre o rastro */}
         <TableLoadingState rows={10} columns={5} showHeader />
       </div>
     );
@@ -93,7 +74,7 @@ const RelatorioCustosEmpresaPage = () => {
   if (error) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
+        {/* Breadcrumbs removido: SmartBreadcrumbs do cabeçalho já cobre o rastro */}
         <Card>
           <CardContent className="p-6">
             <div className="text-center text-muted-foreground">
@@ -113,7 +94,7 @@ const RelatorioCustosEmpresaPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Breadcrumbs items={breadcrumbItems} />
+      {/* Breadcrumbs removido: SmartBreadcrumbs no cabeçalho */}
       
       <div className="flex items-center justify-between">
         <div>
@@ -128,7 +109,7 @@ const RelatorioCustosEmpresaPage = () => {
         </Button>
       </div>
 
-      {/* Resumo Financeiro Corrigido */}
+      {/* Resumo Financeiro (usando totais globais do backend) */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -206,6 +187,7 @@ const RelatorioCustosEmpresaPage = () => {
         </CardContent>
       </Card>
 
+      {/* Modal de Exportação */}
       <ExportModal
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
