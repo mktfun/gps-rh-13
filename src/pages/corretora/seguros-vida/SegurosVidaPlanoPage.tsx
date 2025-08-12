@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Shield } from 'lucide-react';
+import { Plus, ArrowLeft, Shield, FileText, Download } from 'lucide-react';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner';
@@ -14,6 +15,8 @@ import { useEmpresaPorCnpj } from '@/hooks/useEmpresaPorCnpj';
 import { PlanoVisaoGeralTab } from '@/components/seguros-vida/PlanoVisaoGeralTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
+import { ContratoTab } from '@/components/planos/ContratoTab';
+import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 
 interface PlanoDetalhes {
@@ -305,8 +308,17 @@ const SegurosVidaPlanoPage = () => {
         <TabsList>
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="funcionarios">Funcionários</TabsTrigger>
+          <TabsTrigger value="contrato">
+            <FileText className="mr-2 h-4 w-4" />
+            Contrato
+          </TabsTrigger>
+          <TabsTrigger value="documentos">
+            <Download className="mr-2 h-4 w-4" />
+            Documentos
+          </TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
+        
         <TabsContent value="visao-geral">
           {planoDetalhes && (
             <PlanoVisaoGeralTab
@@ -320,6 +332,7 @@ const SegurosVidaPlanoPage = () => {
             />
           )}
         </TabsContent>
+        
         <TabsContent value="funcionarios">
           {planoDetalhes && cnpjId && (
             <PlanoFuncionariosTab 
@@ -334,6 +347,19 @@ const SegurosVidaPlanoPage = () => {
             />
           )}
         </TabsContent>
+        
+        <TabsContent value="contrato">
+          {planoDetalhes && (
+            <ContratoTab planoId={planoDetalhes.id} isCorretora={true} />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="documentos">
+          {planoDetalhes && (
+            <DemonstrativosTab planoId={planoDetalhes.id} isCorretora={true} />
+          )}
+        </TabsContent>
+        
         <TabsContent value="historico">
           <PlanoHistoricoTab />
         </TabsContent>
