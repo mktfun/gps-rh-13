@@ -1,3 +1,4 @@
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -32,7 +33,7 @@ import SegurosVidaCnpjsPage from '@/pages/corretora/seguros-vida/SegurosVidaCnpj
 import SegurosVidaPlanoPage from '@/pages/corretora/seguros-vida/SegurosVidaPlanoPage';
 import PlanosSaudeEmpresasPage from '@/pages/corretora/planos-saude/PlanosSaudeEmpresasPage';
 import PlanosSaudeCnpjsPage from '@/pages/corretora/planos-saude/PlanosSaudeCnpjsPage';
-import PlanosSaudePlanoPage from './pages/corretora/planos-saude/PlanosSaudePlanoPage';
+import PlanosSaudePlanoPage from '@/pages/corretora/planos-saude/PlanosSaudePlanoPage';
 
 // Páginas de Relatórios da Corretora
 import RelatorioFinanceiroPage from '@/pages/corretora/relatorios/RelatorioFinanceiroPage';

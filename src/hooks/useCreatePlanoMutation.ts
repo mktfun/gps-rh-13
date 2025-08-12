@@ -62,43 +62,13 @@ export const useCreatePlanoMutation = () => {
       console.log('✅ Plano criado com sucesso:', newPlano);
       return newPlano;
     },
-    onSuccess: (data, variables) => {
-      const tipoLabel = variables.tipo_seguro === 'vida' ? 'Seguro de Vida' : 'Plano de Saúde';
-      toast.success(`${tipoLabel} configurado com sucesso!`);
+    onSuccess: () => {
+      toast.success('Plano configurado com sucesso!');
       
-      console.log('🎯 Invalidação de cache iniciada para:', {
-        cnpj_id: variables.cnpj_id,
-        tipo_seguro: variables.tipo_seguro,
-        plano_id: data.id
-      });
-
-      // Invalidar queries relevantes baseadas no tipo de seguro
-      if (variables.tipo_seguro === 'vida') {
-        queryClient.invalidateQueries({ 
-          queryKey: ['empresasComPlanos', 'vida'] 
-        });
-        queryClient.invalidateQueries({ 
-          queryKey: ['plano-detalhes-cnpj-vida', variables.cnpj_id] 
-        });
-      } else {
-        queryClient.invalidateQueries({ 
-          queryKey: ['empresasComPlanos', 'saude'] 
-        });
-        queryClient.invalidateQueries({ 
-          queryKey: ['plano-detalhes-cnpj-saude', variables.cnpj_id] 
-        });
-      }
-
-      // Invalidar o plano específico
-      queryClient.invalidateQueries({ 
-        queryKey: ['plano-detalhes', data.id] 
-      });
-
-      // Invalidar listas gerais
-      queryClient.invalidateQueries({ queryKey: ['dados-planos-cards'] });
+      // Invalidar queries relevantes para atualizar as telas
+      queryClient.invalidateQueries({ queryKey: ['empresasComPlanos'] });
       queryClient.invalidateQueries({ queryKey: ['cnpjs-com-planos'] });
-
-      console.log('✅ Cache invalidado com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['dados-planos-cards'] });
     },
     onError: (error: any) => {
       console.error('❌ Erro na criação do plano:', error);

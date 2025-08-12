@@ -3,7 +3,16 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Shield, DollarSign, FileText } from 'lucide-react';
-import { PlanoDetalhes } from '@/types/planos';
+
+interface PlanoDetalhes {
+  id: string;
+  seguradora: string;
+  valor_mensal: number;
+  cnpj_id: string;
+  cnpj_numero: string;
+  cnpj_razao_social: string;
+  empresa_nome: string;
+}
 
 interface InformacoesGeraisTabProps {
   plano: PlanoDetalhes;
@@ -31,18 +40,18 @@ export const InformacoesGeraisTab: React.FC<InformacoesGeraisTabProps> = ({ plan
           <div className="space-y-3">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Nome da Empresa</label>
-              <p className="text-sm font-medium">{plano.empresa_nome || plano.cnpj?.empresas?.nome}</p>
+              <p className="text-sm font-medium">{plano.empresa_nome}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">CNPJ</label>
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="font-mono text-sm">{plano.cnpj_numero || plano.cnpj?.cnpj}</span>
+                <span className="font-mono text-sm">{plano.cnpj_numero}</span>
               </div>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Razão Social</label>
-              <p className="text-sm font-medium">{plano.cnpj_razao_social || plano.cnpj?.razao_social}</p>
+              <p className="text-sm font-medium">{plano.cnpj_razao_social}</p>
             </div>
           </div>
         </CardContent>
