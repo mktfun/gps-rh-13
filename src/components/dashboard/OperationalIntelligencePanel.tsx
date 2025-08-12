@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,32 +5,29 @@ import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, CheckCircle2, TrendingUp, Clock, Shield, Users, Target, Zap } from 'lucide-react';
 import { useOperationalMetrics } from '@/hooks/useOperationalMetrics';
 import { CardLoadingState } from '@/components/ui/loading-state';
-
 export const OperationalIntelligencePanel = () => {
-  const { data: metrics, isLoading, error } = useOperationalMetrics();
-
+  const {
+    data: metrics,
+    isLoading,
+    error
+  } = useOperationalMetrics();
   if (isLoading) {
     return <CardLoadingState className="col-span-full" />;
   }
-
   if (error || !metrics) {
-    return (
-      <Card className="col-span-full">
+    return <Card className="col-span-full">
         <CardContent className="p-6">
           <p className="text-center text-muted-foreground">
             Erro ao carregar métricas operacionais
           </p>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   const getStatusColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600';
     if (percentage >= 60) return 'text-yellow-600';
     return 'text-red-600';
   };
-
   const getStatusBadge = (value: number, isPercentage: boolean = true) => {
     const displayValue = isPercentage ? `${value}%` : value.toString();
     if (isPercentage) {
@@ -41,13 +37,8 @@ export const OperationalIntelligencePanel = () => {
     }
     return <Badge variant="outline">{displayValue}</Badge>;
   };
-
-  const totalAlertas = metrics.alertas.funcionarios_travados + 
-                       metrics.alertas.cnpjs_sem_plano + 
-                       metrics.alertas.empresas_inativas;
-
-  return (
-    <div className="space-y-6">
+  const totalAlertas = metrics.alertas.funcionarios_travados + metrics.alertas.cnpjs_sem_plano + metrics.alertas.empresas_inativas;
+  return <div className="space-y-6">
       {/* Métricas Principais */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -205,44 +196,6 @@ export const OperationalIntelligencePanel = () => {
       </div>
 
       {/* Resumo de Performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-purple-600" />
-            Resumo de Performance da Carteira
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="text-center p-4 border rounded-lg">
-              <div className={`text-3xl font-bold ${getStatusColor(metrics.produtividade_carteira)}`}>
-                {metrics.produtividade_carteira.toFixed(1)}%
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                Produtividade Geral
-              </div>
-            </div>
-
-            <div className="text-center p-4 border rounded-lg">
-              <div className={`text-3xl font-bold ${getStatusColor(metrics.qualidade_gestao)}`}>
-                {metrics.qualidade_gestao.toFixed(1)}%
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                Qualidade da Gestão
-              </div>
-            </div>
-
-            <div className="text-center p-4 border rounded-lg">
-              <div className={`text-3xl font-bold ${totalAlertas === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {totalAlertas === 0 ? '✓' : totalAlertas}
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                {totalAlertas === 0 ? 'Tudo em Ordem' : 'Requer Atenção'}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+      
+    </div>;
 };
