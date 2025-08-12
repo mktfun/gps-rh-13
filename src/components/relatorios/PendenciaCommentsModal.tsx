@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, Send, Calendar, Link as LinkIcon, Sparkles } from 'lucide-react';
-import { format } from 'date-fns';
+import { MessageSquare, Send, Calendar, Link as LinkIcon, Sparkles, Info } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,12 @@ interface PendenciaCommentsModalProps {
     id: string;
     protocolo: string;
     funcionario_nome: string;
+    cpf: string;
+    cargo: string;
+    status: string;
+    cnpj_razao_social: string;
+    data_solicitacao: string;
+    motivo: string;
     descricao: string;
     comentarios_count: number;
   };
@@ -107,37 +113,80 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, pendencia.id, pendencia.protocolo]);
 
-  // Sugestões "inteligentes" simples baseadas no contexto da pendência
+  // Calcular dias em atraso
+  const diasAtraso = useMemo(() => {
+    if (!pendencia.data_solicitacao) return 0;
+    return differenceInDays(new Date(), new Date(pendencia.data_solicitacao));
+  }, [pendencia.data_solicitacao]);
+
+  // Gerar dados contextuais da pendência
+  const dadosContextuais = useMemo(() => {
+    const statusLabels = {
+      'pendente': 'Ativação Pendente',
+      'exclusao_solicitada': 'Exclusão Solicitada',
+      'inativo': 'Funcionário Inativo'
+    };
+
+    const dados = [
+      `📋 DADOS DA PENDÊNCIA - PROTOCOLO ${pendencia.protocolo}`,
+      ``,
+      `👤 Funcionário: ${pendencia.funcionario_nome}`,
+      `📄 CPF: ${pendencia.cpf}`,
+      `💼 Cargo: ${pendencia.cargo}`,
+      `🏢 Empresa: ${pendencia.cnpj_razao_social}`,
+      `📊 Status: ${statusLabels[pendencia.status as keyof typeof statusLabels] || pendencia.status}`,
+      `📅 Data da Solicitação: ${format(new Date(pendencia.data_solicitacao), 'dd/MM/yyyy', { locale: ptBR })}`,
+      `⏰ Tempo em Aberto: ${diasAtraso} ${diasAtraso === 1 ? 'dia' : 'dias'}`,
+      `🔍 Motivo: ${pendencia.motivo}`,
+      ``,
+      `---`,
+      ``
+    ];
+
+    return dados.join('\n');
+  }, [pendencia, diasAtraso]);
+
+  // Sugestões "inteligentes" baseadas no contexto da pendência
   const suggestions = useMemo(() => {
     const nome = pendencia.funcionario_nome?.split(' ')?.[0] || pendencia.funcionario_nome;
     const desc = (pendencia.descricao || '').toLowerCase();
+    const status = pendencia.status;
+    const dias = diasAtraso;
 
-    const base = [
-      `Olá, ${nome}! Estamos acompanhando sua pendência (protocolo ${pendencia.protocolo}). Precisamos de uma ação sua para avançar.`,
-      `Olá, ${nome}! Recebemos sua pendência (protocolo ${pendencia.protocolo}). Estou aqui para te ajudar a resolver rapidamente.`,
-    ];
+    const base: string[] = [];
 
+    // Sugestões baseadas no status
+    if (status === 'pendente') {
+      if (dias > 7) {
+        base.push(`Olá! A ativação do funcionário ${nome} está pendente há ${dias} dias. Precisamos acelerar este processo. Há algum impedimento?`);
+      } else if (dias > 3) {
+        base.push(`Olá! Notamos que a ativação do ${nome} está em aberto há ${dias} dias. Podemos dar andamento?`);
+      } else {
+        base.push(`Olá! Sobre a ativação do funcionário ${nome}, há alguma documentação adicional necessária?`);
+      }
+    }
+
+    if (status === 'exclusao_solicitada') {
+      base.push(`Olá! Recebemos a solicitação de exclusão do funcionário ${nome}. Podemos confirmar os próximos passos para finalizar com segurança?`);
+      if (dias > 5) {
+        base.push(`A solicitação de exclusão do ${nome} está em análise há ${dias} dias. Há alguma pendência para concluirmos?`);
+      }
+    }
+
+    // Sugestões baseadas na descrição
     if (desc.includes('document') || desc.includes('doc') || desc.includes('anexo')) {
-      base.push(
-        `Olá, ${nome}! Sobre sua pendência (protocolo ${pendencia.protocolo}), por favor anexe o documento pendente aqui na plataforma para concluirmos.`
-      );
+      base.push(`Sobre o ${nome}, por favor anexe os documentos pendentes aqui na plataforma para darmos continuidade ao processo.`);
     }
 
     if (desc.includes('cpf') || desc.includes('dados') || desc.includes('informação')) {
-      base.push(
-        `Olá, ${nome}! Notamos uma divergência de dados (protocolo ${pendencia.protocolo}). Pode confirmar CPF e dados cadastrais para seguirmos?`
-      );
+      base.push(`Identificamos uma divergência nos dados do ${nome}. Pode confirmar CPF e informações cadastrais para seguirmos?`);
     }
 
-    if (desc.includes('exclus') || desc.includes('saida') || desc.includes('deslig')) {
-      base.push(
-        `Olá, ${nome}! Entendemos seu pedido (protocolo ${pendencia.protocolo}). Podemos confirmar os próximos passos para finalizar a exclusão com segurança?`
-      );
-    }
+    // Sugestão padrão
+    base.push(`Olá! Sobre a pendência do funcionário ${nome}, estou acompanhando o caso e gostaria de saber se há algo que possamos resolver rapidamente.`);
 
-    // Remover duplicadas simples
     return Array.from(new Set(base));
-  }, [pendencia.funcionario_nome, pendencia.descricao, pendencia.protocolo]);
+  }, [pendencia.funcionario_nome, pendencia.descricao, pendencia.status, diasAtraso]);
 
   const handleUseSuggestion = (text: string) => {
     setMessage(text);
@@ -157,7 +206,10 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      console.log('✉️ Enviando mensagem para conversa:', conversaId, 'mensagem:', message);
+      console.log('✉️ Enviando mensagem para conversa:', conversaId);
+
+      // Combinar dados contextuais + mensagem personalizada
+      const mensagemCompleta = dadosContextuais + message.trim();
 
       // Enviar mensagem diretamente para a tabela "mensagens"
       const { data: userInfo } = await supabase.auth.getUser();
@@ -167,12 +219,17 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
         {
           conversa_id: conversaId,
           remetente_id: remetenteId,
-          conteudo: message.trim(),
+          conteudo: mensagemCompleta,
           tipo: 'texto',
           metadata: {
             origem: 'relatorio_pendencias',
             pendencia_id: pendencia.id,
             protocolo: pendencia.protocolo,
+            funcionario_nome: pendencia.funcionario_nome,
+            cpf: pendencia.cpf,
+            cnpj_razao_social: pendencia.cnpj_razao_social,
+            status: pendencia.status,
+            dias_atraso: diasAtraso,
           },
         } as any,
       ]);
@@ -189,7 +246,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
       toast({
         title: 'Mensagem enviada',
-        description: 'Sua mensagem foi enviada para a conversa vinculada a esta pendência.',
+        description: 'Sua mensagem com os dados da pendência foi enviada para a empresa.',
       });
       setMessage('');
     } finally {
@@ -199,11 +256,11 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Mensagens da Pendência - Protocolo {pendencia.protocolo}
+            Enviar Mensagem - Protocolo {pendencia.protocolo}
           </DialogTitle>
         </DialogHeader>
 
@@ -215,30 +272,61 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
                 <p className="text-sm font-medium text-muted-foreground">Funcionário</p>
                 <p className="font-medium">{pendencia.funcionario_nome}</p>
               </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">CPF</p>
+                <p className="font-medium">{pendencia.cpf}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Empresa</p>
+                <p className="font-medium">{pendencia.cnpj_razao_social}</p>
+              </div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium text-muted-foreground">Conversa</p>
                 {isLinking ? (
                   <Badge variant="secondary">Vinculando...</Badge>
                 ) : conversaId ? (
-                  <Badge variant="outline" className="border-green-300 text-green-700">Conversa vinculada</Badge>
+                  <Badge variant="outline" className="border-green-300 text-green-700">Conversa ativa</Badge>
                 ) : (
                   <Badge variant="destructive">Sem conversa</Badge>
                 )}
               </div>
             </div>
-            <div className="mt-3">
-              <p className="text-sm font-medium text-muted-foreground">Descrição</p>
-              <p className="text-sm">{pendencia.descricao}</p>
+            <div className="mt-3 flex items-center gap-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Status</p>
+                <Badge variant={pendencia.status === 'exclusao_solicitada' ? 'destructive' : 'secondary'}>
+                  {pendencia.motivo}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Tempo em aberto</p>
+                <Badge variant={diasAtraso > 7 ? 'destructive' : diasAtraso > 3 ? 'secondary' : 'default'}>
+                  {diasAtraso} {diasAtraso === 1 ? 'dia' : 'dias'}
+                </Badge>
+              </div>
             </div>
             <div className="mt-3 flex items-center gap-2">
               {conversaId && (
                 <Link to={`/chat?conversa=${conversaId}`} className="inline-flex">
                   <Button variant="outline" size="sm" className="gap-2">
                     <LinkIcon className="h-4 w-4" />
-                    Abrir conversa
+                    Abrir chat completo
                   </Button>
                 </Link>
               )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Preview dos dados que serão incluídos */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Info className="h-4 w-4 text-blue-500" />
+              <h4 className="font-medium">Dados que serão incluídos automaticamente na mensagem</h4>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-md border text-sm font-mono whitespace-pre-line text-gray-700 max-h-32 overflow-y-auto">
+              {dadosContextuais}
             </div>
           </div>
 
@@ -248,15 +336,15 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <h4 className="font-medium">Sugestões de mensagem</h4>
+              <h4 className="font-medium">Sugestões de mensagem personalizada</h4>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
               {suggestions.map((sug, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  className="text-left text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors"
+                  className="w-full text-left text-sm px-3 py-3 rounded-md border hover:bg-muted transition-colors"
                   onClick={() => handleUseSuggestion(sug)}
                   title="Usar sugestão"
                 >
@@ -270,16 +358,16 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
           {/* Composer */}
           <div className="space-y-3">
-            <h4 className="font-medium">Escreva sua mensagem</h4>
+            <h4 className="font-medium">Sua mensagem personalizada</h4>
             <Textarea
-              placeholder="Digite sua mensagem personalizada para esta pendência..."
+              placeholder="Digite sua mensagem personalizada (será enviada após os dados da pendência)..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
             />
             <div className="flex justify-between items-center">
               <p className="text-xs text-muted-foreground">
-                {message.length}/1000 caracteres
+                {message.length}/1000 caracteres • Os dados da pendência serão incluídos automaticamente
               </p>
               <Button
                 onClick={handleSend}
@@ -287,23 +375,19 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
                 className="gap-2"
               >
                 <Send className="h-4 w-4" />
-                {isSubmitting ? 'Enviando...' : 'Enviar mensagem'}
+                {isSubmitting ? 'Enviando...' : 'Enviar mensagem completa'}
               </Button>
             </div>
           </div>
 
-          {/* Histórico ilustrativo (mantemos apenas visual, sem mock fixo) */}
+          {/* Histórico note */}
           <Separator />
-          <div className="space-y-3">
-            <h4 className="font-medium">Histórico</h4>
-            <div className="text-xs text-muted-foreground">
-              As mensagens enviadas aqui ficam disponíveis na Central de Mensagens.
-              {conversaId ? (
-                <> Você pode acompanhar e responder na aba de Chat.</>
-              ) : (
-                <> Vincularemos a conversa automaticamente.</>
-              )}
-            </div>
+          <div className="text-xs text-muted-foreground">
+            💡 <strong>Dica:</strong> A mensagem será enviada com todos os dados da pendência incluídos automaticamente. 
+            A empresa receberá as informações completas e poderá responder diretamente no chat.
+            {conversaId && (
+              <> Você pode acompanhar e continuar a conversa na <Link to={`/chat?conversa=${conversaId}`} className="text-primary hover:underline">Central de Mensagens</Link>.</>
+            )}
           </div>
         </div>
       </DialogContent>
