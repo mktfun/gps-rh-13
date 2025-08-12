@@ -124,7 +124,7 @@ const SegurosVidaPlanoPage = () => {
           )
         `)
         .eq('cnpj_id', cnpjId)
-        .eq('tipo_seguro', 'vida') // 🔥 FILTRO MÁGICO ADICIONADO AQUI
+        .eq('tipo_seguro', 'vida')
         .maybeSingle();
 
       if (error) {
