@@ -128,7 +128,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
     };
 
     const dados = [
-      `📋 DADOS DA PENDÊNCIA - PROTOCOLO ${pendencia.protocolo}`,
+      `📋 COBRANÇA DE PENDÊNCIA - PROTOCOLO ${pendencia.protocolo}`,
       ``,
       `👤 Funcionário: ${pendencia.funcionario_nome}`,
       `📄 CPF: ${pendencia.cpf}`,
@@ -140,13 +140,14 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
       `🔍 Motivo: ${pendencia.motivo}`,
       ``,
       `---`,
+      `MENSAGEM DA SEGURADORA:`,
       ``
     ];
 
     return dados.join('\n');
   }, [pendencia, diasAtraso]);
 
-  // Sugestões "inteligentes" baseadas no contexto da pendência
+  // Sugestões direcionadas à corretora/empresa como se fosse da seguradora
   const suggestions = useMemo(() => {
     const nome = pendencia.funcionario_nome?.split(' ')?.[0] || pendencia.funcionario_nome;
     const desc = (pendencia.descricao || '').toLowerCase();
@@ -155,38 +156,38 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
     const base: string[] = [];
 
-    // Sugestões baseadas no status
+    // Sugestões baseadas no status - como se fosse da seguradora
     if (status === 'pendente') {
       if (dias > 7) {
-        base.push(`Olá! A ativação do funcionário ${nome} está pendente há ${dias} dias. Precisamos acelerar este processo. Há algum impedimento?`);
+        base.push(`Olá, a ativação do funcionário ${nome} (CPF: ${pendencia.cpf}) está pendente há ${dias} dias e ainda não recebemos nenhum retorno. Precisamos de uma posição urgente sobre esta solicitação.`);
       } else if (dias > 3) {
-        base.push(`Olá! Notamos que a ativação do ${nome} está em aberto há ${dias} dias. Podemos dar andamento?`);
+        base.push(`Olá, notamos que a ativação do funcionário ${nome} (CPF: ${pendencia.cpf}) está em aberto há ${dias} dias. Poderiam nos dar um retorno sobre o andamento?`);
       } else {
-        base.push(`Olá! Sobre a ativação do funcionário ${nome}, há alguma documentação adicional necessária?`);
+        base.push(`Olá, sobre a ativação do funcionário ${nome} (CPF: ${pendencia.cpf}), há alguma documentação adicional necessária para prosseguirmos?`);
       }
     }
 
     if (status === 'exclusao_solicitada') {
-      base.push(`Olá! Recebemos a solicitação de exclusão do funcionário ${nome}. Podemos confirmar os próximos passos para finalizar com segurança?`);
+      base.push(`Olá, recebemos a solicitação de exclusão do funcionário ${nome} (CPF: ${pendencia.cpf}). Poderiam confirmar os próximos passos para finalizarmos este processo?`);
       if (dias > 5) {
-        base.push(`A solicitação de exclusão do ${nome} está em análise há ${dias} dias. Há alguma pendência para concluirmos?`);
+        base.push(`A solicitação de exclusão do funcionário ${nome} (CPF: ${pendencia.cpf}) está em análise há ${dias} dias. Há alguma pendência para concluirmos este processo?`);
       }
     }
 
     // Sugestões baseadas na descrição
     if (desc.includes('document') || desc.includes('doc') || desc.includes('anexo')) {
-      base.push(`Sobre o ${nome}, por favor anexe os documentos pendentes aqui na plataforma para darmos continuidade ao processo.`);
+      base.push(`Sobre o funcionário ${nome} (CPF: ${pendencia.cpf}), ainda aguardamos os documentos pendentes para darmos continuidade ao processo. Poderiam providenciar o quanto antes?`);
     }
 
     if (desc.includes('cpf') || desc.includes('dados') || desc.includes('informação')) {
-      base.push(`Identificamos uma divergência nos dados do ${nome}. Pode confirmar CPF e informações cadastrais para seguirmos?`);
+      base.push(`Identificamos uma divergência nos dados do funcionário ${nome} (CPF: ${pendencia.cpf}). Poderiam confirmar as informações cadastrais para prosseguirmos?`);
     }
 
-    // Sugestão padrão
-    base.push(`Olá! Sobre a pendência do funcionário ${nome}, estou acompanhando o caso e gostaria de saber se há algo que possamos resolver rapidamente.`);
+    // Sugestão padrão mais formal
+    base.push(`Olá, sobre a pendência do funcionário ${nome} (CPF: ${pendencia.cpf}), estamos acompanhando este caso há ${dias} ${dias === 1 ? 'dia' : 'dias'} e gostaríamos de saber quando poderemos ter uma resolução.`);
 
     return Array.from(new Set(base));
-  }, [pendencia.funcionario_nome, pendencia.descricao, pendencia.status, diasAtraso]);
+  }, [pendencia.funcionario_nome, pendencia.cpf, pendencia.descricao, pendencia.status, diasAtraso]);
 
   const handleUseSuggestion = (text: string) => {
     setMessage(text);
@@ -245,8 +246,8 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
       }
 
       toast({
-        title: 'Mensagem enviada',
-        description: 'Sua mensagem com os dados da pendência foi enviada para a empresa.',
+        title: 'Cobrança enviada',
+        description: 'Sua cobrança sobre a pendência foi enviada para a empresa.',
       });
       setMessage('');
     } finally {
@@ -260,7 +261,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Enviar Mensagem - Protocolo {pendencia.protocolo}
+            Cobrar Pendência - Protocolo {pendencia.protocolo}
           </DialogTitle>
         </DialogHeader>
 
@@ -323,7 +324,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-blue-500" />
-              <h4 className="font-medium">Dados que serão incluídos automaticamente na mensagem</h4>
+              <h4 className="font-medium">Dados que serão incluídos automaticamente na cobrança</h4>
             </div>
             <div className="bg-gray-50 p-3 rounded-md border text-sm font-mono whitespace-pre-line text-gray-700 max-h-32 overflow-y-auto">
               {dadosContextuais}
@@ -332,11 +333,11 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
           <Separator />
 
-          {/* Sugestões inteligentes */}
+          {/* Sugestões de cobrança */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <h4 className="font-medium">Sugestões de mensagem personalizada</h4>
+              <h4 className="font-medium">Sugestões de cobrança para a empresa</h4>
             </div>
 
             <div className="space-y-2">
@@ -358,9 +359,9 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
 
           {/* Composer */}
           <div className="space-y-3">
-            <h4 className="font-medium">Sua mensagem personalizada</h4>
+            <h4 className="font-medium">Sua mensagem de cobrança personalizada</h4>
             <Textarea
-              placeholder="Digite sua mensagem personalizada (será enviada após os dados da pendência)..."
+              placeholder="Digite sua mensagem de cobrança personalizada (será enviada após os dados da pendência)..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
@@ -375,7 +376,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
                 className="gap-2"
               >
                 <Send className="h-4 w-4" />
-                {isSubmitting ? 'Enviando...' : 'Enviar mensagem completa'}
+                {isSubmitting ? 'Enviando...' : 'Enviar cobrança'}
               </Button>
             </div>
           </div>
@@ -383,7 +384,7 @@ export const PendenciaCommentsModal: React.FC<PendenciaCommentsModalProps> = ({
           {/* Histórico note */}
           <Separator />
           <div className="text-xs text-muted-foreground">
-            💡 <strong>Dica:</strong> A mensagem será enviada com todos os dados da pendência incluídos automaticamente. 
+            💡 <strong>Dica:</strong> A cobrança será enviada como seguradora para a empresa com todos os dados da pendência incluídos automaticamente. 
             A empresa receberá as informações completas e poderá responder diretamente no chat.
             {conversaId && (
               <> Você pode acompanhar e continuar a conversa na <Link to={`/chat?conversa=${conversaId}`} className="text-primary hover:underline">Central de Mensagens</Link>.</>
