@@ -58,7 +58,7 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
 
       console.log('✅ Funcionário criado com sucesso:', result);
 
-      // 2. LÓGICA NOVA: Buscar a corretora_id a partir do cnpj_id
+      // 2. Buscar a corretora a partir do CNPJ (mantido por compatibilidade; trigger já garante a pendência)
       const { data: cnpjData, error: cnpjError } = await supabase
         .from('cnpjs')
         .select(`
@@ -73,14 +73,15 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
 
       if (cnpjError || !cnpjData?.empresas?.corretora_id) {
         console.error("💥 CRÍTICO: Falha ao encontrar corretora para criar pendência:", cnpjError);
-        toast.error("Funcionário criado, mas houve um erro ao registrar a pendência.");
-        return result; // Retorna o funcionário, mas a pendência falhou.
+        // Observação: Trigger no banco já cria a pendência automaticamente.
+        // Não interromper o fluxo se não conseguirmos criar manualmente.
+        return result;
       }
 
       const corretoraId = cnpjData.empresas.corretora_id;
       console.log('🏢 Corretora encontrada:', corretoraId);
 
-      // 3. LÓGICA NOVA: Inserir o registro na tabela 'pendencias'
+      // 3. Tentar inserir a pendência manualmente (se já existir via trigger, ignorar duplicidade)
       const vencimento = new Date();
       vencimento.setDate(vencimento.getDate() + 7); // Prazo de 7 dias
       const dataVencimento = vencimento.toISOString().split('T')[0]; // 'YYYY-MM-DD'
@@ -92,19 +93,30 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
         funcionario_id: result.id,
         cnpj_id: result.cnpj_id,
         corretora_id: corretoraId,
-        status: 'pendente',
+        status: 'pendente' as const,
         data_vencimento: dataVencimento
       };
 
-      console.log('📝 Criando pendência:', pendenciaData);
+      console.log('📝 Tentando criar pendência manualmente (trigger já garante):', pendenciaData);
 
       const { error: pendenciaError } = await supabase
         .from('pendencias')
         .insert(pendenciaData);
 
       if (pendenciaError) {
-        console.error("💥 CRÍTICO: Funcionário criado, mas falha ao criar pendência:", pendenciaError);
-        toast.error("Funcionário criado, mas houve um erro ao registrar a pendência.");
+        const msg = String(pendenciaError?.message || '');
+        const code = (pendenciaError as any)?.code || '';
+        const isDuplicate =
+          code === '23505' ||
+          msg.toLowerCase().includes('duplicate key') ||
+          msg.includes('uniq_pend_ativacao_por_funcionario_pendente');
+
+        if (isDuplicate) {
+          console.log('ℹ️ Pendência já existente (provavelmente criada pelo trigger). Prosseguindo sem erro.');
+        } else {
+          console.error("💥 CRÍTICO: Funcionário criado, mas falha ao criar pendência:", pendenciaError);
+          toast.error("Funcionário criado, mas houve um erro ao registrar a pendência.");
+        }
       } else {
         console.log('✅ Pendência criada com sucesso!');
       }
@@ -120,40 +132,22 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
       }
 
       // Invalidar todas as queries relacionadas aos funcionários deste CNPJ
-      queryClient.invalidateQueries({ 
-        queryKey: ['planoFuncionarios', cnpjId] 
-      });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId] });
 
       // Invalidar queries de estatísticas
-      queryClient.invalidateQueries({ 
-        queryKey: ['planoFuncionariosStats', cnpjId] 
-      });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', cnpjId] });
 
       // Também invalidar as queries de detalhes do plano para atualizar contadores
-      queryClient.invalidateQueries({ 
-        queryKey: ['plano-detalhes', cnpjId] 
-      });
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes', cnpjId] });
 
-      // NOVO: Invalidar queries de pendências para atualizar relatórios da corretora
-      queryClient.invalidateQueries({ 
-        queryKey: ['pendencias-corretora'] 
-      });
-
-      queryClient.invalidateQueries({ 
-        queryKey: ['empresasComPlanos'] 
-      });
-
-      queryClient.invalidateQueries({ 
-        queryKey: ['corretoraDashboardActions'] 
-      });
-
-      queryClient.invalidateQueries({ 
-        queryKey: ['corretora-dashboard-actions-detailed'] 
-      });
-
-      queryClient.invalidateQueries({ 
-        queryKey: ['corretoraDashboardMetrics'] 
-      });
+      // Atualizações relevantes para pendências e dashboards
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+      queryClient.invalidateQueries({ queryKey: ['empresasComPlanos'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardActions'] });
+      queryClient.invalidateQueries({ queryKey: ['corretora-dashboard-actions-detailed'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
+      // Opcional: se existir no app
+      queryClient.invalidateQueries({ queryKey: ['empresas-com-metricas'] });
 
       toast.success(`Funcionário ${data.nome} adicionado com sucesso!`);
     },
