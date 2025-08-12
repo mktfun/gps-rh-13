@@ -20,6 +20,33 @@ export const useAdicionarFuncionariosMutation = () => {
 
       console.log('🔄 Adicionando funcionários ao plano:', { planoId, tipoSeguro, funcionarioIds });
 
+      // Buscar o CNPJ do plano para criar pendências corretamente
+      const { data: plano, error: planoError } = await supabase
+        .from('dados_planos')
+        .select(`
+          id, 
+          cnpj_id,
+          cnpjs!inner(
+            id,
+            empresas!inner(
+              id,
+              corretora_id
+            )
+          )
+        `)
+        .eq('id', planoId)
+        .single();
+
+      if (planoError || !plano?.cnpjs?.empresas?.corretora_id) {
+        console.error('❌ Não foi possível obter o CNPJ e corretora do plano para criar pendências', planoError);
+        throw planoError || new Error('CNPJ do plano ou corretora não encontrado');
+      }
+
+      const cnpjId = plano.cnpj_id;
+      const corretoraId = plano.cnpjs.empresas.corretora_id;
+
+      console.log('📋 Dados obtidos:', { cnpjId, corretoraId });
+
       // Criar registros para inserção em massa
       const registros = funcionarioIds.map(funcionarioId => ({
         plano_id: planoId,
@@ -37,18 +64,6 @@ export const useAdicionarFuncionariosMutation = () => {
         throw errorPF;
       }
 
-      // Buscar o CNPJ do plano para criar pendências corretamente
-      const { data: plano, error: planoError } = await supabase
-        .from('dados_planos')
-        .select('id, cnpj_id')
-        .eq('id', planoId)
-        .single();
-
-      if (planoError || !plano?.cnpj_id) {
-        console.error('❌ Não foi possível obter o CNPJ do plano para criar pendências', planoError);
-        throw planoError || new Error('CNPJ do plano não encontrado');
-      }
-
       // Helper para gerar protocolo único
       const mkProtocolo = (suffix: string) => `PEN-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${suffix}`;
 
@@ -62,7 +77,8 @@ export const useAdicionarFuncionariosMutation = () => {
         tipo: 'ativacao',
         descricao: `Ativação pendente para funcionário ${funcionarioId}`,
         funcionario_id: funcionarioId,
-        cnpj_id: plano.cnpj_id,
+        cnpj_id: cnpjId,
+        corretora_id: corretoraId, // ✅ CORREÇÃO: Adicionando a corretora_id obrigatória
         status: 'pendente',
         data_vencimento: dataVencimento
       }));
