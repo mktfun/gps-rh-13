@@ -95,6 +95,7 @@ function AppContent() {
             {/* Seguros de Vida - rotas principais */}
             <Route path="seguros-de-vida/empresas" element={<SegurosVidaEmpresasPage />} />
             <Route path="seguros-de-vida/empresas/:empresaId/cnpjs" element={<SegurosVidaCnpjsPage />} />
+            <Route path="seguros-de-vida/plano/:planoId" element={<SegurosVidaPlanoPage />} />
             
             {/* Seguros de Vida - rotas alias para compatibilidade */}
             <Route path="seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
