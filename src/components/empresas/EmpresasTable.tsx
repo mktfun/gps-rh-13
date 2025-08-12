@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building2, Edit2, Users, AlertTriangle } from 'lucide-react';
+import { Building2, Edit2, Users, AlertTriangle, Trash2 } from 'lucide-react';
 import { EmpresaTableSkeleton } from './EmpresaTableSkeleton';
 import { EmpresaErrorState } from './EmpresaErrorState';
 import { PulseLoader } from '@/components/ui/enhanced-loading';
@@ -10,6 +10,18 @@ import { type EmpresaComMetricas } from '@/hooks/useEmpresas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
 
 interface EmpresasTableProps {
   empresas: EmpresaComMetricas[];
@@ -21,6 +33,7 @@ interface EmpresasTableProps {
 export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: EmpresasTableProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleRetry = () => {
     queryClient.invalidateQueries({ queryKey: ['empresas'] });
@@ -28,7 +41,19 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
 
   const handleEditEmpresa = (empresa: EmpresaComMetricas) => {
     toast.info(`Editar dados da empresa ${empresa.nome}...`);
-    // Aqui poderia chamar onEdit(empresa) quando implementarmos a edição
+    onEdit(empresa);
+  };
+
+  const handleDeleteEmpresa = async (empresa: EmpresaComMetricas) => {
+    setDeletingId(empresa.id);
+    try {
+      await onDelete(empresa.id);
+      toast.success(`Empresa "${empresa.nome}" excluída com sucesso`);
+    } catch (error) {
+      toast.error(`Erro ao excluir empresa "${empresa.nome}"`);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const getStatusBadge = (statusGeral: string) => {
@@ -202,6 +227,43 @@ export const EmpresasTable = ({ empresas, isLoading, onEdit, onDelete }: Empresa
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-red-100 hover:text-red-600 transition-colors"
+                              title="Excluir empresa"
+                              disabled={deletingId === empresa.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                              <AlertDialogDescription className="space-y-2">
+                                <p>
+                                  Tem certeza que deseja excluir a empresa <strong>"{empresa.nome}"</strong>?
+                                </p>
+                                <p className="text-sm text-red-600 font-medium">
+                                  ⚠️ Esta ação é irreversível e irá remover todos os dados relacionados: CNPJs, funcionários e planos.
+                                </p>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteEmpresa(empresa)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deletingId === empresa.id}
+                              >
+                                {deletingId === empresa.id ? 'Excluindo...' : 'Excluir Empresa'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

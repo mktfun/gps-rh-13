@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface EmpresaComMetricas {
   id: string;
@@ -145,6 +146,11 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['empresas-com-metricas'] });
+      toast.success('Empresa criada com sucesso');
+    },
+    onError: (error) => {
+      console.error('Erro ao criar empresa:', error);
+      toast.error('Erro ao criar empresa');
     }
   });
 
@@ -164,20 +170,39 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['empresas-com-metricas'] });
+      toast.success('Empresa atualizada com sucesso');
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar empresa:', error);
+      toast.error('Erro ao atualizar empresa');
     }
   });
 
   const deleteEmpresa = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('empresas')
-        .delete()
-        .eq('id', id);
+      // Usar a função delete_empresa_with_cleanup para garantir a limpeza completa
+      const { data, error } = await supabase.rpc('delete_empresa_with_cleanup', {
+        empresa_id_param: id
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao excluir empresa:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Empresa não encontrada ou não pôde ser excluída');
+      }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['empresas-com-metricas'] });
+      toast.success('Empresa excluída com sucesso');
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir empresa:', error);
+      toast.error('Erro ao excluir empresa');
     }
   });
 
