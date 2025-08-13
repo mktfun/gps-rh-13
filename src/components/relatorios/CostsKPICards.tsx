@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Users, TrendingUp, TrendingDown } from 'lucide-react';
@@ -39,6 +38,9 @@ export const CostsKPICards = ({
           <p className="text-xs text-muted-foreground">
             Soma de todos os planos ativos
           </p>
+          {(custoTotalPeriodo || 0) === 0 && (
+            <p className="text-xs text-red-600">⚠️ Valor zerado - verificar dados</p>
+          )}
         </CardContent>
       </Card>
 
