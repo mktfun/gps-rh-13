@@ -196,7 +196,9 @@ const RelatorioFuncionariosPage = () => {
                 <SelectItem value="pendente">Pendente</SelectItem>
                 <SelectItem value="desativado">Desativado</SelectItem>
                 <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
+                <SelectItem value="pendente_exclusao">Pendente Exclusão</SelectItem>
                 <SelectItem value="arquivado">Arquivado</SelectItem>
+                <SelectItem value="edicao_solicitada">Edição Solicitada</SelectItem>
               </SelectContent>
             </Select>
 
