@@ -241,7 +241,7 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || (isDuplicate && !funcionario)}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {funcionario ? 'Atualizar' : 'Criar'}
             </Button>
