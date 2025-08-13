@@ -99,7 +99,44 @@ const RelatorioFuncionariosPage = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Relatório de Funcionários</h1>
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
+        </div>
         <TableLoadingState rows={10} columns={7} showHeader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Relatório de Funcionários</h1>
+            <p className="text-muted-foreground">
+              Análise completa da movimentação e status dos funcionários
+            </p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <div className="text-red-600 mb-2">Erro ao carregar dados</div>
+              <div className="text-muted-foreground text-sm">
+                {error.message || 'Ocorreu um erro inesperado'}
+              </div>
+              <Button
+                className="mt-4"
+                onClick={() => window.location.reload()}
+              >
+                Tentar Novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -123,7 +160,7 @@ const RelatorioFuncionariosPage = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Relatório de Funcionários</h1>
           <p className="text-muted-foreground">
-            Análise completa da movimenta��ão e status dos funcionários
+            Análise completa da movimentação e status dos funcionários
           </p>
         </div>
         <div className="flex items-center gap-4">
