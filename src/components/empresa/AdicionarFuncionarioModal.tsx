@@ -132,14 +132,27 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
             <div className="space-y-2">
               <Label htmlFor="cpf">CPF *</Label>
-              <Input
-                id="cpf"
-                {...register('cpf')}
-                placeholder="000.000.000-00"
-                className={errors.cpf ? 'border-destructive' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="cpf"
+                  {...register('cpf')}
+                  placeholder="000.000.000-00"
+                  className={errors.cpf || isDuplicate ? 'border-destructive' : ''}
+                />
+                {isChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+              </div>
               {errors.cpf && (
                 <p className="text-sm text-destructive">{errors.cpf.message}</p>
+              )}
+              {isDuplicate && existingFuncionario && (
+                <div className="flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>CPF já cadastrado para: {existingFuncionario.nome}</span>
+                </div>
               )}
             </div>
 
