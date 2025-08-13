@@ -56,6 +56,26 @@ export const useAdicionarFuncionariosMutation = () => {
 
       console.log('📝 Inserindo registros em planos_funcionarios:', registros);
 
+      // Verificar se os funcionários existem e são válidos
+      const { data: funcionariosExistentes, error: errorValidacao } = await supabase
+        .from('funcionarios')
+        .select('id, status, cnpj_id')
+        .in('id', funcionarioIds);
+
+      if (errorValidacao) {
+        console.error('❌ Erro ao validar funcionários:', errorValidacao);
+        throw new Error(`Erro ao validar funcionários: ${errorValidacao.message}`);
+      }
+
+      if (!funcionariosExistentes || funcionariosExistentes.length !== funcionarioIds.length) {
+        const encontrados = funcionariosExistentes?.map(f => f.id) || [];
+        const naoEncontrados = funcionarioIds.filter(id => !encontrados.includes(id));
+        console.error('❌ Funcionários não encontrados:', naoEncontrados);
+        throw new Error(`Funcionários não encontrados: ${naoEncontrados.join(', ')}`);
+      }
+
+      console.log('✅ Funcionários validados:', funcionariosExistentes);
+
       const { data: insertPF, error: errorPF } = await supabase
         .from('planos_funcionarios')
         .insert(registros)
@@ -124,7 +144,7 @@ export const useAdicionarFuncionariosMutation = () => {
         queryKey: ['pendencias-corretora']
       });
 
-      toast.success(`${data.insertPF?.length || 0} funcionário(s) adicionado(s) e ${data.insertPendencias?.length || 0} pend��ncia(s) criada(s)!`);
+      toast.success(`${data.insertPF?.length || 0} funcionário(s) adicionado(s) e ${data.insertPendencias?.length || 0} pendência(s) criada(s)!`);
     },
     onError: (error: any) => {
       console.error('Erro na mutation:', error);
