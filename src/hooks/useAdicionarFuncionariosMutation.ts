@@ -47,6 +47,53 @@ export const useAdicionarFuncionariosMutation = () => {
 
       console.log('📋 Dados obtidos:', { cnpjId, corretoraId });
 
+      // Verificar se o usuário atual tem permissão para criar pendências
+      const { data: currentUser } = await supabase.auth.getUser();
+      const { data: currentProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role, empresa_id')
+        .eq('id', currentUser.user?.id)
+        .single();
+
+      if (profileError || !currentProfile) {
+        console.error('❌ Erro ao obter perfil do usuário:', profileError);
+        throw new Error('Erro ao verificar permissões do usuário');
+      }
+
+      console.log('👤 Perfil do usuário atual:', currentProfile);
+
+      // Verificar se o usuário tem permissão baseado na RLS policy
+      let hasPermission = false;
+      if (currentProfile.role === 'admin') {
+        hasPermission = true;
+        console.log('✅ Usuário é admin - permissão concedida');
+      } else if (currentProfile.role === 'corretora') {
+        // Para corretoras, verificar se a corretora_id do plano corresponde ao usuário atual
+        hasPermission = (corretoraId === currentProfile.id);
+        console.log('🏢 Verificação de corretora:', { corretoraId, userId: currentProfile.id, hasPermission });
+      } else if (currentProfile.role === 'empresa') {
+        // Para empresas, verificar se o funcionário pertence à empresa do usuário
+        if (currentProfile.empresa_id) {
+          const { data: empresaCheck } = await supabase
+            .from('funcionarios')
+            .select(`
+              cnpj_id,
+              cnpjs!inner(
+                empresa_id
+              )
+            `)
+            .in('id', funcionarioIds)
+            .eq('cnpjs.empresa_id', currentProfile.empresa_id);
+
+          hasPermission = empresaCheck && empresaCheck.length === funcionarioIds.length;
+          console.log('🏭 Verificação de empresa:', { empresaId: currentProfile.empresa_id, empresaCheck, hasPermission });
+        }
+      }
+
+      if (!hasPermission) {
+        throw new Error(`Você não tem permissão para criar pendências. Perfil: ${currentProfile.role}, Empresa ID: ${currentProfile.empresa_id}, Corretora ID: ${corretoraId}`);
+      }
+
       // Criar registros para inserção em massa
       const registros = funcionarioIds.map(funcionarioId => ({
         plano_id: planoId,
