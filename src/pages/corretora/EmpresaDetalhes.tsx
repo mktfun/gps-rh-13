@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { useEmpresa } from '@/hooks/useEmpresa';
 import { useEmpresaCache } from '@/hooks/useEmpresaCache';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
 import { useCnpjs } from '@/hooks/useCnpjs';
+import { useAuth } from '@/hooks/useAuth';
 import { FuncionariosTable } from '@/components/funcionarios/FuncionariosTable';
 import CnpjsTable from '@/components/cnpjs/CnpjsTable';
 import CnpjModal from '@/components/cnpjs/CnpjModal';
