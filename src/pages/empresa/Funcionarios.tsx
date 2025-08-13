@@ -140,7 +140,13 @@ const Funcionarios = () => {
     }
   };
 
-  const columns = createFuncionariosEmpresaTableColumns(handleViewDetails, handleSolicitarExclusao);
+  const columns = createFuncionariosEmpresaTableColumns(
+    handleViewDetails,
+    handleSolicitarExclusao,
+    handleAtivarFuncionario,
+    handleExcluirFuncionario,
+    role
+  );
 
   const handleSearch = (value: string) => {
     setSearch(value);
