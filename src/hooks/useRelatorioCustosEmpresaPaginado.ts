@@ -136,8 +136,8 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
       let totalGeral = Number(first?.total_geral || 0);
       let custoMedioPorCnpj = Number(first?.custo_medio_por_cnpj || 0);
 
-      // Se os totais vieram zerados, recalcular a partir dos dados recebidos
-      if (totalGeral === 0 && results.length > 0) {
+      // Sempre recalcular totais para garantir valores corretos
+      if (results.length > 0) {
         console.log('🔧 Recalculando totais a partir dos dados recebidos');
 
         const uniqueCnpjs = new Map();
