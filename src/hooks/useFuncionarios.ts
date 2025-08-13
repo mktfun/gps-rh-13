@@ -53,6 +53,167 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
   // Determinar qual empresa_id usar: parâmetro passado ou do AuthContext
   const targetEmpresaId = paramEmpresaId || empresaId;
 
+  // Criar todas as mutations no nível superior para evitar problemas de hook order
+  const addFuncionario = useMutation({
+    mutationFn: async (funcionario: FuncionarioInsert) => {
+      if (!user?.id) throw new Error('Usuário não autenticado');
+
+      const { data, error } = await supabase
+        .from('funcionarios')
+        .insert(funcionario)
+        .select(`
+          *,
+          cnpj:cnpjs!inner(
+            razao_social,
+            cnpj
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Funcionário adicionado com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao adicionar funcionário',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateFuncionario = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: FuncionarioUpdate }) => {
+      const { data, error } = await supabase
+        .from('funcionarios')
+        .update(updates)
+        .eq('id', id)
+        .select(`
+          *,
+          cnpj:cnpjs!inner(
+            razao_social,
+            cnpj
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Funcionário atualizado com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao atualizar funcionário',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const archiveFuncionario = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from('funcionarios')
+        .update({ status: 'exclusao_solicitada' })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Solicitação de exclusão enviada com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao solicitar exclusão',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const approveExclusao = useMutation({
+    mutationFn: async (funcionarioId: string) => {
+      const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
+        p_funcionario_id: funcionarioId,
+        p_aprovado: true
+      });
+
+      if (error) throw error;
+      return data as unknown as ResolverExclusaoResponse;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      
+      toast({
+        title: 'Sucesso',
+        description: data?.message || 'Exclusão aprovada com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao aprovar exclusão',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const denyExclusao = useMutation({
+    mutationFn: async (funcionarioId: string) => {
+      const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
+        p_funcionario_id: funcionarioId,
+        p_aprovado: false
+      });
+
+      if (error) throw error;
+      return data as unknown as ResolverExclusaoResponse;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      
+      toast({
+        title: 'Sucesso',
+        description: data?.message || 'Exclusão negada - funcionário reativado!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao negar exclusão',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // CORREÇÃO: Usar nova RPC quando empresaId for fornecido
   const empresaQuery = useFuncionariosEmpresa({
     empresaId: targetEmpresaId || '',
@@ -111,11 +272,11 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       currentPage: transformedData?.currentPage || 0,
       isLoading: empresaQuery.isLoading,
       error: empresaQuery.error,
-      addFuncionario: createAddFuncionarioMutation(queryClient, toast, user),
-      updateFuncionario: createUpdateFuncionarioMutation(queryClient, toast),
-      archiveFuncionario: createArchiveFuncionarioMutation(queryClient, toast),
-      approveExclusao: createApproveExclusaoMutation(queryClient, toast),
-      denyExclusao: createDenyExclusaoMutation(queryClient, toast),
+      addFuncionario,
+      updateFuncionario,
+      archiveFuncionario,
+      approveExclusao,
+      denyExclusao,
     };
   }
 
@@ -212,181 +373,10 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     currentPage: funcionariosQuery.data?.currentPage || page,
     isLoading: funcionariosQuery.isLoading,
     error: funcionariosQuery.error,
-    addFuncionario: createAddFuncionarioMutation(queryClient, toast, user),
-    updateFuncionario: createUpdateFuncionarioMutation(queryClient, toast),
-    archiveFuncionario: createArchiveFuncionarioMutation(queryClient, toast),
-    approveExclusao: createApproveExclusaoMutation(queryClient, toast),
-    denyExclusao: createDenyExclusaoMutation(queryClient, toast),
+    addFuncionario,
+    updateFuncionario,
+    archiveFuncionario,
+    approveExclusao,
+    denyExclusao,
   };
 };
-
-// Funções auxiliares para mutations
-function createAddFuncionarioMutation(queryClient: any, toast: any, user: any) {
-  return useMutation({
-    mutationFn: async (funcionario: FuncionarioInsert) => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
-
-      const { data, error } = await supabase
-        .from('funcionarios')
-        .insert(funcionario)
-        .select(`
-          *,
-          cnpj:cnpjs!inner(
-            razao_social,
-            cnpj
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
-      toast({
-        title: 'Sucesso',
-        description: 'Funcionário adicionado com sucesso!',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao adicionar funcionário',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-function createUpdateFuncionarioMutation(queryClient: any, toast: any) {
-  return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: FuncionarioUpdate }) => {
-      const { data, error } = await supabase
-        .from('funcionarios')
-        .update(updates)
-        .eq('id', id)
-        .select(`
-          *,
-          cnpj:cnpjs!inner(
-            razao_social,
-            cnpj
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
-      toast({
-        title: 'Sucesso',
-        description: 'Funcionário atualizado com sucesso!',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao atualizar funcionário',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-function createArchiveFuncionarioMutation(queryClient: any, toast: any) {
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { data, error } = await supabase
-        .from('funcionarios')
-        .update({ status: 'exclusao_solicitada' })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
-      toast({
-        title: 'Sucesso',
-        description: 'Solicitação de exclusão enviada com sucesso!',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao solicitar exclusão',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-function createApproveExclusaoMutation(queryClient: any, toast: any) {
-  return useMutation({
-    mutationFn: async (funcionarioId: string) => {
-      const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
-        p_funcionario_id: funcionarioId,
-        p_aprovado: true
-      });
-
-      if (error) throw error;
-      return data as unknown as ResolverExclusaoResponse;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
-      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      
-      toast({
-        title: 'Sucesso',
-        description: data?.message || 'Exclusão aprovada com sucesso!',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao aprovar exclusão',
-        variant: 'destructive',
-      });
-    },
-  });
-}
-
-function createDenyExclusaoMutation(queryClient: any, toast: any) {
-  return useMutation({
-    mutationFn: async (funcionarioId: string) => {
-      const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
-        p_funcionario_id: funcionarioId,
-        p_aprovado: false
-      });
-
-      if (error) throw error;
-      return data as unknown as ResolverExclusaoResponse;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
-      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      
-      toast({
-        title: 'Sucesso',
-        description: data?.message || 'Exclusão negada - funcionário reativado!',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao negar exclusão',
-        variant: 'destructive',
-      });
-    },
-  });
-}
