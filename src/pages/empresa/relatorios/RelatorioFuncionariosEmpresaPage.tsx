@@ -79,6 +79,27 @@ const RelatorioFuncionariosEmpresaPage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Breadcrumbs items={breadcrumbItems} />
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <div className="text-red-600 mb-2">Erro ao carregar dados</div>
+              <div className="text-muted-foreground text-sm mb-4">
+                {error.message || 'Ocorreu um erro inesperado'}
+              </div>
+              <Button onClick={() => window.location.reload()}>
+                Tentar Novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <Breadcrumbs items={breadcrumbItems} />
