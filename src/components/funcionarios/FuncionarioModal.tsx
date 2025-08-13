@@ -41,6 +41,13 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
   // Buscar CNPJs da empresa para o select
   const { cnpjs } = useCnpjs({ empresaId: empresaId || undefined });
 
+  // Verificar duplicação de CPF em tempo real (apenas para novos funcion��rios)
+  const { isDuplicate, existingFuncionario, isChecking } = useCheckCPF({
+    cpf: formData.cpf,
+    cnpjId: formData.cnpj_id,
+    enabled: !funcionario && formData.cpf.length >= 11 && formData.cnpj_id.length > 0
+  });
+
   useEffect(() => {
     if (funcionario) {
       setFormData({
