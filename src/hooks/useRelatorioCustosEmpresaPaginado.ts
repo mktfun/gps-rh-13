@@ -30,7 +30,7 @@ interface UseRelatorioCustosEmpresaPaginadoParams {
 
 export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpresaPaginadoParams = {}) => {
   const { data: empresaId } = useEmpresaId();
-  const { pageSize = 10, pageIndex = 0 } = params;
+  const { pageSize = 10, pageIndex = 0, filters = {} } = params;
 
   return useQuery({
     queryKey: ['relatorio-custos-empresa-paginado', empresaId, pageSize, pageIndex],
