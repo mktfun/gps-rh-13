@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useEmpresasComPlanos, EmpresaComPlano } from '@/hooks/useEmpresasComPlanos';
 import { EmpresasCardView } from '@/components/seguros-vida/EmpresasCardView';
 import { EmpresasListView } from '@/components/seguros-vida/EmpresasListView';
+import { PlanosSaudeStatus } from '@/components/planos/PlanosSaudeStatus';
 
 export default function PlanosSaudeEmpresasPage() {
   console.log('🩺 PlanosSaudeEmpresasPage: Componente da corretora carregado');
