@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Edit, Archive, UserCheck, UserX, Shield, Trash2 } from 'lucide-react';
@@ -210,7 +213,7 @@ export const FuncionariosTable = ({
     },
     {
       id: 'actions',
-      header: 'Ações',
+      header: 'Aç��es',
       cell: ({ row }) => {
         const funcionario = row.original;
         const status = funcionario.status;
