@@ -11,7 +11,22 @@ interface AtivarFuncionarioFormProps {
   funcionario: {
     id: string;
     nome: string;
+    cpf: string;
+    cargo: string;
+    idade: number;
+    estado_civil: string;
+    salario: number;
+    email?: string;
     cnpj_id: string;
+    cnpj: {
+      id: string;
+      cnpj: string;
+      razao_social: string;
+      empresa: {
+        id: string;
+        nome: string;
+      };
+    };
   };
   planos: {
     id: string;
@@ -22,29 +37,21 @@ interface AtivarFuncionarioFormProps {
     cobertura_invalidez_acidente: number;
     cobertura_auxilio_funeral: number;
   }[];
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
-export const AtivarFuncionarioForm = ({ 
-  funcionario, 
-  planos, 
-  onSuccess 
+export const AtivarFuncionarioForm = ({
+  funcionario,
+  planos,
+  onSuccess
 }: AtivarFuncionarioFormProps) => {
-  const [planoSelecionado, setPlanoSelecionado] = useState<string>('');
   const queryClient = useQueryClient();
 
-  const form = useForm<AtivacaoFormData>({
-    resolver: zodResolver(ativacaoSchema),
-    defaultValues: {
-      plano_id: '',
-    },
-  });
-
   const ativarFuncionario = useMutation({
-    mutationFn: async (data: AtivacaoFormData) => {
+    mutationFn: async () => {
       const { error } = await supabase
         .from('funcionarios')
-        .update({ 
+        .update({
           status: 'ativo',
           updated_at: new Date().toISOString()
         })
@@ -56,7 +63,9 @@ export const AtivarFuncionarioForm = ({
       toast.success('Funcionário ativado com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['ativar-funcionario'] });
       queryClient.invalidateQueries({ queryKey: ['corretora-dashboard'] });
-      onSuccess();
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+      onSuccess?.();
     },
     onError: (error) => {
       console.error('Erro ao ativar funcionário:', error);
@@ -64,11 +73,9 @@ export const AtivarFuncionarioForm = ({
     },
   });
 
-  const onSubmit = (data: AtivacaoFormData) => {
-    ativarFuncionario.mutate(data);
+  const handleActivate = () => {
+    ativarFuncionario.mutate();
   };
-
-  const planoDetalhes = planos.find(p => p.id === planoSelecionado);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
