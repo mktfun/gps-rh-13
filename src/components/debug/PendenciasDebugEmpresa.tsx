@@ -73,6 +73,28 @@ export const PendenciasDebugEmpresa: React.FC = () => {
     }
   };
 
+  const repairPendencias = async () => {
+    if (!empresaId) return;
+
+    setIsLoading(true);
+
+    try {
+      const { data: repairResult, error: repairError } = await supabase
+        .rpc('repair_missing_pendencias_for_empresa', { p_empresa_id: empresaId });
+
+      if (repairError) throw repairError;
+
+      setResult(prev => prev ? { ...prev, repairResult } : null);
+
+      // Rerun debug after repair
+      await runDebug();
+    } catch (error) {
+      setResult(prev => prev ? { ...prev, error: String(error) } : null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
