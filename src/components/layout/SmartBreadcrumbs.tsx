@@ -56,13 +56,14 @@ const SmartBreadcrumbs = () => {
     breadcrumbs.push({
       name: 'Home',
       path: '/',
-      icon: <Home className="h-4 w-4" />
+      icon: <Home className="h-4 w-4" />,
+      id: 'home'
     });
 
     pathnames.forEach((pathname, index) => {
       currentPath += `/${pathname}`;
       const isLast = index === pathnames.length - 1;
-      
+
       // Skip UUIDs nos breadcrumbs (mas mantém no path)
       if (isUUID(pathname)) {
         return;
@@ -79,7 +80,8 @@ const SmartBreadcrumbs = () => {
       breadcrumbs.push({
         name: displayName,
         path: linkPath,
-        isLast
+        isLast,
+        id: `${index}-${pathname}` // Unique ID to prevent duplicate keys
       });
     });
 
