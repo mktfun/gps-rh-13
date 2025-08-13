@@ -19,7 +19,6 @@ interface PlanoFuncionariosTabProps {
   };
   shouldOpenAddModal?: boolean;
   onAddModalHandled?: () => void;
-  onAddFuncionarios?: () => void;
 }
 
 export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
