@@ -48,8 +48,46 @@ const RelatorioPendenciasEmpresaPage = () => {
     cnpjFilter
   );
 
+  // Create adapter for empresa data to match expected format
+  const adaptEmpresaData = (empresaData: any[]) => {
+    if (!empresaData) return null;
+
+    const kpis = {
+      total_pendencias: empresaData.length,
+      pendencias_criticas: empresaData.filter(p => p.status === 'critica').length,
+      pendencias_urgentes: empresaData.filter(p => p.status === 'urgente').length,
+      pendencias_normais: empresaData.filter(p => p.status === 'normal').length,
+    };
+
+    const tabela_detalhada = empresaData.map((p, index) => ({
+      id: `pending-${index}`,
+      protocolo: `PENDING-${p.funcionario_nome.replace(/\s+/g, '')}-${index}`,
+      tipo: 'ativacao' as const,
+      funcionario_nome: p.funcionario_nome,
+      funcionario_cpf: p.cpf,
+      cnpj: '00.000.000/0001-00', // placeholder
+      razao_social: p.cnpj_razao_social,
+      descricao: `Ativação pendente para ${p.funcionario_nome} - ${p.motivo}`,
+      data_criacao: p.data_solicitacao,
+      data_vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status_prioridade: 'normal' as const,
+      dias_em_aberto: Math.floor((Date.now() - new Date(p.data_solicitacao).getTime()) / (1000 * 60 * 60 * 24)),
+      comentarios_count: 0
+    }));
+
+    return {
+      kpis,
+      tabela_detalhada,
+      pendencias_por_tipo: [
+        { tipo: 'ativacao', quantidade: empresaData.length, percentual: 100 }
+      ],
+      timeline_vencimentos: [],
+      pendencias_por_cnpj: []
+    };
+  };
+
   // Determine which data to use
-  const reportData = isEmpresa ? null : corretoraReportData; // For now, corretora data structure
+  const reportData = isEmpresa ? adaptEmpresaData(empresaPendencias) : corretoraReportData;
   const isLoading = isEmpresa ? isLoadingEmpresa : isLoadingCorretora;
 
   const {
