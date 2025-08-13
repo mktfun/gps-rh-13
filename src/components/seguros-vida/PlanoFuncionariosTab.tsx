@@ -130,12 +130,10 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
               <Users className="h-5 w-5" />
               Funcionários do Plano ({totalCount})
             </CardTitle>
-            {onAddFuncionarios && (
-              <Button onClick={onAddFuncionarios}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Funcionários
-              </Button>
-            )}
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Funcionários
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
