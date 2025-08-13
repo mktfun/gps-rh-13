@@ -70,7 +70,7 @@ export const useRelatorioFuncionariosEmpresaPaginado = (params: UseRelatorioFunc
         created_at: item.data_contratacao,
       })) as RelatorioFuncionarioEmpresaPaginado[];
       
-      const totalCount = results.length > 0 ? results[0].total_count : 0;
+      const totalCount = results.length > 0 ? Number(results[0].total_count) : 0;
       const totalPages = Math.ceil(totalCount / pageSize);
 
       return {
