@@ -14,7 +14,6 @@ import {
 import { useEmpresaPlanosPorTipo } from '@/hooks/useEmpresaPlanosPorTipo';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PlanosSaudeStatus } from '@/components/planos/PlanosSaudeStatus';
 
 const EmpresaPlanosSaudePage = () => {
   console.log('🩺 EmpresaPlanosSaudePage: Componente carregado');
