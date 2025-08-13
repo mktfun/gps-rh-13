@@ -131,10 +131,10 @@ export const useAdicionarFuncionariosMutation = () => {
       console.log('🧾 Sample pendência data:', JSON.stringify(pendenciasToInsert[0], null, 2));
       console.log('🧾 Current user profile:', JSON.stringify(currentProfile, null, 2));
 
-      // Debug: Verificar se o usuário tem permissão antes de inserir
-      const { data: debugPolicy, error: debugError } = await supabase
-        .rpc('auth.uid');
-      console.log('🧾 Current auth.uid():', debugPolicy);
+      // Debug: Usar função de debug RLS
+      const { data: debugRLS, error: debugRLSError } = await supabase
+        .rpc('debug_pendencias_permissions', { p_corretora_id: corretoraId });
+      console.log('🧾 RLS Debug Result:', { debugRLS, debugRLSError });
 
       // Debug: Testar uma query simples na tabela pendencias
       const { data: testSelect, error: testError } = await supabase
