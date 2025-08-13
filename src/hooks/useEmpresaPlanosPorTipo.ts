@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,26 +56,28 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
         return [];
       }
 
-      // Buscar contagem de funcionários ATIVOS para cada plano
+      // Buscar contagem de funcionários ATIVOS VINCULADOS AO PLANO ESPECÍFICO
       const planosComFuncionarios = await Promise.all(
         planos.map(async (plano: any) => {
           const { data: funcionariosData, error: funcionariosError } = await supabase
-            .from('funcionarios')
+            .from('planos_funcionarios')
             .select('id', { count: 'exact' })
-            .eq('cnpj_id', plano.cnpj_id)
-            .eq('status', 'ativo');
+            .eq('plano_id', plano.id)
+            .eq('status', 'ativo'); // Apenas funcionários ativos NO PLANO
 
           if (funcionariosError) {
-            console.error('❌ Erro ao buscar funcionários:', funcionariosError);
+            console.error('❌ Erro ao buscar funcionários do plano:', funcionariosError);
           }
 
-          // Para planos de saúde, vamos calcular um valor estimado baseado no número de funcionários
+          const totalFuncionariosNoPlano = funcionariosData?.length || 0;
+          console.log(`📊 Plano ${plano.seguradora} (${tipo}): ${totalFuncionariosNoPlano} funcionários vinculados`);
+
+          // Para planos de saúde, vamos calcular um valor estimado baseado no número de funcionários NO PLANO
           let valorCalculado = plano.valor_mensal;
           if (tipo === 'saude') {
-            const totalFuncionarios = funcionariosData?.length || 0;
-            // Estimativa simples: R$ 200 por funcionário ativo (será substituído pela função RPC quando os tipos estiverem corretos)
-            valorCalculado = totalFuncionarios * 200;
-            console.log('🔍 Valor estimado para plano de saúde:', valorCalculado, 'funcionários:', totalFuncionarios);
+            // Estimativa simples: R$ 200 por funcionário ativo NO PLANO
+            valorCalculado = totalFuncionariosNoPlano * 200;
+            console.log('🔍 Valor estimado para plano de saúde:', valorCalculado, 'funcionários no plano:', totalFuncionariosNoPlano);
           }
 
           return {
@@ -92,7 +93,7 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
             cnpj_numero: plano.cnpjs.cnpj,
             cnpj_razao_social: plano.cnpjs.razao_social,
             tipo_seguro: plano.tipo_seguro,
-            total_funcionarios: funcionariosData?.length || 0,
+            total_funcionarios: totalFuncionariosNoPlano,
           };
         })
       );
