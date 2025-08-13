@@ -49,6 +49,8 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
   const queryClient = useQueryClient();
   const { search = '', page = 0, pageSize = 10, cnpj_id, empresaId: paramEmpresaId, statusFilter } = params;
 
+  console.log('🔍 [useFuncionarios] Hook called with params:', params);
+
   // Determinar qual empresa_id usar: parâmetro passado ou do AuthContext
   const targetEmpresaId = paramEmpresaId || empresaId;
 
