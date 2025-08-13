@@ -135,6 +135,14 @@ const RelatorioCustosEmpresaPage = () => {
         </Button>
       </div>
 
+      {/* Filtros Avançados */}
+      <CustosReportFilters
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        cnpjOptions={cnpjOptions}
+        isLoading={isLoading}
+      />
+
       {/* Resumo Financeiro (usando totais globais do backend) */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
