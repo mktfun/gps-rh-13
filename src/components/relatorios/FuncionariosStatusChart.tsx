@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,8 +17,10 @@ const STATUS_COLORS: Record<string, string> = {
   'ativo': '#10b981',
   'pendente': '#f59e0b',
   'desativado': '#ef4444',
-  'exclusao_solicitada': '#8b5cf6',
-  'arquivado': '#6b7280'
+  'exclusao_solicitada': '#dc2626',
+  'pendente_exclusao': '#b91c1c',
+  'arquivado': '#6b7280',
+  'edicao_solicitada': '#8b5cf6'
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -27,7 +28,9 @@ const STATUS_LABELS: Record<string, string> = {
   'pendente': 'Pendente',
   'desativado': 'Desativado',
   'exclusao_solicitada': 'Exclusão Solicitada',
-  'arquivado': 'Arquivado'
+  'pendente_exclusao': 'Pendente Exclusão',
+  'arquivado': 'Arquivado',
+  'edicao_solicitada': 'Edição Solicitada'
 };
 
 export const FuncionariosStatusChart = ({ data }: FuncionariosStatusChartProps) => {
