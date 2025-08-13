@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { createGetPendenciasEmpresaFunction, testGetPendenciasEmpresaFunction } from '@/utils/createMissingFunction';
 
 interface PendenciaEmpresa {
   id: string;
