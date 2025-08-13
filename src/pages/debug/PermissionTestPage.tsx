@@ -1,5 +1,6 @@
 import React from 'react';
 import { PermissionDebugger } from '@/components/debug/PermissionDebugger';
+import { FuncionarioPlanoVerification } from '@/components/debug/FuncionarioPlanoVerification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -44,6 +45,8 @@ const PermissionTestPage: React.FC = () => {
         </CardContent>
       </Card>
       
+      <FuncionarioPlanoVerification />
+
       <PermissionDebugger />
     </div>
   );
