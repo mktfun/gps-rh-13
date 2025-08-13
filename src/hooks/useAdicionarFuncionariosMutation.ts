@@ -125,7 +125,17 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (errorPendencias) {
         console.error('❌ Erro ao criar pendências de ativação:', errorPendencias);
-        const errorMessage = errorPendencias.message || 'Erro ao criar pendências de ativação';
+        let errorMessage = errorPendencias.message || 'Erro ao criar pendências de ativação';
+
+        // Handle specific Supabase error codes for pendencias
+        if (errorPendencias.code === '23505') {
+          errorMessage = 'Algumas pendências já existem para estes funcionários';
+        } else if (errorPendencias.code === '42501') {
+          errorMessage = 'Você não tem permissão para criar pendências';
+        } else if (errorPendencias.code === '23503') {
+          errorMessage = 'Referência inválida ao criar pendência (funcionário, CNPJ ou corretora não encontrados)';
+        }
+
         throw new Error(`Erro ao criar pendências: ${errorMessage}`);
       }
 
