@@ -24,6 +24,9 @@ const RelatorioCustosEmpresaPage = () => {
     pageIndex: pagination.pageIndex,
   });
 
+  // Debug data
+  const { data: debugData } = useDebugCostsData();
+
   const custos = result?.data || [];
   const totalCount = result?.totalCount || 0;
   const totalPages = result?.totalPages || 0;
