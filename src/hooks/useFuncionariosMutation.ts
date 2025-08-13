@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -131,11 +130,12 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
         resetPagination();
       }
 
-      // Invalidar todas as queries relacionadas aos funcionários deste CNPJ
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', cnpjId] });
+      // Invalidar queries de funcionários forá do plano (para todos os planos do CNPJ)
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano'] });
 
-      // Invalidar queries de estatísticas
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', cnpjId] });
+      // Invalidar queries de estatísticas de planos (para atualizar contadores corretos)
+      queryClient.invalidateQueries({ queryKey: ['planos-empresa'] });
+      queryClient.invalidateQueries({ queryKey: ['planos-empresa-por-tipo'] });
 
       // Também invalidar as queries de detalhes do plano para atualizar contadores
       queryClient.invalidateQueries({ queryKey: ['plano-detalhes', cnpjId] });
