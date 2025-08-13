@@ -39,8 +39,7 @@ const SmartBreadcrumbs = () => {
     'custos-detalhado': 'Custos Detalhado',
     'funcionarios-detalhado': 'Funcionários Detalhado',
     'planos': 'Planos',
-    'planos-saude': 'Planos de Saúde',
-    'seguros-vida': 'Seguros de Vida'
+    'planos-saude': 'Planos de Saúde'
   };
 
   const isUUID = (str: string) => {
