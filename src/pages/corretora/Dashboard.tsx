@@ -6,6 +6,7 @@ import SmartActionsSection from '@/components/dashboard/SmartActionsSection';
 import TopEmpresasReceita from '@/components/dashboard/TopEmpresasReceita';
 import InsightsAutomaticos from '@/components/dashboard/InsightsAutomaticos';
 import ActionsNeededSection from '@/components/dashboard/ActionsNeededSection';
+import { FuncionariosDebugPanel } from '@/components/debug/FuncionariosDebugPanel';
 const CorretoraDashboard = () => {
   const {
     user
