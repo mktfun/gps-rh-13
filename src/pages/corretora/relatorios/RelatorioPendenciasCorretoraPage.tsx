@@ -32,6 +32,31 @@ const RelatorioPendenciasCorretoraPage = () => {
 
   const { cnpjs } = useAllCnpjs();
 
+  // Debug: Check existing data sources
+  useEffect(() => {
+    const checkDataSources = async () => {
+      if (!cnpjs || cnpjs.length === 0) return;
+
+      // Check for funcionarios with pending status
+      const { data: pendingFuncionarios, error: funcError } = await supabase
+        .from('funcionarios')
+        .select('id, nome, status, cnpj_id, cnpjs(razao_social)')
+        .in('status', ['pendente', 'exclusao_solicitada']);
+
+      console.log('Funcionários com status pendente/exclusão:', { pendingFuncionarios, funcError });
+
+      // Check existing pendencias
+      const { data: existingPendencias, error: pendError } = await supabase
+        .from('pendencias')
+        .select('*')
+        .limit(10);
+
+      console.log('Pendências existentes:', { existingPendencias, pendError });
+    };
+
+    checkDataSources();
+  }, [cnpjs]);
+
   // ✅ NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
   useEffect(() => {
     const state = location.state as { empresaId?: string; empresaNome?: string } | null;
