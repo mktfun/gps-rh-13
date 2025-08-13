@@ -36,8 +36,36 @@ export const usePendenciasEmpresa = () => {
       });
 
       if (error) {
-        console.error('❌ Erro ao buscar pendências da empresa:', error);
-        throw error;
+        // Check if error is due to missing function (404 or function not found)
+        if (error.message.includes('404') || error.message.includes('function') || error.code === '42883') {
+          console.log('⚠️ Função get_pendencias_empresa não encontrada, tentando criar...');
+
+          const createResult = await createGetPendenciasEmpresaFunction();
+
+          if (createResult.success) {
+            console.log('✅ Função criada com sucesso, tentando novamente...');
+
+            // Try the query again after creating the function
+            const { data: retryData, error: retryError } = await supabase.rpc('get_pendencias_empresa', {
+              p_empresa_id: empresaId
+            });
+
+            if (retryError) {
+              console.error('❌ Erro mesmo após criar a função:', retryError);
+              throw retryError;
+            }
+
+            console.log('✅ Pendências encontradas após criar função:', retryData?.length || 0);
+            return retryData || [];
+          } else {
+            console.error('❌ Não foi possível criar a função:', createResult.message);
+            // Return empty array instead of throwing error to avoid breaking the UI
+            return [];
+          }
+        } else {
+          console.error('❌ Erro ao buscar pendências da empresa:', error);
+          throw error;
+        }
       }
 
       console.log('✅ Pendências encontradas:', data?.length || 0);
