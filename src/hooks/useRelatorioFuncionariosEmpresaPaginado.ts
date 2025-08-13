@@ -63,7 +63,7 @@ export const useRelatorioFuncionariosEmpresaPaginado = (params: UseRelatorioFunc
         status: item.status,
         cnpj_razao_social: item.cnpj_razao_social,
         data_contratacao: item.data_contratacao,
-        total_count: item.total_count,
+        total_count: Number(item.total_count), // Convert BIGINT to number
         // Mapeamento para compatibilidade
         id: item.funcionario_id,
         idade: 0, // Valor padrão - não disponível na função SQL
