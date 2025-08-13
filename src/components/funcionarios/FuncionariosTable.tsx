@@ -64,6 +64,7 @@ export const FuncionariosTable = ({
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState<Funcionario | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const { role } = useAuth();
+  const queryClient = useQueryClient();
   const { archiveFuncionario, approveExclusao, denyExclusao, updateFuncionario } = useFuncionarios();
 
   // Adicionar mutation para ativar funcionário
@@ -213,7 +214,7 @@ export const FuncionariosTable = ({
     },
     {
       id: 'actions',
-      header: 'Aç��es',
+      header: 'Ações',
       cell: ({ row }) => {
         const funcionario = row.original;
         const status = funcionario.status;
