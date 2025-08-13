@@ -11,6 +11,7 @@ import { createCustoEmpresaTableColumns } from '@/components/empresa/custoEmpres
 import type { PaginationState } from '@tanstack/react-table';
 import { ExportModal } from '@/components/ui/export-modal';
 import { CustosReportFilters, type CustosReportFiltersData } from '@/components/relatorios/CustosReportFilters';
+import { useCnpjOptions } from '@/hooks/useCnpjOptions';
 
 const RelatorioCustosEmpresaPage = () => {
   const [pagination, setPagination] = useState<PaginationState>({
