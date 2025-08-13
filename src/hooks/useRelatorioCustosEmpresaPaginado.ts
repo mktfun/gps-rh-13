@@ -48,6 +48,21 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         throw error;
       }
 
+      if (!data || data.length === 0) {
+        console.warn('⚠️ Nenhum dado retornado do relatório de custos');
+        return {
+          data: [],
+          totalCount: 0,
+          totalPages: 0,
+          currentPage: pageIndex,
+          pageSize,
+          totalFuncionariosAtivos: 0,
+          totalCnpjsComPlano: 0,
+          totalGeral: 0,
+          custoMedioPorCnpj: 0,
+        };
+      }
+
       console.log('✅ Relatório de custos paginado carregado (raw):', data);
 
       const rawResults = (data || []) as RelatorioCustoEmpresaPaginado[];
