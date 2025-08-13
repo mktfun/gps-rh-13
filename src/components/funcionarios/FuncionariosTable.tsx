@@ -164,6 +164,18 @@ export const FuncionariosTable = ({
     }
   };
 
+  const handleAtivar = (funcionarioId: string) => {
+    if (window.confirm('Tem certeza que deseja ativar este funcionário?')) {
+      ativarFuncionario.mutate(funcionarioId);
+    }
+  };
+
+  const handleExcluir = (funcionarioId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir definitivamente este funcionário? Esta ação não pode ser desfeita.')) {
+      excluirFuncionario.mutate(funcionarioId);
+    }
+  };
+
   const columns: ColumnDef<Funcionario>[] = [
     {
       accessorKey: 'nome',
