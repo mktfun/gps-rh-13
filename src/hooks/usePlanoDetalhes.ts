@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -88,19 +87,19 @@ export const usePlanoDetalhes = (planoId: string) => {
       
       const tipoSeguro = tipoData?.tipo_seguro || 'vida';
       
-      // Se for plano de saúde, calcular valor estimado baseado em funcionários ativos
+      // Se for plano de saúde, calcular valor estimado baseado em funcionários VINCULADOS AO PLANO
       if (tipoSeguro === 'saude') {
         try {
           const { data: funcionariosData } = await supabase
-            .from('funcionarios')
+            .from('planos_funcionarios')
             .select('id', { count: 'exact' })
-            .eq('cnpj_id', planoData.cnpj_id)
+            .eq('plano_id', planoId)
             .eq('status', 'ativo');
-          
-          const totalFuncionarios = funcionariosData?.length || 0;
-          // Estimativa simples: R$ 200 por funcionário ativo (será substituído pela função RPC quando os tipos estiverem corretos)
-          valorCalculado = totalFuncionarios * 200;
-          console.log('✅ Valor estimado para plano de saúde:', valorCalculado, 'funcionários:', totalFuncionarios);
+
+          const totalFuncionariosNoPlano = funcionariosData?.length || 0;
+          // Estimativa simples: R$ 200 por funcionário ativo NO PLANO (será substituído pela função RPC quando os tipos estiverem corretos)
+          valorCalculado = totalFuncionariosNoPlano * 200;
+          console.log('✅ Valor estimado para plano de saúde:', valorCalculado, 'funcionários no plano:', totalFuncionariosNoPlano);
         } catch (error) {
           console.error('❌ Erro ao calcular valor estimado:', error);
         }
