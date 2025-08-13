@@ -78,7 +78,7 @@ export const CustosReportFilters = ({
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="ativo">Ativo</SelectItem>
                 <SelectItem value="pendente">Pendente</SelectItem>
                 <SelectItem value="inativo">Inativo</SelectItem>
