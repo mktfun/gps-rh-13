@@ -116,6 +116,11 @@ const RelatorioCustosEmpresaPage = () => {
         title="Costs Report Data"
       />
 
+      <CostsReportDebug
+        data={debugData}
+        title="Database Raw Data"
+      />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Relatório de Custos Detalhado</h1>
