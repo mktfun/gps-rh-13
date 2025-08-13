@@ -41,7 +41,7 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
   // Buscar CNPJs da empresa para o select
   const { cnpjs } = useCnpjs({ empresaId: empresaId || undefined });
 
-  // Verificar duplicação de CPF em tempo real (apenas para novos funcion��rios)
+  // Verificar duplicação de CPF em tempo real (apenas para novos funcionários)
   const { isDuplicate, existingFuncionario, isChecking } = useCheckCPF({
     cpf: formData.cpf,
     cnpjId: formData.cnpj_id,
@@ -76,7 +76,7 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.nome || !formData.cpf || !formData.cargo || !formData.cnpj_id) {
       toast({
         title: 'Erro',
@@ -86,10 +86,20 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
       return;
     }
 
+    // Verificar duplicação de CPF apenas para novos funcionários
+    if (!funcionario && isDuplicate) {
+      toast({
+        title: 'CPF Duplicado',
+        description: `CPF já cadastrado para o funcionário: ${existingFuncionario?.nome}`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
     const submitData = {
       ...formData,
       salario: parseFloat(formData.salario) || 0,
-      idade: formData.data_nascimento ? 
+      idade: formData.data_nascimento ?
         new Date().getFullYear() - new Date(formData.data_nascimento).getFullYear() : 0
     };
 
