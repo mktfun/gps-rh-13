@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,7 +38,8 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (planoError || !plano?.cnpjs?.empresas?.corretora_id) {
         console.error('❌ Não foi possível obter o CNPJ e corretora do plano para criar pendências', planoError);
-        throw planoError || new Error('CNPJ do plano ou corretora não encontrado');
+        const errorMessage = planoError?.message || 'CNPJ do plano ou corretora não encontrado';
+        throw new Error(errorMessage);
       }
 
       const cnpjId = plano.cnpj_id;
