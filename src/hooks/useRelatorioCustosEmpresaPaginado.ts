@@ -111,7 +111,8 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
 
         return {
           ...row,
-          valor_individual: Number(valor_individual.toFixed(2))
+          valor_individual: Number(valor_individual.toFixed(2)),
+          total_cnpj: cnpjData.total_value // Always use the correct total value
         };
       });
 
