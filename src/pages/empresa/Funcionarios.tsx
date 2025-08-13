@@ -74,6 +74,62 @@ const Funcionarios = () => {
     }
   };
 
+  // Mutation para ativar funcionário (corretora)
+  const ativarFuncionario = useMutation({
+    mutationFn: async (funcionarioId: string) => {
+      const { error } = await supabase
+        .from('funcionarios')
+        .update({
+          status: 'ativo',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', funcionarioId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      toast.success('Funcionário ativado com sucesso!');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao ativar funcionário');
+    },
+  });
+
+  // Mutation para excluir funcionário (corretora)
+  const excluirFuncionario = useMutation({
+    mutationFn: async (funcionarioId: string) => {
+      const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
+        p_funcionario_id: funcionarioId,
+        p_aprovado: true
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      toast.success('Funcionário excluído com sucesso!');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao excluir funcionário');
+    },
+  });
+
+  const handleAtivarFuncionario = (funcionario: FuncionarioEmpresa) => {
+    if (window.confirm(`Tem certeza que deseja ativar o funcionário "${funcionario.nome}"?`)) {
+      ativarFuncionario.mutate(funcionario.id);
+    }
+  };
+
+  const handleExcluirFuncionario = (funcionario: FuncionarioEmpresa) => {
+    if (window.confirm(`Tem certeza que deseja excluir definitivamente o funcionário "${funcionario.nome}"? Esta ação não pode ser desfeita.`)) {
+      excluirFuncionario.mutate(funcionario.id);
+    }
+  };
+
   const handleCreateFuncionario = async (data: any) => {
     try {
       await addFuncionario.mutateAsync(data);
