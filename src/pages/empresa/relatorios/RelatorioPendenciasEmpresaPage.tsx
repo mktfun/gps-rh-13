@@ -37,7 +37,7 @@ const RelatorioPendenciasEmpresaPage = () => {
   const isEmpresa = role === 'empresa';
 
   // For empresa users, use the specific empresa pendencias hook
-  const { data: empresaPendencias, isLoading: isLoadingEmpresa } = useRelatorioPendenciasEmpresa();
+  const { data: empresaPendencias, isLoading: isLoadingEmpresa } = usePendenciasEmpresa();
 
   // For corretora users, use the general pendencias report hook
   const { data: corretoraReportData, isLoading: isLoadingCorretora } = usePendenciasReport(
