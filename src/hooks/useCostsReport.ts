@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
@@ -88,18 +87,39 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
       }
 
       console.log('✅ [useCostsReport] Relatório carregado:', data);
-      
+
       // Safely parse the JSON data
       const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-      
+
+      // Validate and fix KPIs if they show as zero
+      const kpis = parsedData?.kpis || {};
+      const fixedKpis = {
+        custo_total_periodo: Number(kpis.custo_total_periodo || 0),
+        custo_medio_funcionario: Number(kpis.custo_medio_funcionario || 0),
+        variacao_percentual: Number(kpis.variacao_percentual || 0),
+        total_funcionarios_ativos: Number(kpis.total_funcionarios_ativos || 0)
+      };
+
+      // If KPIs are zero but we have detailed data, recalculate from detailed data
+      const tabelaDetalhada = parsedData?.tabela_detalhada || [];
+      if (fixedKpis.custo_total_periodo === 0 && tabelaDetalhada.length > 0) {
+        fixedKpis.custo_total_periodo = tabelaDetalhada.reduce((sum: number, item: any) =>
+          sum + Number(item.valor_mensal || 0), 0);
+
+        const totalFuncionarios = tabelaDetalhada.reduce((sum: number, item: any) =>
+          sum + Number(item.funcionarios_ativos || 0), 0);
+
+        if (totalFuncionarios > 0) {
+          fixedKpis.custo_medio_funcionario = fixedKpis.custo_total_periodo / totalFuncionarios;
+        }
+        fixedKpis.total_funcionarios_ativos = totalFuncionarios;
+
+        console.log('🔧 [useCostsReport] KPIs recalculados:', fixedKpis);
+      }
+
       // Transform the data to ensure it matches our interface
       const transformedData: CostsReportData = {
-        kpis: parsedData?.kpis || {
-          custo_total_periodo: 0,
-          custo_medio_funcionario: 0,
-          variacao_percentual: 0,
-          total_funcionarios_ativos: 0
-        },
+        kpis: fixedKpis,
         evolucao_temporal: Array.isArray(parsedData?.evolucao_temporal) 
           ? parsedData.evolucao_temporal.map((item: any) => ({
               mes: item.mes || '',
