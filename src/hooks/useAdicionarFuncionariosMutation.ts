@@ -83,7 +83,17 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (errorPF) {
         console.error('Erro ao adicionar funcionários ao plano:', errorPF);
-        const errorMessage = errorPF.message || 'Erro ao adicionar funcionários ao plano';
+        let errorMessage = errorPF.message || 'Erro ao adicionar funcionários ao plano';
+
+        // Handle specific Supabase error codes
+        if (errorPF.code === '23505') {
+          errorMessage = 'Alguns funcionários já estão vinculados a este plano';
+        } else if (errorPF.code === '42501') {
+          errorMessage = 'Você não tem permissão para adicionar funcionários a este plano';
+        } else if (errorPF.code === '23503') {
+          errorMessage = 'Funcionário ou plano não encontrado';
+        }
+
         throw new Error(`Erro ao adicionar funcionários: ${errorMessage}`);
       }
 
