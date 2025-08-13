@@ -73,20 +73,6 @@ const RelatorioCustosDetalhadoPage = () => {
         </div>
       </div>
 
-      {/* Debug Information */}
-      <CostsReportDebug
-        data={{
-          reportData,
-          kpis,
-          evolucaoTemporal_length: evolucaoTemporal?.length,
-          distribuicaoCNPJs_length: distribuicaoCNPJs?.length,
-          tabelaDetalhada_length: tabelaDetalhada?.length,
-          dateRange,
-          sample_tabela: tabelaDetalhada?.slice(0, 2)
-        }}
-        title="Detailed Costs Report Debug"
-      />
-
       {/* KPIs */}
       <CostsKPICards
         custoTotalPeriodo={kpis.custo_total_periodo}
