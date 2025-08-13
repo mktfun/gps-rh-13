@@ -36,7 +36,7 @@ export const CustosReportFilters = ({
   const clearFilters = () => {
     onFiltersChange({
       cnpjSearch: '',
-      statusFilter: '',
+      statusFilter: 'todos',
       valorMin: '',
       valorMax: ''
     });
