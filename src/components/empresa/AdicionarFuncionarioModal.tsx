@@ -45,7 +45,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   onFuncionarioAdded,
 }) => {
   const { createFuncionario, isCreating } = useFuncionariosMutation(cnpjId, onFuncionarioAdded);
-  
+
   const {
     register,
     handleSubmit,
@@ -67,6 +67,14 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   });
 
   const estadoCivil = watch('estado_civil');
+  const cpfValue = watch('cpf');
+
+  // Verificar duplicação de CPF em tempo real
+  const { isDuplicate, existingFuncionario, isChecking } = useCheckCPF({
+    cpf: cpfValue,
+    cnpjId,
+    enabled: open && cpfValue.length >= 11
+  });
 
   const onSubmit = async (data: FuncionarioFormData) => {
     try {
