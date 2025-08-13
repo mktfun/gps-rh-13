@@ -195,7 +195,7 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
           </ScrollArea>
 
           {/* Ações */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 flex-shrink-0 border-t mt-4">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
