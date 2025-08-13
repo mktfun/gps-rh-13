@@ -107,10 +107,6 @@ const Funcionarios = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Breadcrumbs items={[
-          { label: 'Dashboard', href: '/empresa' },
-          { label: 'Funcionários' }
-        ]} />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
