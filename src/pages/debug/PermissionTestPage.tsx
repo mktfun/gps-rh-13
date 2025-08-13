@@ -48,6 +48,8 @@ const PermissionTestPage: React.FC = () => {
         </CardContent>
       </Card>
       
+      <PendenciasDebugEmpresa />
+
       <PendenciasRLSDebug />
 
       <PlanoValueTest />
