@@ -278,8 +278,11 @@ const RelatorioFuncionariosPage = () => {
             columns={columns}
             data={tabelaDetalhada}
             isLoading={isLoading}
-            emptyStateTitle="Nenhum funcionário encontrado"
-            emptyStateDescription="Não há funcionários que atendam aos filtros selecionados."
+            emptyStateTitle={hasNoData ? "Nenhum funcionário cadastrado" : "Nenhum funcionário encontrado"}
+            emptyStateDescription={hasNoData
+              ? "Comece cadastrando funcionários para ver o relatório aqui."
+              : "Não há funcionários que atendam aos filtros selecionados."
+            }
           />
         </CardContent>
       </Card>
