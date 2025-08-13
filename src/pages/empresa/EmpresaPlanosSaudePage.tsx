@@ -16,7 +16,9 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 
 const EmpresaPlanosSaudePage = () => {
+  console.log('🩺 EmpresaPlanosSaudePage: Componente carregado');
   const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('saude');
+  console.log('🩺 EmpresaPlanosSaudePage: Estado dos dados', { planos: planos?.length, isLoading, error });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
