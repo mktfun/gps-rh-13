@@ -102,27 +102,6 @@ const RelatorioCustosEmpresaPage = () => {
     <div className="container mx-auto p-6 space-y-6">
       {/* Breadcrumbs removido: SmartBreadcrumbs no cabeçalho */}
 
-      {/* Debug Information - Remove in production */}
-      <CostsReportDebug
-        data={{
-          raw_result: result,
-          custos_length: custos?.length,
-          totalCount,
-          totalGeral,
-          funcionariosAtivos,
-          cnpjsComPlano,
-          mediaPorCnpj,
-          sample_custos: custos?.slice(0, 3)
-        }}
-        title="Costs Report Data"
-      />
-
-      <CostsReportDebug
-        data={debugData}
-        title="Database Raw Data"
-      />
-
-      <SqlExecutor />
 
       <div className="flex items-center justify-between">
         <div>
