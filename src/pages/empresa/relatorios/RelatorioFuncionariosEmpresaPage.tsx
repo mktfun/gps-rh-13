@@ -17,7 +17,7 @@ const RelatorioFuncionariosEmpresaPage = () => {
     pageSize: 10,
   });
 
-  const { data: result, isLoading } = useRelatorioFuncionariosEmpresaPaginado({
+  const { data: result, isLoading, error } = useRelatorioFuncionariosEmpresaSafe({
     pageSize: pagination.pageSize,
     pageIndex: pagination.pageIndex,
   });
