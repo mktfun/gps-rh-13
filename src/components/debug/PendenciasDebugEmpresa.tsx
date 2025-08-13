@@ -8,6 +8,7 @@ interface DebugResult {
   funcionariosPendentes: any[];
   pendenciasExistentes: any[];
   empresaId: string | null;
+  repairResult?: any[];
   error?: string;
 }
 
