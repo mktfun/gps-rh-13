@@ -18,6 +18,7 @@ import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from '
 import { addDays, subDays } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
+import { supabase } from '@/integrations/supabase/client';
 
 const RelatorioPendenciasCorretoraPage = () => {
   const location = useLocation();
