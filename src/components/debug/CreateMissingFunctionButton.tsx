@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { Database, CheckCircle, AlertCircle } from 'lucide-react';
+import { Database, CheckCircle, AlertCircle, Copy } from 'lucide-react';
+import { createGetPendenciasEmpresaFunction, testGetPendenciasEmpresaFunction, GET_PENDENCIAS_EMPRESA_SQL } from '@/utils/createMissingFunction';
+import { useEmpresaId } from '@/hooks/useEmpresaId';
 
 export const CreateMissingFunctionButton = () => {
   const [isCreating, setIsCreating] = useState(false);
