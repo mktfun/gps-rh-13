@@ -124,9 +124,10 @@ export const useAdicionarFuncionariosMutation = () => {
 
       toast.success(`${data.insertPF?.length || 0} funcionário(s) adicionado(s) e ${data.insertPendencias?.length || 0} pendência(s) criada(s)!`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro na mutation:', error);
-      toast.error('Erro ao adicionar funcionários ao plano');
+      const errorMessage = error?.message || 'Erro desconhecido ao adicionar funcionários ao plano';
+      toast.error(errorMessage);
     }
   });
 };
