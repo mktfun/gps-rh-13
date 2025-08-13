@@ -52,35 +52,52 @@ const RelatorioPendenciasEmpresaPage = () => {
   const adaptEmpresaData = (empresaData: any[]) => {
     if (!empresaData) return null;
 
-    const kpis = {
-      total_pendencias: empresaData.length,
-      pendencias_criticas: empresaData.filter(p => p.status === 'critica').length,
-      pendencias_urgentes: empresaData.filter(p => p.status === 'urgente').length,
-      pendencias_normais: empresaData.filter(p => p.status === 'normal').length,
+    // Calculate priority based on days open
+    const calculatePriority = (dias: number) => {
+      if (dias > 7) return 'critica';
+      if (dias > 3) return 'urgente';
+      return 'normal';
     };
 
-    const tabela_detalhada = empresaData.map((p, index) => ({
-      id: `pending-${index}`,
-      protocolo: `PENDING-${p.funcionario_nome.replace(/\s+/g, '')}-${index}`,
-      tipo: 'ativacao' as const,
+    const kpis = {
+      total_pendencias: empresaData.length,
+      pendencias_criticas: empresaData.filter(p => calculatePriority(p.dias_em_aberto) === 'critica').length,
+      pendencias_urgentes: empresaData.filter(p => calculatePriority(p.dias_em_aberto) === 'urgente').length,
+      pendencias_normais: empresaData.filter(p => calculatePriority(p.dias_em_aberto) === 'normal').length,
+    };
+
+    const tabela_detalhada = empresaData.map((p) => ({
+      id: p.id,
+      protocolo: p.protocolo,
+      tipo: p.tipo as 'documentacao' | 'ativacao' | 'alteracao' | 'cancelamento',
       funcionario_nome: p.funcionario_nome,
-      funcionario_cpf: p.cpf,
-      cnpj: '00.000.000/0001-00', // placeholder
-      razao_social: p.cnpj_razao_social,
-      descricao: `Ativação pendente para ${p.funcionario_nome} - ${p.motivo}`,
-      data_criacao: p.data_solicitacao,
-      data_vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status_prioridade: 'normal' as const,
-      dias_em_aberto: Math.floor((Date.now() - new Date(p.data_solicitacao).getTime()) / (1000 * 60 * 60 * 24)),
-      comentarios_count: 0
+      funcionario_cpf: p.funcionario_cpf,
+      cnpj: p.cnpj,
+      razao_social: p.razao_social,
+      descricao: p.descricao,
+      data_criacao: p.data_criacao,
+      data_vencimento: p.data_vencimento,
+      status_prioridade: calculatePriority(p.dias_em_aberto) as 'critica' | 'urgente' | 'normal',
+      dias_em_aberto: p.dias_em_aberto,
+      comentarios_count: p.comentarios_count
+    }));
+
+    // Group by type for chart
+    const tiposCounts = empresaData.reduce((acc, p) => {
+      acc[p.tipo] = (acc[p.tipo] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const pendencias_por_tipo = Object.entries(tiposCounts).map(([tipo, quantidade]) => ({
+      tipo,
+      quantidade,
+      percentual: Math.round((quantidade / empresaData.length) * 100)
     }));
 
     return {
       kpis,
       tabela_detalhada,
-      pendencias_por_tipo: [
-        { tipo: 'ativacao', quantidade: empresaData.length, percentual: 100 }
-      ],
+      pendencias_por_tipo,
       timeline_vencimentos: [],
       pendencias_por_cnpj: []
     };
