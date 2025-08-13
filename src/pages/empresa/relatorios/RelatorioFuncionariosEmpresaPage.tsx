@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Download, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { TableLoadingState } from '@/components/ui/loading-state';
 import { ExportModal } from '@/components/ui/export-modal';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
-import { useRelatorioFuncionariosEmpresaPaginado } from '@/hooks/useRelatorioFuncionariosEmpresaPaginado';
+import { useRelatorioFuncionariosEmpresaSafe } from '@/hooks/useRelatorioFuncionariosEmpresaSafe';
 import { useExportData } from '@/hooks/useExportData';
 import { createFuncionariosEmpresaRelatorioTableColumns } from '@/components/empresa/funcionariosEmpresaRelatorioTableColumns';
 import type { PaginationState } from '@tanstack/react-table';
