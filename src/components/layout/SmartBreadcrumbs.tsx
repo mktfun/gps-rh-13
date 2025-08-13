@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
@@ -97,7 +96,7 @@ const SmartBreadcrumbs = () => {
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
         {breadcrumbs.map((breadcrumb, index) => (
-          <React.Fragment key={breadcrumb.path}>
+          <div key={breadcrumb.path} style={{ display: 'contents' }}>
             <BreadcrumbItem>
               {breadcrumb.isLast ? (
                 <BreadcrumbPage className="flex items-center gap-1">
@@ -118,7 +117,7 @@ const SmartBreadcrumbs = () => {
                 <ChevronRight className="h-4 w-4" />
               </BreadcrumbSeparator>
             )}
-          </React.Fragment>
+          </div>
         ))}
       </BreadcrumbList>
     </Breadcrumb>
