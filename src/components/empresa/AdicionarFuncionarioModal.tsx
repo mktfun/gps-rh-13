@@ -77,19 +77,26 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   });
 
   const onSubmit = async (data: FuncionarioFormData) => {
+    // Verificar duplicação antes de submeter
+    if (isDuplicate) {
+      toast.error(`CPF já cadastrado para o funcionário: ${existingFuncionario?.nome}`);
+      return;
+    }
+
     try {
       await createFuncionario.mutateAsync({
         ...data,
         email: data.email || undefined,
         cnpj_id: cnpjId,
       });
-      
+
       toast.success('Funcionário adicionado com sucesso!');
       reset();
       onOpenChange(false);
     } catch (error) {
       console.error('Erro ao adicionar funcionário:', error);
-      toast.error('Erro ao adicionar funcionário');
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao adicionar funcionário';
+      toast.error(errorMessage);
     }
   };
 
