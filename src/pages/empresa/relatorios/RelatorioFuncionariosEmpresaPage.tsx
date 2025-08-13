@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataTable } from '@/components/ui/data-table';
 import { TableLoadingState } from '@/components/ui/loading-state';
 import { ExportModal } from '@/components/ui/export-modal';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
 import { useRelatorioFuncionariosResilient } from '@/hooks/useRelatorioFuncionariosResilient';
 import { useExportData } from '@/hooks/useExportData';
 import { createFuncionariosEmpresaRelatorioTableColumns } from '@/components/empresa/funcionariosEmpresaRelatorioTableColumns';
