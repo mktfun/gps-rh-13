@@ -38,6 +38,8 @@ const RelatorioCustosEmpresaPage = () => {
     filters,
   });
 
+  const { data: cnpjOptions = [] } = useCnpjOptions();
+
 
   const custos = result?.data || [];
   const totalCount = result?.totalCount || 0;
