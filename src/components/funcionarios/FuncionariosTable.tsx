@@ -63,6 +63,66 @@ export const FuncionariosTable = ({
   const { role } = useAuth();
   const { archiveFuncionario, approveExclusao, denyExclusao, updateFuncionario } = useFuncionarios();
 
+  // Adicionar mutation para ativar funcionário
+  const ativarFuncionario = useMutation({
+    mutationFn: async (funcionarioId: string) => {
+      const { error } = await supabase
+        .from('funcionarios')
+        .update({
+          status: 'ativo',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', funcionarioId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Funcionário ativado com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao ativar funcionário',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Adicionar mutation para excluir definitivamente (corretora)
+  const excluirFuncionario = useMutation({
+    mutationFn: async (funcionarioId: string) => {
+      const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
+        p_funcionario_id: funcionarioId,
+        p_aprovado: true
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Funcionário excluído com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao excluir funcionário',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const isCorretora = role === 'corretora';
   const isEmpresa = role === 'empresa';
 
