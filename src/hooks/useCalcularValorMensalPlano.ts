@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,15 +26,15 @@ export const useCalcularValorMensalPlano = (planoId: string | undefined) => {
       }
 
       const { data: funcionariosData } = await supabase
-        .from('funcionarios')
+        .from('planos_funcionarios')
         .select('id', { count: 'exact' })
-        .eq('cnpj_id', planoData.cnpj_id)
+        .eq('plano_id', planoId)
         .eq('status', 'ativo');
 
-      const totalFuncionarios = funcionariosData?.length || 0;
-      const valorEstimado = totalFuncionarios * 200; // R$ 200 por funcionário
+      const totalFuncionariosNoPlano = funcionariosData?.length || 0;
+      const valorEstimado = totalFuncionariosNoPlano * 200; // R$ 200 por funcionário NO PLANO
 
-      console.log('✅ Valor estimado calculado:', valorEstimado, 'para', totalFuncionarios, 'funcionários');
+      console.log('✅ Valor estimado calculado:', valorEstimado, 'para', totalFuncionariosNoPlano, 'funcionários no plano');
       
       return valorEstimado;
     },
