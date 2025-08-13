@@ -25,8 +25,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   cnpjId,
   plano,
   shouldOpenAddModal,
-  onAddModalHandled,
-  onAddFuncionarios
+  onAddModalHandled
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
