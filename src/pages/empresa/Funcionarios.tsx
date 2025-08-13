@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Users, Plus, Search, Filter, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,6 @@ import { DataTable } from '@/components/ui/data-table';
 import { FuncionarioDetalhesModal } from '@/components/empresa/FuncionarioDetalhesModal';
 import { createFuncionariosEmpresaTableColumns } from '@/components/empresa/funcionariosEmpresaTableColumns';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
 import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
 
 interface FuncionarioEmpresa {
