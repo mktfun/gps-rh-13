@@ -21,7 +21,7 @@ const RelatorioCustosEmpresaPage = () => {
 
   const [filters, setFilters] = useState<CustosReportFiltersData>({
     cnpjSearch: '',
-    statusFilter: '',
+    statusFilter: 'todos',
     valorMin: '',
     valorMax: ''
   });
