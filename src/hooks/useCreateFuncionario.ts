@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -57,69 +56,7 @@ export const useCreateFuncionario = () => {
       }
 
       console.log('✅ Funcionário criado com sucesso:', result);
-
-      // 2. Buscar a corretora a partir do CNPJ (mantido por compatibilidade; trigger já garante a pendência)
-      const { data: cnpjData, error: cnpjError } = await supabase
-        .from('cnpjs')
-        .select(`
-          id,
-          empresas!inner(
-            id,
-            corretora_id
-          )
-        `)
-        .eq('id', result.cnpj_id)
-        .single();
-
-      if (cnpjError || !cnpjData?.empresas?.corretora_id) {
-        console.error("💥 CRÍTICO: Falha ao encontrar corretora para criar pendência:", cnpjError);
-        // Observação: Trigger no banco já cria a pendência automaticamente.
-        // Não interromper o fluxo se não conseguirmos criar manualmente.
-        return result;
-      }
-
-      const corretoraId = cnpjData.empresas.corretora_id;
-      console.log('🏢 Corretora encontrada:', corretoraId);
-
-      // 3. Tentar inserir a pendência manualmente (se já existir via trigger, ignorar duplicidade)
-      const vencimento = new Date();
-      vencimento.setDate(vencimento.getDate() + 7); // Prazo de 7 dias
-      const dataVencimento = vencimento.toISOString().split('T')[0]; // 'YYYY-MM-DD'
-
-      const pendenciaData = {
-        protocolo: `ACT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        tipo: 'ativacao',
-        descricao: `Ativação pendente para o novo funcionário ${result.nome}.`,
-        funcionario_id: result.id,
-        cnpj_id: result.cnpj_id,
-        corretora_id: corretoraId,
-        status: 'pendente' as const,
-        data_vencimento: dataVencimento
-      };
-
-      console.log('📝 Tentando criar pendência manualmente (trigger já garante):', pendenciaData);
-
-      const { error: pendenciaError } = await supabase
-        .from('pendencias')
-        .insert(pendenciaData);
-
-      if (pendenciaError) {
-        const msg = String(pendenciaError?.message || '');
-        const code = (pendenciaError as any)?.code || '';
-        const isDuplicate =
-          code === '23505' ||
-          msg.toLowerCase().includes('duplicate key') ||
-          msg.includes('uniq_pend_ativacao_por_funcionario_pendente');
-
-        if (isDuplicate) {
-          console.log('ℹ️ Pendência já existente (provavelmente criada pelo trigger). Prosseguindo sem erro.');
-        } else {
-          console.error("💥 CRÍTICO: Funcionário criado, mas falha ao criar pendência:", pendenciaError);
-          toast.error("Funcionário criado, mas houve um erro ao registrar a pendência.");
-        }
-      } else {
-        console.log('✅ Pendência criada com sucesso!');
-      }
+      console.log('ℹ️ Pendência de ativação será criada automaticamente pelo trigger do banco.');
 
       return result;
     },
