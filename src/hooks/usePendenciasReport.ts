@@ -71,16 +71,21 @@ export const usePendenciasReport = (
   tipoFilter?: string,
   cnpjFilter?: string
 ) => {
-  const { data: empresaId } = useEmpresaId();
+  const { user, role } = useAuth();
 
   return useQuery({
-    queryKey: ['pendencias-report', empresaId, startDate, endDate, statusFilter, tipoFilter, cnpjFilter],
+    queryKey: ['pendencias-report', user?.id, startDate, endDate, statusFilter, tipoFilter, cnpjFilter],
     queryFn: async (): Promise<PendenciasReportData> => {
-      if (!empresaId) throw new Error('Empresa ID não encontrado');
+      if (!user?.id) throw new Error('Usuário não encontrado');
 
-      console.log('Buscando relatório de pendências:', { empresaId, startDate, endDate });
+      console.log('Buscando relatório de pendências:', {
+        userId: user.id,
+        role,
+        startDate,
+        endDate
+      });
 
-      // Buscar pendências com filtros
+      // Buscar pendências com filtros - para corretora, filtrar por corretora_id
       let query = supabase
         .from('pendencias')
         .select(`
@@ -88,7 +93,7 @@ export const usePendenciasReport = (
           funcionarios(nome, cpf),
           cnpjs(cnpj, razao_social)
         `)
-        .eq('cnpjs.empresa_id', empresaId)
+        .eq('corretora_id', user.id)
         .eq('status', 'pendente');
 
       // Aplicar filtros de data
