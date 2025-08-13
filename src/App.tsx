@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -101,10 +100,10 @@ function AppContent() {
             <Route path="seguros-de-vida/:empresaId" element={<SegurosVidaCnpjsPage />} />
             <Route path="seguros-de-vida/:empresaId/cnpj/:cnpjId" element={<SegurosVidaPlanoPage />} />
             
-            {/* Planos de Saúde - USANDO EMBREVEPAGE */}
-            <Route path="planos-de-saude/empresas" element={<EmBrevePage />} />
-            <Route path="planos-de-saude/empresas/:empresaId/cnpjs" element={<EmBrevePage />} />
-            <Route path="planos-de-saude/plano/:planoId" element={<EmBrevePage />} />
+            {/* Planos de Saúde - LIBERADAS */}
+            <Route path="planos-de-saude/empresas" element={<PlanosSaudeEmpresasPage />} />
+            <Route path="planos-de-saude/:empresaId" element={<PlanosSaudeCnpjsPage />} />
+            <Route path="planos-de-saude/:empresaId/cnpj/:cnpjId" element={<PlanosSaudePlanoPage />} />
             
             {/* Relatórios */}
             <Route path="relatorios/financeiro" element={<RelatorioFinanceiroPage />} />
