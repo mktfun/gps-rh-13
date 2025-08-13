@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,7 +14,7 @@ export interface FuncionarioForaDoPlano {
 
 export const useFuncionariosForaDoPlano = (planoId: string, cnpjId: string) => {
   return useQuery({
-    queryKey: ['funcionarios-fora-do-plano', planoId, cnpjId],
+    queryKey: ['funcionarios-fora-do-plano', planoId],
     queryFn: async (): Promise<FuncionarioForaDoPlano[]> => {
       if (!planoId || !cnpjId) return [];
 
