@@ -42,7 +42,10 @@ export const CustosReportFilters = ({
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== '');
+  const hasActiveFilters = filters.cnpjSearch !== '' ||
+    (filters.statusFilter !== '' && filters.statusFilter !== 'todos') ||
+    filters.valorMin !== '' ||
+    filters.valorMax !== '';
 
   return (
     <Card>
