@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
@@ -49,13 +48,67 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         throw error;
       }
 
-      console.log('✅ Relatório de custos paginado carregado:', data);
-      
-      const results = (data || []) as RelatorioCustoEmpresaPaginado[];
-      const first = results[0];
+      console.log('✅ Relatório de custos paginado carregado (raw):', data);
 
-      const totalCount = results.length > 0 ? Number(first?.total_count || 0) : 0;
-      const totalPages = Math.ceil((totalCount || 0) / pageSize);
+      const rawResults = (data || []) as RelatorioCustoEmpresaPaginado[];
+
+      // Deduplicate employees and calculate correct individual values
+      const employeeMap = new Map();
+      const cnpjTotals = new Map();
+
+      // First pass: collect CNPJ totals and count active employees per CNPJ
+      rawResults.forEach(row => {
+        const cnpjKey = row.cnpj_razao_social;
+        if (!cnpjTotals.has(cnpjKey)) {
+          cnpjTotals.set(cnpjKey, {
+            total_value: row.total_cnpj || 0,
+            active_employees: 0,
+            employees: []
+          });
+        }
+
+        const cnpjData = cnpjTotals.get(cnpjKey);
+        const empKey = `${cnpjKey}_${row.funcionario_cpf}`;
+
+        if (!employeeMap.has(empKey)) {
+          employeeMap.set(empKey, row);
+          cnpjData.employees.push(row);
+          if (row.status === 'ativo') {
+            cnpjData.active_employees++;
+          }
+        }
+      });
+
+      // Second pass: calculate correct individual values
+      const results = Array.from(employeeMap.values()).map(row => {
+        const cnpjKey = row.cnpj_razao_social;
+        const cnpjData = cnpjTotals.get(cnpjKey);
+
+        // Calculate individual value as plan total divided by active employees
+        const valor_individual = row.status === 'ativo' && cnpjData.active_employees > 0
+          ? cnpjData.total_value / cnpjData.active_employees
+          : 0;
+
+        return {
+          ...row,
+          valor_individual: Number(valor_individual.toFixed(2))
+        };
+      });
+
+      console.log('✅ Relatório deduplicated and corrected:', {
+        original_count: rawResults.length,
+        deduplicated_count: results.length,
+        cnpj_counts: Array.from(cnpjTotals.entries()).map(([cnpj, data]) => ({
+          cnpj,
+          total: data.total_value,
+          active_employees: data.active_employees,
+          total_employees: data.employees.length
+        }))
+      });
+
+      const first = rawResults[0];
+      const totalCount = results.length; // Use deduplicated count
+      const totalPages = Math.ceil(totalCount / pageSize);
 
       // Totais globais vindos da função SQL (iguais em todas as linhas)
       const totalFuncionariosAtivos = Number(first?.total_funcionarios_ativos || 0);
