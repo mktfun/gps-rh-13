@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
@@ -11,6 +10,7 @@ import { CostsEvolutionChart } from '@/components/relatorios/CostsEvolutionChart
 import { CostsDistributionChart } from '@/components/relatorios/CostsDistributionChart';
 import { createCostsDetailedTableColumns } from '@/components/relatorios/costsDetailedTableColumns';
 import { useCostsReport } from '@/hooks/useCostsReport';
+import { CostsReportDebug } from '@/components/debug/CostsReportDebug';
 import { DateRange } from 'react-day-picker';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
