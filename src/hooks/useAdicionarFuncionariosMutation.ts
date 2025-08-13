@@ -161,7 +161,7 @@ export const useAdicionarFuncionariosMutation = () => {
         if (errorPendencias.code === '23505') {
           errorMessage = 'Algumas pendências já existem para estes funcionários';
         } else if (errorPendencias.code === '42501') {
-          errorMessage = 'Você não tem permissão para criar pendências. Verifique se você é uma corretora ou se o funcionário pertence à sua empresa.';
+          errorMessage = `RLS Violation: Usuário ${currentProfile?.role} (ID: ${currentProfile?.id}) não pode criar pendência com corretora_id: ${corretoraId}. Verifique se você é uma corretora autorizada.`;
         } else if (errorPendencias.code === '23503') {
           errorMessage = 'Referência inválida ao criar pendência (funcionário, CNPJ ou corretora não encontrados)';
         }
