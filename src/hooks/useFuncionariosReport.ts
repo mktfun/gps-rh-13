@@ -198,13 +198,26 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
 
       const funcionarios_por_cnpj: FuncionariosPorCNPJ[] = Object.values(cnpjGroups);
 
-      // 8. Preparar tabela detalhada
+      // 8. Buscar dados de planos para calcular valores
+      const { data: planosData } = await supabase
+        .from('dados_planos')
+        .select('cnpj_id, valor_mensal, seguradora, tipo_seguro')
+        .in('cnpj_id', cnpjIds)
+        .eq('tipo_seguro', 'vida');
+
+      const planosMap = new Map<string, { valor_mensal: number; seguradora: string }>();
+      if (planosData) {
+        planosData.forEach(plano => {
+          planosMap.set(plano.cnpj_id, {
+            valor_mensal: plano.valor_mensal || 0,
+            seguradora: plano.seguradora || ''
+          });
+        });
+      }
+
+      // 9. Preparar tabela detalhada
       const tabela_detalhada: TabelaDetalhada[] = data.map(f => {
-        // Corrigir o acesso ao valor_mensal - verificar se cnpj_id não é null
-        let valorMensal = 0;
-        if (f.cnpjs && Array.isArray(f.cnpjs.dados_planos) && f.cnpjs.dados_planos.length > 0) {
-          valorMensal = f.cnpjs.dados_planos[0]?.valor_mensal || 0;
-        }
+        const planoInfo = planosMap.get(f.cnpj_id) || { valor_mensal: 0, seguradora: '' };
 
         return {
           id: f.id,
@@ -215,7 +228,7 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
           status: f.status,
           data_admissao: format(new Date(f.created_at), 'yyyy-MM-dd'),
           data_ativacao_seguro: format(new Date(f.created_at), 'yyyy-MM-dd'),
-          valor_individual: valorMensal,
+          valor_individual: planoInfo.valor_mensal,
           total_dependentes: 0
         };
       });
