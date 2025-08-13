@@ -18,9 +18,17 @@ const RelatorioCustosEmpresaPage = () => {
     pageSize: 10,
   });
 
+  const [filters, setFilters] = useState<CustosReportFiltersData>({
+    cnpjSearch: '',
+    statusFilter: '',
+    valorMin: '',
+    valorMax: ''
+  });
+
   const { data: result, isLoading, error } = useRelatorioCustosEmpresaPaginado({
     pageSize: pagination.pageSize,
     pageIndex: pagination.pageIndex,
+    filters,
   });
 
 
