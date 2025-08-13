@@ -212,10 +212,18 @@ const RelatorioPendenciasCorretoraPage = () => {
             Análise completa de pendências e solicitações em aberto
           </p>
         </div>
-        <Button onClick={handleExport} className="gap-2">
-          <Download className="h-4 w-4" />
-          Exportar Excel
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExport} className="gap-2">
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </Button>
+          {(!reportData?.tabela_detalhada || reportData.tabela_detalhada.length === 0) && (
+            <Button onClick={createSamplePendencias} variant="outline" className="gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Criar Dados de Teste
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filtros */}
