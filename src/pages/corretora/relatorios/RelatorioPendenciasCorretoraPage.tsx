@@ -53,6 +53,11 @@ const RelatorioPendenciasCorretoraPage = () => {
         .limit(10);
 
       console.log('Pendências existentes:', { existingPendencias, pendError });
+
+      // If no pendencias exist but we have pending funcionarios, we should create them
+      if (existingPendencias && existingPendencias.length === 0 && pendingFuncionarios && pendingFuncionarios.length > 0) {
+        console.log('🚨 Pendências table is empty but we have pending funcionarios. This might need manual population.');
+      }
     };
 
     checkDataSources();
