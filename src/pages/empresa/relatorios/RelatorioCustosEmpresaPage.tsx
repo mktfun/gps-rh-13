@@ -25,6 +25,12 @@ const RelatorioCustosEmpresaPage = () => {
     valorMax: ''
   });
 
+  const handleFiltersChange = (newFilters: CustosReportFiltersData) => {
+    setFilters(newFilters);
+    // Reset pagination when filters change
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  };
+
   const { data: result, isLoading, error } = useRelatorioCustosEmpresaPaginado({
     pageSize: pagination.pageSize,
     pageIndex: pagination.pageIndex,
