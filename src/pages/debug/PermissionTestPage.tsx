@@ -3,6 +3,7 @@ import { PermissionDebugger } from '@/components/debug/PermissionDebugger';
 import { FuncionarioPlanoVerification } from '@/components/debug/FuncionarioPlanoVerification';
 import { PlanoValueTest } from '@/components/debug/PlanoValueTest';
 import { PendenciasRLSDebug } from '@/components/debug/PendenciasRLSDebug';
+import { PendenciasDebugEmpresa } from '@/components/debug/PendenciasDebugEmpresa';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
