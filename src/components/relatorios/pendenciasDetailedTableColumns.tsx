@@ -26,6 +26,98 @@ interface TabelaPendencias {
   comentarios_count: number;
 }
 
+const ActionsCell = ({ row }: { row: any }) => {
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const { mutate: concluirPendencia, isPending: isConcluindo } = useConcluirPendencia();
+  
+  const handleConcluir = () => {
+    if (confirm('Tem certeza que deseja marcar esta pendência como concluída?')) {
+      concluirPendencia({ pendenciaId: row.original.id });
+    }
+  };
+  
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsQuickViewOpen(true)}
+        className="h-8 w-8 p-0"
+        title="Visualizar resumo"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsCommentsOpen(true)}
+        className="h-8 w-8 p-0 relative"
+        title="Enviar mensagem"
+      >
+        <MessageSquare className="h-4 w-4" />
+        {row.original.comentarios_count > 0 && (
+          <Badge 
+            variant="secondary" 
+            className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
+          >
+            {row.original.comentarios_count}
+          </Badge>
+        )}
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleConcluir}
+        disabled={isConcluindo}
+        className="h-8 gap-1 text-green-600 border-green-600 hover:bg-green-50"
+        title="Marcar como concluída"
+      >
+        <CheckCircle className="h-4 w-4" />
+        {isConcluindo ? 'Concluindo...' : 'Concluir'}
+      </Button>
+      
+      <PendenciaQuickViewModal
+        isOpen={isQuickViewOpen}
+        onClose={() => setIsQuickViewOpen(false)}
+        pendencia={{
+          protocolo: row.original.protocolo,
+          funcionario_nome: row.original.funcionario_nome,
+          funcionario_cpf: row.original.funcionario_cpf,
+          razao_social: row.original.razao_social,
+          cnpj: row.original.cnpj,
+          descricao: row.original.descricao,
+          data_criacao: row.original.data_criacao,
+          data_vencimento: row.original.data_vencimento,
+          status_prioridade: row.original.status_prioridade,
+          dias_em_aberto: row.original.dias_em_aberto,
+          tipo: row.original.tipo
+        }}
+      />
+      
+      <PendenciaCommentsModal
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+        pendencia={{
+          id: row.original.id,
+          protocolo: row.original.protocolo,
+          funcionario_nome: row.original.funcionario_nome,
+          cpf: row.original.funcionario_cpf,
+          cargo: 'N/A',
+          status: row.original.status_prioridade,
+          cnpj_razao_social: row.original.razao_social,
+          data_solicitacao: row.original.data_criacao,
+          motivo: row.original.descricao,
+          descricao: row.original.descricao,
+          comentarios_count: row.original.comentarios_count
+        }}
+      />
+    </div>
+  );
+};
+
 export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] => [
   {
     accessorKey: 'protocolo',
@@ -128,96 +220,6 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
   {
     id: 'acoes',
     header: 'Ações',
-    cell: ({ row }) => {
-      const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-      const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-      const { mutate: concluirPendencia, isPending: isConcluindo } = useConcluirPendencia();
-      
-      const handleConcluir = () => {
-        if (confirm('Tem certeza que deseja marcar esta pendência como concluída?')) {
-          concluirPendencia({ pendenciaId: row.original.id });
-        }
-      };
-      
-      return (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsQuickViewOpen(true)}
-            className="h-8 w-8 p-0"
-            title="Visualizar resumo"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCommentsOpen(true)}
-            className="h-8 w-8 p-0 relative"
-            title="Enviar mensagem"
-          >
-            <MessageSquare className="h-4 w-4" />
-            {row.original.comentarios_count > 0 && (
-              <Badge 
-                variant="secondary" 
-                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
-              >
-                {row.original.comentarios_count}
-              </Badge>
-            )}
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleConcluir}
-            disabled={isConcluindo}
-            className="h-8 gap-1 text-green-600 border-green-600 hover:bg-green-50"
-            title="Marcar como concluída"
-          >
-            <CheckCircle className="h-4 w-4" />
-            {isConcluindo ? 'Concluindo...' : 'Concluir'}
-          </Button>
-          
-          <PendenciaQuickViewModal
-            isOpen={isQuickViewOpen}
-            onClose={() => setIsQuickViewOpen(false)}
-            pendencia={{
-              protocolo: row.original.protocolo,
-              funcionario_nome: row.original.funcionario_nome,
-              funcionario_cpf: row.original.funcionario_cpf,
-              razao_social: row.original.razao_social,
-              cnpj: row.original.cnpj,
-              descricao: row.original.descricao,
-              data_criacao: row.original.data_criacao,
-              data_vencimento: row.original.data_vencimento,
-              status_prioridade: row.original.status_prioridade,
-              dias_em_aberto: row.original.dias_em_aberto,
-              tipo: row.original.tipo
-            }}
-          />
-          
-          <PendenciaCommentsModal
-            isOpen={isCommentsOpen}
-            onClose={() => setIsCommentsOpen(false)}
-            pendencia={{
-              id: row.original.id,
-              protocolo: row.original.protocolo,
-              funcionario_nome: row.original.funcionario_nome,
-              cpf: row.original.funcionario_cpf,
-              cargo: 'N/A',
-              status: row.original.status_prioridade,
-              cnpj_razao_social: row.original.razao_social,
-              data_solicitacao: row.original.data_criacao,
-              motivo: row.original.descricao,
-              descricao: row.original.descricao,
-              comentarios_count: row.original.comentarios_count
-            }}
-          />
-        </div>
-      );
-    },
+    cell: ActionsCell,
   },
 ];
