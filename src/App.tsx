@@ -119,6 +119,7 @@ function AppContent() {
           <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
           <Route path="empresa/planos/:id" element={<PlanoDetalhesPage />} />
           <Route path="empresa/planos-saude/:id" element={<PlanoSaudeDetalhesPage />} />
+          <Route path="empresa/planos-de-saude/:id" element={<PlanoSaudeDetalhesPage />} />
           
           {/* Rota corrigida para seguro de vida da empresa */}
           <Route path="empresa/seguros-de-vida/:planoId" element={<SeguroVidaDetalhesPage />} />
