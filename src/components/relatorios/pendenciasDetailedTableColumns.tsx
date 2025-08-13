@@ -1,13 +1,13 @@
-
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, MessageSquare } from "lucide-react";
+import { Eye, MessageSquare, CheckCircle } from "lucide-react";
 import { TipoPendenciaBadge, PrioridadePendenciaBadge } from "./PendenciasBadges";
 import { PendenciaCommentsModal } from "./PendenciaCommentsModal";
 import { PendenciaQuickViewModal } from "./PendenciaQuickViewModal";
+import { useConcluirPendencia } from "@/hooks/useConcluirPendencia";
 import { useState } from "react";
 
 interface TabelaPendencias {
@@ -131,6 +131,13 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
     cell: ({ row }) => {
       const [isCommentsOpen, setIsCommentsOpen] = useState(false);
       const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+      const { mutate: concluirPendencia, isPending: isConcluindo } = useConcluirPendencia();
+      
+      const handleConcluir = () => {
+        if (confirm('Tem certeza que deseja marcar esta pendência como concluída?')) {
+          concluirPendencia({ pendenciaId: row.original.id });
+        }
+      };
       
       return (
         <div className="flex items-center gap-2">
@@ -143,6 +150,7 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
           >
             <Eye className="h-4 w-4" />
           </Button>
+          
           <Button
             variant="ghost"
             size="sm"
@@ -159,6 +167,18 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
                 {row.original.comentarios_count}
               </Badge>
             )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleConcluir}
+            disabled={isConcluindo}
+            className="h-8 gap-1 text-green-600 border-green-600 hover:bg-green-50"
+            title="Marcar como concluída"
+          >
+            <CheckCircle className="h-4 w-4" />
+            {isConcluindo ? 'Concluindo...' : 'Concluir'}
           </Button>
           
           <PendenciaQuickViewModal
@@ -187,11 +207,11 @@ export const createPendenciasTableColumns = (): ColumnDef<TabelaPendencias>[] =>
               protocolo: row.original.protocolo,
               funcionario_nome: row.original.funcionario_nome,
               cpf: row.original.funcionario_cpf,
-              cargo: 'N/A', // This field might not be available in this context
-              status: row.original.status_prioridade, // Using status_prioridade as status
+              cargo: 'N/A',
+              status: row.original.status_prioridade,
               cnpj_razao_social: row.original.razao_social,
               data_solicitacao: row.original.data_criacao,
-              motivo: row.original.descricao, // Using description as motivo
+              motivo: row.original.descricao,
               descricao: row.original.descricao,
               comentarios_count: row.original.comentarios_count
             }}

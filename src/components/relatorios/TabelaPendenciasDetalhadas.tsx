@@ -4,9 +4,10 @@ import { PendenciaItem } from '@/hooks/usePendenciasDaCorretora';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, MessageCircle } from 'lucide-react';
+import { Eye, MessageCircle, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useConcluirPendencia } from '@/hooks/useConcluirPendencia';
 
 interface Props {
   pendencias: PendenciaItem[];
@@ -20,6 +21,14 @@ const prioridadeBadge = (p: PendenciaItem) => {
 };
 
 const TabelaPendenciasDetalhadas: React.FC<Props> = ({ pendencias, onAbrirConversa }) => {
+  const { mutate: concluirPendencia, isPending: isConcluindo } = useConcluirPendencia();
+  
+  const handleConcluir = (pendenciaId: string) => {
+    if (confirm('Tem certeza que deseja marcar esta pendência como concluída?')) {
+      concluirPendencia({ pendenciaId });
+    }
+  };
+
   return (
     <Card className="p-4 overflow-x-auto">
       <Table>
@@ -63,6 +72,16 @@ const TabelaPendenciasDetalhadas: React.FC<Props> = ({ pendencias, onAbrirConver
                   </Button>
                   <Button size="icon" onClick={() => onAbrirConversa(p)}>
                     <MessageCircle className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    variant="outline"
+                    onClick={() => handleConcluir(p.id)}
+                    disabled={isConcluindo}
+                    className="text-green-600 border-green-600 hover:bg-green-50"
+                    title="Marcar como concluída"
+                  >
+                    <CheckCircle className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
