@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Edit, Archive, UserCheck, UserX } from 'lucide-react';
+import { MoreHorizontal, Edit, Archive, UserCheck, UserX, Shield, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
 import FuncionarioModal from './FuncionarioModal';
