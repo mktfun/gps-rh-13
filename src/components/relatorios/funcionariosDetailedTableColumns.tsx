@@ -1,4 +1,3 @@
-
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 
@@ -35,11 +34,13 @@ const formatCPF = (cpf: string) => {
 
 const getStatusBadge = (status: string) => {
   const variants: Record<string, any> = {
-    'ativo': { variant: 'success', label: 'Ativo' },
-    'pendente': { variant: 'warning', label: 'Pendente' },
+    'ativo': { variant: 'default', label: 'Ativo' },
+    'pendente': { variant: 'secondary', label: 'Pendente' },
     'desativado': { variant: 'destructive', label: 'Desativado' },
-    'exclusao_solicitada': { variant: 'secondary', label: 'Exclusão Solicitada' },
-    'arquivado': { variant: 'outline', label: 'Arquivado' }
+    'exclusao_solicitada': { variant: 'destructive', label: 'Exclusão Solicitada' },
+    'pendente_exclusao': { variant: 'destructive', label: 'Pendente Exclusão' },
+    'arquivado': { variant: 'outline', label: 'Arquivado' },
+    'edicao_solicitada': { variant: 'secondary', label: 'Edição Solicitada' }
   };
 
   const config = variants[status] || { variant: 'outline', label: status };
