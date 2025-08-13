@@ -76,7 +76,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         const cnpjKey = row.cnpj_razao_social;
         if (!cnpjTotals.has(cnpjKey)) {
           cnpjTotals.set(cnpjKey, {
-            total_value: row.total_cnpj || 0,
+            total_value: 0, // Will be set properly below
             active_employees: 0,
             employees: []
           });
@@ -84,6 +84,11 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
 
         const cnpjData = cnpjTotals.get(cnpjKey);
         const empKey = `${cnpjKey}_${row.funcionario_cpf}`;
+
+        // Set the correct total value (take the maximum non-zero value)
+        if (row.total_cnpj > cnpjData.total_value) {
+          cnpjData.total_value = row.total_cnpj;
+        }
 
         if (!employeeMap.has(empKey)) {
           employeeMap.set(empKey, row);
