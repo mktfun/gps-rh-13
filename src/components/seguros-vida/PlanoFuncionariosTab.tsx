@@ -185,6 +185,16 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
           />
         </CardContent>
       </Card>
+
+      {/* Modal para Adicionar Funcionários */}
+      <AdicionarFuncionariosModal
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        planoId={plano.id}
+        cnpjId={cnpjId}
+        planoSeguradora={plano.seguradora}
+        tipoSeguro="vida"
+      />
     </div>
   );
 };
