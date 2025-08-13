@@ -23,14 +23,32 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
     mutationFn: async (data: CreateFuncionarioData) => {
       console.log('🔄 Criando funcionário:', data);
 
+      // Verificar se já existe funcionário com este CPF
+      const { data: existingFuncionario, error: checkError } = await supabase
+        .from('funcionarios')
+        .select('id, nome, cpf')
+        .eq('cpf', data.cpf.replace(/\D/g, '')) // Remove formatação do CPF
+        .eq('cnpj_id', cnpjId)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('❌ Erro ao verificar CPF duplicado:', checkError);
+        throw checkError;
+      }
+
+      if (existingFuncionario) {
+        console.error('❌ Funcionário já existe com este CPF:', existingFuncionario);
+        throw new Error(`Já existe um funcionário cadastrado com o CPF ${data.cpf} nesta empresa: ${existingFuncionario.nome}`);
+      }
+
       // Calcular idade baseada na data de nascimento
-      const idade = data.data_nascimento 
+      const idade = data.data_nascimento
         ? new Date().getFullYear() - new Date(data.data_nascimento).getFullYear()
         : 0;
 
       const funcionarioData = {
         nome: data.nome,
-        cpf: data.cpf,
+        cpf: data.cpf.replace(/\D/g, ''), // Salvar CPF sem formatação
         data_nascimento: data.data_nascimento,
         cargo: data.cargo,
         salario: data.salario,
