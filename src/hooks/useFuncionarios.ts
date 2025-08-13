@@ -346,7 +346,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
         currentPage: page
       };
     },
-    enabled: !!user?.id && !!cnpj_id,
+    enabled: !!user?.id && !!cnpj_id && !shouldUseEmpresaQuery,
     retry: 2,
     retryDelay: 1000,
   });
