@@ -39,7 +39,7 @@ const RelatorioFuncionariosPage = () => {
     searchTerm: searchTerm || undefined
   });
 
-  const { cnpjs: cnpjsList = [] } = useAllCnpjs();
+  const { cnpjs: cnpjsList = [], isLoading: cnpjsLoading } = useAllCnpjs();
 
   // Hook de exportação
   const {
