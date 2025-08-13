@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -214,6 +213,9 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     },
   });
 
+  // Decidir se deve usar RPC da empresa ou query padrão
+  const shouldUseEmpresaQuery = targetEmpresaId && !cnpj_id;
+
   // CORREÇÃO: Usar nova RPC quando empresaId for fornecido
   const empresaQuery = useFuncionariosEmpresa({
     empresaId: targetEmpresaId || '',
@@ -223,62 +225,45 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     pageNum: page + 1 // RPC usa 1-based, mas nosso sistema usa 0-based
   });
 
-  // Se temos empresaId, usar a nova RPC
-  if (targetEmpresaId && !cnpj_id) {
-    // CORREÇÃO: Mapeamento completo para FuncionarioWithCnpj incluindo todas as propriedades obrigatórias
-    const transformedData = empresaQuery.data ? {
-      funcionarios: empresaQuery.data.funcionarios.map(f => ({
-        // Propriedades da interface base Funcionario
-        id: f.funcionario_id,
-        nome: f.nome,
-        cpf: f.cpf,
-        cargo: f.cargo,
-        salario: f.salario,
-        idade: f.idade,
-        status: f.status as any,
-        data_nascimento: f.data_nascimento,
-        estado_civil: f.estado_civil as any,
-        email: f.email,
-        created_at: f.created_at,
-        updated_at: f.updated_at,
-        cnpj_id: f.cnpj_id,
-        // Propriedades obrigatórias que faltavam
-        dados_pendentes: null,
-        data_exclusao: null,
-        data_solicitacao_exclusao: null,
-        motivo_exclusao: null,
-        usuario_executor: null,
-        usuario_solicitante: null,
-        // Propriedades adicionais da interface FuncionarioWithCnpj
-        cnpj: {
-          razao_social: f.cnpj_razao_social,
-          cnpj: f.cnpj_numero,
-        },
-        plano: f.plano_seguradora ? {
-          seguradora: f.plano_seguradora,
-          valor_mensal: f.plano_valor_mensal || 0,
-          cobertura_morte: f.plano_cobertura_morte || 0
-        } : undefined
-      })) as FuncionarioWithCnpj[],
-      totalCount: empresaQuery.data.totalCount,
-      totalPages: empresaQuery.data.totalPages,
-      currentPage: Math.max(0, empresaQuery.data.currentPage - 1) // Converter de volta para 0-based
-    } : null;
-
-    return {
-      funcionarios: transformedData?.funcionarios || [],
-      totalCount: transformedData?.totalCount || 0,
-      totalPages: transformedData?.totalPages || 0,
-      currentPage: transformedData?.currentPage || 0,
-      isLoading: empresaQuery.isLoading,
-      error: empresaQuery.error,
-      addFuncionario,
-      updateFuncionario,
-      archiveFuncionario,
-      approveExclusao,
-      denyExclusao,
-    };
-  }
+  // Transformar dados da empresa se necessário
+  const transformedEmpresaData = shouldUseEmpresaQuery && empresaQuery.data ? {
+    funcionarios: empresaQuery.data.funcionarios.map(f => ({
+      // Propriedades da interface base Funcionario
+      id: f.funcionario_id,
+      nome: f.nome,
+      cpf: f.cpf,
+      cargo: f.cargo,
+      salario: f.salario,
+      idade: f.idade,
+      status: f.status as any,
+      data_nascimento: f.data_nascimento,
+      estado_civil: f.estado_civil as any,
+      email: f.email,
+      created_at: f.created_at,
+      updated_at: f.updated_at,
+      cnpj_id: f.cnpj_id,
+      // Propriedades obrigatórias que faltavam
+      dados_pendentes: null,
+      data_exclusao: null,
+      data_solicitacao_exclusao: null,
+      motivo_exclusao: null,
+      usuario_executor: null,
+      usuario_solicitante: null,
+      // Propriedades adicionais da interface FuncionarioWithCnpj
+      cnpj: {
+        razao_social: f.cnpj_razao_social,
+        cnpj: f.cnpj_numero,
+      },
+      plano: f.plano_seguradora ? {
+        seguradora: f.plano_seguradora,
+        valor_mensal: f.plano_valor_mensal || 0,
+        cobertura_morte: f.plano_cobertura_morte || 0
+      } : undefined
+    })) as FuncionarioWithCnpj[],
+    totalCount: empresaQuery.data.totalCount,
+    totalPages: empresaQuery.data.totalPages,
+    currentPage: Math.max(0, empresaQuery.data.currentPage - 1) // Converter de volta para 0-based
+  } : null;
 
   // CORREÇÃO: Query original simplificada para casos específicos (cnpj_id)
   const funcionariosQuery = useQuery({
