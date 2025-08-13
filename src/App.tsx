@@ -133,6 +133,9 @@ function AppContent() {
           <Route path="empresa/relatorios/custos-detalhado" element={<RelatorioCustosDetalhadoPage />} />
           <Route path="empresa/relatorios/pendencias" element={<RelatorioPendenciasEmpresaPage />} />
 
+          {/* Debug routes */}
+          <Route path="debug/permissions" element={<PermissionTestPage />} />
+
           {/* Shared routes */}
           <Route path="perfil" element={<PerfilPage />} />
           <Route path="configuracoes" element={<ConfiguracoesPage />} />
