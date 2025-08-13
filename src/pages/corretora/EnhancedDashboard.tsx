@@ -17,11 +17,6 @@ const EnhancedCorretoraDashboard = () => {
   const { user } = useAuth();
   const { data: dashboardData, isLoading } = useCorretoraDashboardMetrics();
 
-  const breadcrumbItems = [
-    { label: 'Corretora', href: '/corretora/dashboard' },
-    { label: 'Dashboard Avançado', icon: BarChart3 }
-  ];
-
   if (isLoading) {
     return (
       <div className="p-6">
