@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -51,13 +50,16 @@ const RelatorioPendenciasCorretoraPage = () => {
     }
   }, [location.state, cnpjs]);
 
-  const { data: reportData, isLoading } = usePendenciasReport(
+  const { data: reportData, isLoading, error } = usePendenciasReport(
     dateRange.from,
     dateRange.to,
     statusFilter,
     tipoFilter,
     cnpjFilter
   );
+
+  // Debug information
+  console.log('Pendencias Report Debug:', { reportData, isLoading, error });
 
   const {
     openExportPreview,
