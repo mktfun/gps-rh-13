@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Grid, List, Stethoscope } from 'lucide-react';
@@ -10,6 +9,7 @@ import { EmpresasCardView } from '@/components/seguros-vida/EmpresasCardView';
 import { EmpresasListView } from '@/components/seguros-vida/EmpresasListView';
 
 export default function PlanosSaudeEmpresasPage() {
+  console.log('🩺 PlanosSaudeEmpresasPage: Componente da corretora carregado');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const navigate = useNavigate();
