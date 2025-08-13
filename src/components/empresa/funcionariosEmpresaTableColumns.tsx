@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, User, Briefcase, DollarSign, Shield, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { Eye, User, Briefcase, DollarSign, Shield, MoreHorizontal, AlertTriangle, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatCurrency } from '@/lib/utils';
 
