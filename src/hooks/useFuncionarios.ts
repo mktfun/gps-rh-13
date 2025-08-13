@@ -218,7 +218,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
 
   // CORREÇÃO: Usar nova RPC quando empresaId for fornecido
   const empresaQuery = useFuncionariosEmpresa({
-    empresaId: targetEmpresaId || '',
+    empresaId: shouldUseEmpresaQuery ? (targetEmpresaId || '') : '', // Só passar empresaId se devemos usar essa query
     search,
     statusFilter: statusFilter || 'all',
     pageSize,
