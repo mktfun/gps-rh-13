@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -98,8 +97,8 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
             Adicionar Funcionários ao Plano {tipoSeguro === 'vida' ? 'de Vida' : 'de Saúde'}
@@ -110,7 +109,7 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 flex flex-col min-h-0">
           {/* Busca */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -141,7 +140,7 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
           )}
 
           {/* Lista de funcionários */}
-          <ScrollArea className="h-96 border rounded-lg">
+          <ScrollArea className="flex-1 border rounded-lg min-h-[200px]">
             {isLoading ? (
               <div className="p-8">
                 <DashboardLoadingState />
@@ -196,7 +195,7 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
           </ScrollArea>
 
           {/* Ações */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 flex-shrink-0 border-t mt-4">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}

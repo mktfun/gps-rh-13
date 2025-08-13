@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
@@ -24,10 +23,13 @@ const SmartBreadcrumbs = () => {
     'empresas': 'Empresas',
     'funcionarios': 'Funcionários',
     'seguros-de-vida': 'Seguros de Vida',
+    'seguros-vida': 'Seguros de Vida',
     'planos-de-saude': 'Planos de Saúde',
+    'planos-saude': 'Planos de Saúde',
     'cnpjs': 'CNPJs',
     'cnpj': 'CNPJ',
     'plano': 'Plano',
+    'planos': 'Planos',
     'relatorios': 'Relatórios',
     'financeiro': 'Financeiro',
     'movimentacao': 'Movimentação',
@@ -38,10 +40,7 @@ const SmartBreadcrumbs = () => {
     'configuracoes': 'Configurações',
     'custos-empresa': 'Custos da Empresa',
     'custos-detalhado': 'Custos Detalhado',
-    'funcionarios-detalhado': 'Funcionários Detalhado',
-    'planos': 'Planos',
-    'planos-saude': 'Planos de Saúde',
-    'seguros-vida': 'Seguros de Vida'
+    'funcionarios-detalhado': 'Funcionários Detalhado'
   };
 
   const isUUID = (str: string) => {
@@ -57,13 +56,14 @@ const SmartBreadcrumbs = () => {
     breadcrumbs.push({
       name: 'Home',
       path: '/',
-      icon: <Home className="h-4 w-4" />
+      icon: <Home className="h-4 w-4" />,
+      id: 'home'
     });
 
     pathnames.forEach((pathname, index) => {
       currentPath += `/${pathname}`;
       const isLast = index === pathnames.length - 1;
-      
+
       // Skip UUIDs nos breadcrumbs (mas mantém no path)
       if (isUUID(pathname)) {
         return;
@@ -80,7 +80,8 @@ const SmartBreadcrumbs = () => {
       breadcrumbs.push({
         name: displayName,
         path: linkPath,
-        isLast
+        isLast,
+        id: `${index}-${pathname}` // Unique ID to prevent duplicate keys
       });
     });
 
@@ -97,7 +98,7 @@ const SmartBreadcrumbs = () => {
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
         {breadcrumbs.map((breadcrumb, index) => (
-          <React.Fragment key={breadcrumb.path}>
+          <div key={breadcrumb.id} style={{ display: 'contents' }}>
             <BreadcrumbItem>
               {breadcrumb.isLast ? (
                 <BreadcrumbPage className="flex items-center gap-1">
@@ -118,7 +119,7 @@ const SmartBreadcrumbs = () => {
                 <ChevronRight className="h-4 w-4" />
               </BreadcrumbSeparator>
             )}
-          </React.Fragment>
+          </div>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

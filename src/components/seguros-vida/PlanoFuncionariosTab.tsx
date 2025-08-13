@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
+import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
 
 interface PlanoFuncionariosTabProps {
   cnpjId: string;
@@ -19,19 +19,26 @@ interface PlanoFuncionariosTabProps {
   };
   shouldOpenAddModal?: boolean;
   onAddModalHandled?: () => void;
-  onAddFuncionarios?: () => void;
 }
 
-export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({ 
+export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   cnpjId,
   plano,
   shouldOpenAddModal,
-  onAddModalHandled,
-  onAddFuncionarios
+  onAddModalHandled
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Handle shouldOpenAddModal prop to trigger modal opening
+  useEffect(() => {
+    if (shouldOpenAddModal) {
+      setIsAddModalOpen(true);
+      onAddModalHandled?.();
+    }
+  }, [shouldOpenAddModal, onAddModalHandled]);
 
   // Usar hooks refatorados com planoId e tipoSeguro
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
@@ -121,12 +128,10 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
               <Users className="h-5 w-5" />
               Funcionários do Plano ({totalCount})
             </CardTitle>
-            {onAddFuncionarios && (
-              <Button onClick={onAddFuncionarios}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Funcionários
-              </Button>
-            )}
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Funcionários
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -178,6 +183,16 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
           />
         </CardContent>
       </Card>
+
+      {/* Modal para Adicionar Funcionários */}
+      <AdicionarFuncionariosModal
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        planoId={plano.id}
+        cnpjId={cnpjId}
+        planoSeguradora={plano.seguradora}
+        tipoSeguro="vida"
+      />
     </div>
   );
 };

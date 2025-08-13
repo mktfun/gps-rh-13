@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,7 +38,8 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (planoError || !plano?.cnpjs?.empresas?.corretora_id) {
         console.error('❌ Não foi possível obter o CNPJ e corretora do plano para criar pendências', planoError);
-        throw planoError || new Error('CNPJ do plano ou corretora não encontrado');
+        const errorMessage = planoError?.message || 'CNPJ do plano ou corretora não encontrado';
+        throw new Error(errorMessage);
       }
 
       const cnpjId = plano.cnpj_id;
@@ -54,6 +54,28 @@ export const useAdicionarFuncionariosMutation = () => {
         status: 'pendente' as const
       }));
 
+      console.log('📝 Inserindo registros em planos_funcionarios:', registros);
+
+      // Verificar se os funcionários existem e são válidos
+      const { data: funcionariosExistentes, error: errorValidacao } = await supabase
+        .from('funcionarios')
+        .select('id, status, cnpj_id')
+        .in('id', funcionarioIds);
+
+      if (errorValidacao) {
+        console.error('❌ Erro ao validar funcionários:', errorValidacao);
+        throw new Error(`Erro ao validar funcionários: ${errorValidacao.message}`);
+      }
+
+      if (!funcionariosExistentes || funcionariosExistentes.length !== funcionarioIds.length) {
+        const encontrados = funcionariosExistentes?.map(f => f.id) || [];
+        const naoEncontrados = funcionarioIds.filter(id => !encontrados.includes(id));
+        console.error('❌ Funcionários não encontrados:', naoEncontrados);
+        throw new Error(`Funcionários não encontrados: ${naoEncontrados.join(', ')}`);
+      }
+
+      console.log('✅ Funcionários validados:', funcionariosExistentes);
+
       const { data: insertPF, error: errorPF } = await supabase
         .from('planos_funcionarios')
         .insert(registros)
@@ -61,7 +83,18 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (errorPF) {
         console.error('Erro ao adicionar funcionários ao plano:', errorPF);
-        throw errorPF;
+        let errorMessage = errorPF.message || 'Erro ao adicionar funcionários ao plano';
+
+        // Handle specific Supabase error codes
+        if (errorPF.code === '23505') {
+          errorMessage = 'Alguns funcionários já estão vinculados a este plano';
+        } else if (errorPF.code === '42501') {
+          errorMessage = 'Você não tem permissão para adicionar funcionários a este plano';
+        } else if (errorPF.code === '23503') {
+          errorMessage = 'Funcionário ou plano não encontrado';
+        }
+
+        throw new Error(`Erro ao adicionar funcionários: ${errorMessage}`);
       }
 
       // Helper para gerar protocolo único
@@ -92,7 +125,18 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (errorPendencias) {
         console.error('❌ Erro ao criar pendências de ativação:', errorPendencias);
-        throw errorPendencias;
+        let errorMessage = errorPendencias.message || 'Erro ao criar pendências de ativação';
+
+        // Handle specific Supabase error codes for pendencias
+        if (errorPendencias.code === '23505') {
+          errorMessage = 'Algumas pendências já existem para estes funcionários';
+        } else if (errorPendencias.code === '42501') {
+          errorMessage = 'Você não tem permissão para criar pendências';
+        } else if (errorPendencias.code === '23503') {
+          errorMessage = 'Referência inválida ao criar pendência (funcionário, CNPJ ou corretora não encontrados)';
+        }
+
+        throw new Error(`Erro ao criar pendências: ${errorMessage}`);
       }
 
       return { insertPF, insertPendencias };
@@ -122,9 +166,10 @@ export const useAdicionarFuncionariosMutation = () => {
 
       toast.success(`${data.insertPF?.length || 0} funcionário(s) adicionado(s) e ${data.insertPendencias?.length || 0} pendência(s) criada(s)!`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro na mutation:', error);
-      toast.error('Erro ao adicionar funcionários ao plano');
+      const errorMessage = error?.message || 'Erro desconhecido ao adicionar funcionários ao plano';
+      toast.error(errorMessage);
     }
   });
 };
