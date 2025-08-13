@@ -56,12 +56,6 @@ const RelatorioFuncionariosEmpresaPage = () => {
     openExportPreview(funcionarios || [], exportFields, 'relatorio_funcionarios_empresa');
   };
 
-  const breadcrumbItems = [
-    { label: 'Empresa', href: '/empresa' },
-    { label: 'Relatórios' },
-    { label: 'Funcionários' }
-  ];
-
   // Calcular métricas
   const funcionariosAtivos = funcionarios?.filter(item => item.status === 'ativo').length || 0;
   const funcionariosPendentes = funcionarios?.filter(item => item.status === 'pendente').length || 0;
@@ -72,7 +66,6 @@ const RelatorioFuncionariosEmpresaPage = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
         <TableLoadingState rows={10} columns={6} showHeader />
       </div>
     );
@@ -81,7 +74,6 @@ const RelatorioFuncionariosEmpresaPage = () => {
   if (error) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
@@ -101,7 +93,6 @@ const RelatorioFuncionariosEmpresaPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Breadcrumbs items={breadcrumbItems} />
       
       <div className="flex items-center justify-between">
         <div>
