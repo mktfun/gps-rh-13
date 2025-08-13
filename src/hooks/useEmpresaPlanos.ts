@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,18 +39,20 @@ export const useEmpresaPlanos = () => {
         throw error;
       }
 
-      // Buscar contagem de funcionários ATIVOS para cada plano
+      // Buscar contagem de funcionários ATIVOS VINCULADOS AO PLANO ESPECÍFICO
       const planosComFuncionarios = await Promise.all(
         (data || []).map(async (plano: any) => {
           const { data: funcionariosData, error: funcionariosError } = await supabase
-            .from('funcionarios')
+            .from('planos_funcionarios')
             .select('id', { count: 'exact' })
-            .eq('cnpj_id', plano.cnpj_id)
-            .eq('status', 'ativo'); // Apenas funcionários ativos
+            .eq('plano_id', plano.id)
+            .eq('status', 'ativo'); // Apenas funcionários ativos NO PLANO
 
           if (funcionariosError) {
-            console.error('❌ Erro ao buscar funcionários:', funcionariosError);
+            console.error('❌ Erro ao buscar funcionários do plano:', funcionariosError);
           }
+
+          console.log(`📊 Plano ${plano.seguradora}: ${funcionariosData?.length || 0} funcionários vinculados`);
 
           return {
             ...plano,
