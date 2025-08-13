@@ -15,14 +15,50 @@ interface CustoEmpresa {
 export const createCustoEmpresaTableColumns = (): ColumnDef<CustoEmpresa>[] => [
   {
     accessorKey: 'cnpj_razao_social',
-    header: 'CNPJ/Razão Social',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(isSorted === "asc")}
+          className="h-auto p-0 hover:bg-transparent"
+        >
+          CNPJ/Razão Social
+          {isSorted === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue('cnpj_razao_social')}</div>
     ),
   },
   {
     accessorKey: 'funcionario_nome',
-    header: 'Funcionário',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(isSorted === "asc")}
+          className="h-auto p-0 hover:bg-transparent"
+        >
+          Funcionário
+          {isSorted === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="space-y-1">
         <div className="font-medium">{row.getValue('funcionario_nome')}</div>
@@ -32,7 +68,25 @@ export const createCustoEmpresaTableColumns = (): ColumnDef<CustoEmpresa>[] => [
   },
   {
     accessorKey: 'valor_individual',
-    header: 'Valor Individual',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(isSorted === "asc")}
+          className="h-auto p-0 hover:bg-transparent"
+        >
+          Valor Individual
+          {isSorted === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="text-right font-medium">
         {new Intl.NumberFormat('pt-BR', {
@@ -44,7 +98,25 @@ export const createCustoEmpresaTableColumns = (): ColumnDef<CustoEmpresa>[] => [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(isSorted === "asc")}
+          className="h-auto p-0 hover:bg-transparent"
+        >
+          Status
+          {isSorted === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
       const getStatusVariant = (status: string) => {
@@ -69,7 +141,25 @@ export const createCustoEmpresaTableColumns = (): ColumnDef<CustoEmpresa>[] => [
   },
   {
     accessorKey: 'total_cnpj',
-    header: 'Total CNPJ',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(isSorted === "asc")}
+          className="h-auto p-0 hover:bg-transparent"
+        >
+          Total CNPJ
+          {isSorted === "asc" ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="text-right font-semibold">
         {new Intl.NumberFormat('pt-BR', {
