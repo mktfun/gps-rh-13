@@ -64,6 +64,9 @@ import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import NotFound from "./pages/NotFound";
 import EmBrevePage from "./pages/EmBrevePage";
 
+// Debug pages
+import PermissionTestPage from "./pages/debug/PermissionTestPage";
+
 const queryClient = new QueryClient();
 
 function AppContent() {
