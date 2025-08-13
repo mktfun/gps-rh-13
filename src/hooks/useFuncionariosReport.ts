@@ -161,7 +161,12 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         };
       }
 
-      console.log('✅ [useFuncionariosReport] Dados brutos carregados:', data.length, 'funcionários');
+      console.log('✅ [useFuncionariosReport] Dados brutos carregados:', {
+        total_funcionarios: data.length,
+        funcionarios_ativos: data.filter(f => f.status === 'ativo').length,
+        cnpjs_unicos: new Set(data.map(f => f.cnpj_id)).size,
+        sample_data: data.slice(0, 2)
+      });
 
       // 5. Calcular KPIs
       const kpis: FuncionariosReportKPIs = {
