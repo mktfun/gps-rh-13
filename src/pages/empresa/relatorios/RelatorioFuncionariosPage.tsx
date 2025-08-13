@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
@@ -32,7 +31,7 @@ const RelatorioFuncionariosPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Buscar dados
-  const { data: reportData, isLoading } = useFuncionariosReport({
+  const { data: reportData, isLoading, error } = useFuncionariosReport({
     startDate: dateRange?.from,
     endDate: dateRange?.to,
     statusFilter: statusFilter === 'all' ? undefined : statusFilter,
@@ -124,7 +123,7 @@ const RelatorioFuncionariosPage = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Relatório de Funcionários</h1>
           <p className="text-muted-foreground">
-            Análise completa da movimentação e status dos funcionários
+            Análise completa da movimenta��ão e status dos funcionários
           </p>
         </div>
         <div className="flex items-center gap-4">
