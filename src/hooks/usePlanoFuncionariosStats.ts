@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,7 +23,13 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
 
       if (error) {
         console.error('❌ Erro ao buscar estatísticas de matrículas:', error);
-        throw error;
+        console.error('❌ Código do erro:', error.code);
+        console.error('❌ Mensagem:', error.message);
+        console.error('❌ Detalhes:', error.details);
+
+        // Criar um erro com mensagem legível
+        const errorMessage = error.message || 'Erro ao buscar estatísticas de matrículas';
+        throw new Error(`Erro ao buscar estatísticas: ${errorMessage}`);
       }
 
       const stats = data?.reduce((acc, matricula) => {
