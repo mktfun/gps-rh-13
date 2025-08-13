@@ -54,6 +54,8 @@ export const useAdicionarFuncionariosMutation = () => {
         status: 'pendente' as const
       }));
 
+      console.log('📝 Inserindo registros em planos_funcionarios:', registros);
+
       const { data: insertPF, error: errorPF } = await supabase
         .from('planos_funcionarios')
         .insert(registros)
@@ -122,7 +124,7 @@ export const useAdicionarFuncionariosMutation = () => {
         queryKey: ['pendencias-corretora']
       });
 
-      toast.success(`${data.insertPF?.length || 0} funcionário(s) adicionado(s) e ${data.insertPendencias?.length || 0} pendência(s) criada(s)!`);
+      toast.success(`${data.insertPF?.length || 0} funcionário(s) adicionado(s) e ${data.insertPendencias?.length || 0} pend��ncia(s) criada(s)!`);
     },
     onError: (error: any) => {
       console.error('Erro na mutation:', error);
