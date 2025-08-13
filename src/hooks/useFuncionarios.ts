@@ -351,6 +351,23 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     retryDelay: 1000,
   });
 
+  // Retornar dados baseado no tipo de query sendo usado
+  if (shouldUseEmpresaQuery) {
+    return {
+      funcionarios: transformedEmpresaData?.funcionarios || [],
+      totalCount: transformedEmpresaData?.totalCount || 0,
+      totalPages: transformedEmpresaData?.totalPages || 0,
+      currentPage: transformedEmpresaData?.currentPage || 0,
+      isLoading: empresaQuery.isLoading,
+      error: empresaQuery.error,
+      addFuncionario,
+      updateFuncionario,
+      archiveFuncionario,
+      approveExclusao,
+      denyExclusao,
+    };
+  }
+
   return {
     funcionarios: funcionariosQuery.data?.funcionarios || [],
     totalCount: funcionariosQuery.data?.totalCount || 0,
