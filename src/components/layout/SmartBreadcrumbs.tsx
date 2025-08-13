@@ -96,7 +96,7 @@ const SmartBreadcrumbs = () => {
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
         {breadcrumbs.map((breadcrumb, index) => (
-          <div key={breadcrumb.path} className="contents">
+          <div key={`${breadcrumb.path}-${index}`} className="contents">
             <BreadcrumbItem>
               {breadcrumb.isLast ? (
                 <BreadcrumbPage className="flex items-center gap-1">
