@@ -222,6 +222,6 @@ export const usePendenciasReport = (
         tabela_detalhada: pendenciasFiltradas
       };
     },
-    enabled: !!empresaId,
+    enabled: !!user?.id,
   });
 };
