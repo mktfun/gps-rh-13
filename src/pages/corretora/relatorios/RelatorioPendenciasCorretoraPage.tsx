@@ -14,7 +14,7 @@ import { createPendenciasTableColumns } from '@/components/relatorios/pendencias
 import { usePendenciasReport } from '@/hooks/usePendenciasReport';
 import { useAllCnpjs } from '@/hooks/useAllCnpjs';
 import { useExportData, ExportField } from '@/hooks/useExportData';
-import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
+import { Download, Search, Filter, PieChart, BarChart3, Building, Table, AlertTriangle } from 'lucide-react';
 import { addDays, subDays } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
