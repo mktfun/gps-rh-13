@@ -146,10 +146,22 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
 
       if (error) {
         console.error('❌ [useFuncionariosReport] Erro ao buscar relatório:', error);
-        throw error;
+        throw new Error(`Erro ao buscar relatório de funcionários: ${error.message}`);
       }
 
-      console.log('✅ [useFuncionariosReport] Dados brutos carregados:', data);
+      if (!data) {
+        console.log('⚠️ [useFuncionariosReport] Nenhum dado retornado');
+        return {
+          kpis: { total_funcionarios: 0, funcionarios_ativos: 0, funcionarios_inativos: 0, taxa_cobertura: 0 },
+          evolucao_temporal: [],
+          distribuicao_status: [],
+          funcionarios_por_cnpj: [],
+          tabela_detalhada: [],
+          periodo: { inicio: format(startDate, 'yyyy-MM-dd'), fim: format(endDate, 'yyyy-MM-dd') }
+        };
+      }
+
+      console.log('✅ [useFuncionariosReport] Dados brutos carregados:', data.length, 'funcionários');
 
       // 5. Calcular KPIs
       const kpis: FuncionariosReportKPIs = {
