@@ -130,7 +130,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         );
       }
 
-      if (filters.statusFilter) {
+      if (filters.statusFilter && filters.statusFilter !== 'todos') {
         filteredResults = filteredResults.filter(row =>
           row.status === filters.statusFilter
         );
