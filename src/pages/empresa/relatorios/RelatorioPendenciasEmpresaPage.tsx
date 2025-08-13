@@ -19,6 +19,7 @@ import { useExportData, ExportField } from '@/hooks/useExportData';
 import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
 import { addDays, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
+import { CreateMissingFunctionButton } from '@/components/debug/CreateMissingFunctionButton';
 
 const RelatorioPendenciasEmpresaPage = () => {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
