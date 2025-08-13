@@ -154,6 +154,13 @@ const RelatorioFuncionariosPage = () => {
   const funcionariosPorCNPJ = reportData?.funcionarios_por_cnpj || [];
   const tabelaDetalhada = reportData?.tabela_detalhada || [];
 
+  // Check if there's no data at all
+  const hasNoData = !reportData || (
+    kpis.total_funcionarios === 0 &&
+    tabelaDetalhada.length === 0 &&
+    funcionariosPorCNPJ.length === 0
+  );
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
