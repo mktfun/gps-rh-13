@@ -61,7 +61,8 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (errorPF) {
         console.error('Erro ao adicionar funcionários ao plano:', errorPF);
-        throw errorPF;
+        const errorMessage = errorPF.message || 'Erro ao adicionar funcionários ao plano';
+        throw new Error(`Erro ao adicionar funcionários: ${errorMessage}`);
       }
 
       // Helper para gerar protocolo único
