@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,30 +40,8 @@ export const EmpresaTableActions = ({
     }
   };
 
-  const getPendenciasBadge = () => {
-    const totalPendencias = empresa?.total_pendencias || 0;
-    
-    if (totalPendencias === 0) {
-      return (
-        <span className="text-muted-foreground">0</span>
-      );
-    }
-    
-    return (
-      <Badge variant="destructive" className="flex items-center gap-1">
-        <AlertTriangle className="h-3 w-3" />
-        {totalPendencias}
-      </Badge>
-    );
-  };
-
   return (
     <div className="flex items-center justify-end gap-2">
-      {/* Badge de pendências */}
-      <div className="text-center">
-        {getPendenciasBadge()}
-      </div>
-
       {/* Ações disponíveis */}
       <Button
         variant="ghost"
