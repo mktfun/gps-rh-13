@@ -114,6 +114,59 @@ const RelatorioPendenciasCorretoraPage = () => {
     );
   }) || [];
 
+  const createSamplePendencias = async () => {
+    if (!cnpjs || cnpjs.length === 0) {
+      console.log('Nenhum CNPJ disponível para criar pendências de exemplo');
+      return;
+    }
+
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return;
+
+    const samplePendencias = [
+      {
+        protocolo: `PEND-${Date.now()}-001`,
+        tipo: 'ativacao',
+        cnpj_id: cnpjs[0].id,
+        corretora_id: user.user.id,
+        descricao: 'Solicitação de ativação de novo funcionário para plano de saúde',
+        data_vencimento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+        funcionario_id: null
+      },
+      {
+        protocolo: `PEND-${Date.now()}-002`,
+        tipo: 'cancelamento',
+        cnpj_id: cnpjs[0].id,
+        corretora_id: user.user.id,
+        descricao: 'Solicitação de cancelamento de funcionário do plano de saúde',
+        data_vencimento: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days from now
+        funcionario_id: null
+      },
+      {
+        protocolo: `PEND-${Date.now()}-003`,
+        tipo: 'alteracao',
+        cnpj_id: cnpjs[Math.min(1, cnpjs.length - 1)].id,
+        corretora_id: user.user.id,
+        descricao: 'Solicitação de alteração de dados cadastrais de funcionário',
+        data_vencimento: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 day from now (critical)
+        funcionario_id: null
+      }
+    ];
+
+    const { data, error } = await supabase
+      .from('pendencias')
+      .insert(samplePendencias);
+
+    if (error) {
+      console.error('Erro ao criar pendências de exemplo:', error);
+      return;
+    }
+
+    console.log('✅ Pendências de exemplo criadas com sucesso');
+    // Refresh the query
+    window.location.reload();
+  };
+
   const handleExport = () => {
     if (!filteredTableData || filteredTableData.length === 0) {
       console.log('Nenhum dado para exportar');
