@@ -1,6 +1,7 @@
-
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface CustoEmpresa {
   cnpj_razao_social: string;
