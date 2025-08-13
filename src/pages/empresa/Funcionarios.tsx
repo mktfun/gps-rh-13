@@ -10,6 +10,10 @@ import { FuncionarioDetalhesModal } from '@/components/empresa/FuncionarioDetalh
 import { createFuncionariosEmpresaTableColumns } from '@/components/empresa/funcionariosEmpresaTableColumns';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
 import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface FuncionarioEmpresa {
   id: string;
