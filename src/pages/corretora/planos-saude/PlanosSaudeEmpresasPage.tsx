@@ -28,6 +28,8 @@ export default function PlanosSaudeEmpresasPage() {
 
   return (
     <div className="space-y-6">
+      <PlanosSaudeStatus />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
