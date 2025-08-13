@@ -33,28 +33,30 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
   const { pageSize = 10, pageIndex = 0, filters = {} } = params;
 
   return useQuery({
-    queryKey: ['relatorio-custos-empresa-paginado', empresaId, pageSize, pageIndex],
+    queryKey: ['relatorio-custos-empresa-paginado', empresaId, pageSize, pageIndex, filters],
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Buscando relatório de custos paginado:', { 
-        empresaId, 
-        pageSize, 
-        pageOffset: pageIndex * pageSize 
+      console.log('🔍 Buscando relatório de custos com filtros:', {
+        empresaId,
+        pageSize,
+        pageOffset: pageIndex * pageSize,
+        filters
       });
 
-      const { data, error } = await supabase.rpc('get_relatorio_custos_empresa', {
+      // STEP 1: Fetch ALL data first to calculate correct totals (not affected by pagination)
+      const { data: allData, error: allDataError } = await supabase.rpc('get_relatorio_custos_empresa', {
         p_empresa_id: empresaId,
-        p_page_size: pageSize,
-        p_page_offset: pageIndex * pageSize
+        p_page_size: 1000, // Large number to get all data
+        p_page_offset: 0
       });
 
-      if (error) {
-        console.error('❌ Erro ao buscar relatório de custos paginado:', error);
-        throw error;
+      if (allDataError) {
+        console.error('❌ Erro ao buscar todos os dados:', allDataError);
+        throw allDataError;
       }
 
-      if (!data || data.length === 0) {
+      if (!allData || allData.length === 0) {
         console.warn('⚠️ Nenhum dado retornado do relatório de custos');
         return {
           data: [],
@@ -69,20 +71,19 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         };
       }
 
-      console.log('✅ Relatório de custos paginado carregado (raw):', data);
+      console.log('✅ Todos os dados carregados (raw):', allData.length, 'registros');
 
-      const rawResults = (data || []) as RelatorioCustoEmpresaPaginado[];
+      const rawResults = (allData || []) as RelatorioCustoEmpresaPaginado[];
 
-      // Deduplicate employees and calculate correct individual values
+      // STEP 2: Deduplicate and clean data
       const employeeMap = new Map();
       const cnpjTotals = new Map();
 
-      // First pass: collect CNPJ totals and count active employees per CNPJ
       rawResults.forEach(row => {
         const cnpjKey = row.cnpj_razao_social;
         if (!cnpjTotals.has(cnpjKey)) {
           cnpjTotals.set(cnpjKey, {
-            total_value: 0, // Will be set properly below
+            total_value: 0,
             active_employees: 0,
             employees: []
           });
@@ -91,7 +92,6 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         const cnpjData = cnpjTotals.get(cnpjKey);
         const empKey = `${cnpjKey}_${row.funcionario_cpf}`;
 
-        // Set the correct total value (take the maximum non-zero value)
         if (row.total_cnpj > cnpjData.total_value) {
           cnpjData.total_value = row.total_cnpj;
         }
@@ -105,12 +105,10 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         }
       });
 
-      // Second pass: calculate correct individual values
-      const results = Array.from(employeeMap.values()).map(row => {
+      const cleanedResults = Array.from(employeeMap.values()).map(row => {
         const cnpjKey = row.cnpj_razao_social;
         const cnpjData = cnpjTotals.get(cnpjKey);
 
-        // Calculate individual value as plan total divided by active employees
         const valor_individual = row.status === 'ativo' && cnpjData.active_employees > 0
           ? cnpjData.total_value / cnpjData.active_employees
           : 0;
@@ -118,78 +116,98 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         return {
           ...row,
           valor_individual: Number(valor_individual.toFixed(2)),
-          total_cnpj: cnpjData.total_value // Always use the correct total value
+          total_cnpj: cnpjData.total_value
         };
       });
 
-      console.log('✅ Relatório deduplicated and corrected:', {
-        original_count: rawResults.length,
-        deduplicated_count: results.length,
-        cnpj_counts: Array.from(cnpjTotals.entries()).map(([cnpj, data]) => ({
-          cnpj,
-          total: data.total_value,
-          active_employees: data.active_employees,
-          total_employees: data.employees.length
-        }))
+      // STEP 3: Apply filters
+      let filteredResults = cleanedResults;
+
+      if (filters.cnpjSearch) {
+        const searchTerm = filters.cnpjSearch.toLowerCase();
+        filteredResults = filteredResults.filter(row =>
+          row.cnpj_razao_social.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      if (filters.statusFilter) {
+        filteredResults = filteredResults.filter(row =>
+          row.status === filters.statusFilter
+        );
+      }
+
+      if (filters.valorMin) {
+        const minValue = parseFloat(filters.valorMin);
+        if (!isNaN(minValue)) {
+          filteredResults = filteredResults.filter(row =>
+            row.valor_individual >= minValue
+          );
+        }
+      }
+
+      if (filters.valorMax) {
+        const maxValue = parseFloat(filters.valorMax);
+        if (!isNaN(maxValue)) {
+          filteredResults = filteredResults.filter(row =>
+            row.valor_individual <= maxValue
+          );
+        }
+      }
+
+      // STEP 4: Calculate totals from ALL filtered data (not just current page)
+      const uniqueCnpjs = new Map();
+      filteredResults.forEach(row => {
+        const cnpjKey = row.cnpj_razao_social;
+        if (!uniqueCnpjs.has(cnpjKey)) {
+          uniqueCnpjs.set(cnpjKey, {
+            total_value: row.total_cnpj || 0,
+            active_employees: 0
+          });
+        }
+
+        if (row.status === 'ativo') {
+          const cnpjData = uniqueCnpjs.get(cnpjKey);
+          cnpjData.active_employees++;
+        }
       });
 
-      const first = rawResults[0];
-      const totalCount = results.length; // Use deduplicated count
+      const totalFuncionariosAtivos = Array.from(uniqueCnpjs.values())
+        .reduce((sum, cnpj) => sum + cnpj.active_employees, 0);
+
+      const totalCnpjsComPlano = Array.from(uniqueCnpjs.values())
+        .filter(cnpj => cnpj.total_value > 0).length;
+
+      const totalGeral = Array.from(uniqueCnpjs.values())
+        .reduce((sum, cnpj) => sum + cnpj.total_value, 0);
+
+      const custoMedioPorCnpj = totalCnpjsComPlano > 0 ? totalGeral / totalCnpjsComPlano : 0;
+
+      // STEP 5: Apply pagination to filtered results
+      const totalCount = filteredResults.length;
       const totalPages = Math.ceil(totalCount / pageSize);
+      const startIndex = pageIndex * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedResults = filteredResults.slice(startIndex, endIndex);
 
-      // Totais globais vindos da função SQL (iguais em todas as linhas)
-      let totalFuncionariosAtivos = Number(first?.total_funcionarios_ativos || 0);
-      let totalCnpjsComPlano = Number(first?.total_cnpjs_com_plano || 0);
-      let totalGeral = Number(first?.total_geral || 0);
-      let custoMedioPorCnpj = Number(first?.custo_medio_por_cnpj || 0);
-
-      // Sempre recalcular totais para garantir valores corretos
-      if (results.length > 0) {
-        console.log('🔧 Recalculando totais a partir dos dados recebidos');
-
-        const uniqueCnpjs = new Map();
-        results.forEach(row => {
-          const cnpjKey = row.cnpj_razao_social;
-          if (!uniqueCnpjs.has(cnpjKey)) {
-            uniqueCnpjs.set(cnpjKey, {
-              total_value: row.total_cnpj || 0,
-              active_employees: 0
-            });
-          }
-
-          if (row.status === 'ativo') {
-            const cnpjData = uniqueCnpjs.get(cnpjKey);
-            cnpjData.active_employees++;
-          }
-        });
-
-        // Calcular totais corretos
-        totalFuncionariosAtivos = Array.from(uniqueCnpjs.values())
-          .reduce((sum, cnpj) => sum + cnpj.active_employees, 0);
-
-        totalCnpjsComPlano = Array.from(uniqueCnpjs.values())
-          .filter(cnpj => cnpj.total_value > 0).length;
-
-        totalGeral = Array.from(uniqueCnpjs.values())
-          .reduce((sum, cnpj) => sum + cnpj.total_value, 0);
-
-        custoMedioPorCnpj = totalCnpjsComPlano > 0 ? totalGeral / totalCnpjsComPlano : 0;
-
-        console.log('📊 Totais recalculados:', {
+      console.log('📊 Resultados finais:', {
+        total_original: rawResults.length,
+        total_cleaned: cleanedResults.length,
+        total_filtered: filteredResults.length,
+        paginated_count: paginatedResults.length,
+        totals: {
           totalFuncionariosAtivos,
           totalCnpjsComPlano,
           totalGeral,
           custoMedioPorCnpj
-        });
-      }
+        }
+      });
 
       return {
-        data: results,
+        data: paginatedResults,
         totalCount,
         totalPages,
         currentPage: pageIndex,
         pageSize,
-        // Expor totais globais para a UI
         totalFuncionariosAtivos,
         totalCnpjsComPlano,
         totalGeral,
