@@ -44,6 +44,8 @@ const Funcionarios = () => {
   const [currentPage, setCurrentPage] = useState(0);
 
   const { data: empresaId } = useEmpresaId();
+  const { role } = useAuth();
+  const queryClient = useQueryClient();
   const pageSize = 10;
   
   const {
