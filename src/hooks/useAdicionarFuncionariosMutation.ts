@@ -93,7 +93,8 @@ export const useAdicionarFuncionariosMutation = () => {
 
       if (errorPendencias) {
         console.error('❌ Erro ao criar pendências de ativação:', errorPendencias);
-        throw errorPendencias;
+        const errorMessage = errorPendencias.message || 'Erro ao criar pendências de ativação';
+        throw new Error(`Erro ao criar pendências: ${errorMessage}`);
       }
 
       return { insertPF, insertPendencias };
