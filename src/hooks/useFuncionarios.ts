@@ -217,6 +217,13 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
 
   // Decidir se deve usar RPC da empresa ou query padrão
   const shouldUseEmpresaQuery = targetEmpresaId && !cnpj_id;
+  console.log('🎯 [useFuncionarios] Query strategy:', {
+    shouldUseEmpresaQuery,
+    targetEmpresaId,
+    cnpj_id,
+    hasTargetEmpresa: !!targetEmpresaId,
+    hasCnpjId: !!cnpj_id
+  });
 
   // CORREÇÃO: Usar nova RPC quando empresaId for fornecido
   const empresaQuery = useFuncionariosEmpresa({
