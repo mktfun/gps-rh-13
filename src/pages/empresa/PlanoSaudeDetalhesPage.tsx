@@ -11,7 +11,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
-import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
 import { 
   Stethoscope, 
   Building2, 
@@ -33,7 +32,7 @@ import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 const PlanoSaudeDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
   const [activeTab, setActiveTab] = useState('funcionarios');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   
   const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
   
@@ -73,7 +72,11 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
   };
 
   const handleAddFuncionarios = () => {
-    setIsAddModalOpen(true);
+    setShouldOpenAddModal(true);
+  };
+
+  const handleAddModalHandled = () => {
+    setShouldOpenAddModal(false);
   };
 
   // Early return if no planoId
@@ -304,7 +307,8 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                       seguradora: plano.seguradora,
                       valor_mensal: valorReal
                     }}
-                    onAddFuncionarios={handleAddFuncionarios}
+                    shouldOpenAddModal={shouldOpenAddModal}
+                    onAddModalHandled={handleAddModalHandled}
                   />
                 </TabsContent>
 
@@ -320,16 +324,6 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
           </Card>
         </div>
       </div>
-
-      {/* Modal para Adicionar Funcionários */}
-      <AdicionarFuncionariosModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        planoId={plano.id}
-        cnpjId={plano.cnpj_id}
-        planoSeguradora={plano.seguradora}
-        tipoSeguro="saude"
-      />
     </div>
   );
 };
