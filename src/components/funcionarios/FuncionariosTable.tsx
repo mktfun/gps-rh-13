@@ -254,16 +254,40 @@ export const FuncionariosTable = ({
               )}
               
               {/* Ações para CORRETORA */}
-              {isCorretora && status === 'exclusao_solicitada' && (
+              {isCorretora && (
                 <>
-                  <DropdownMenuItem onClick={() => handleApprove(funcionario.id)}>
-                    <UserCheck className="mr-2 h-4 w-4" />
-                    Aprovar Exclusão
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDeny(funcionario.id)}>
-                    <UserX className="mr-2 h-4 w-4" />
-                    Negar Exclusão
-                  </DropdownMenuItem>
+                  {/* Ativar funcionário pendente */}
+                  {status === 'pendente' && (
+                    <DropdownMenuItem onClick={() => handleAtivar(funcionario.id)}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Ativar Funcionário
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Gerenciar exclusões solicitadas */}
+                  {status === 'exclusao_solicitada' && (
+                    <>
+                      <DropdownMenuItem onClick={() => handleApprove(funcionario.id)}>
+                        <UserCheck className="mr-2 h-4 w-4" />
+                        Aprovar Exclusão
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeny(funcionario.id)}>
+                        <UserX className="mr-2 h-4 w-4" />
+                        Negar Exclusão
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {/* Excluir diretamente funcionários ativos */}
+                  {status === 'ativo' && (
+                    <DropdownMenuItem
+                      onClick={() => handleExcluir(funcionario.id)}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir Funcionário
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
             </DropdownMenuContent>
