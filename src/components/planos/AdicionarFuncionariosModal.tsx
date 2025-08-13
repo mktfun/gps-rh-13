@@ -140,7 +140,7 @@ export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProp
           )}
 
           {/* Lista de funcionários */}
-          <ScrollArea className="h-96 border rounded-lg">
+          <ScrollArea className="flex-1 border rounded-lg min-h-[200px]">
             {isLoading ? (
               <div className="p-8">
                 <DashboardLoadingState />
