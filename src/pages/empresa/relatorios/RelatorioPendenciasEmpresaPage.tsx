@@ -12,7 +12,7 @@ import PendenciasTimelineChart from '@/components/relatorios/PendenciasTimelineC
 import PendenciasByCNPJChart from '@/components/relatorios/PendenciasByCNPJChart';
 import { createPendenciasTableColumns } from '@/components/relatorios/pendenciasDetailedTableColumns';
 import { usePendenciasReport } from '@/hooks/usePendenciasReport';
-import { useRelatorioPendenciasEmpresa } from '@/hooks/useRelatorioPendenciasEmpresa';
+import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { useAllCnpjs } from '@/hooks/useAllCnpjs';
 import { useAuth } from '@/hooks/useAuth';
 import { useExportData, ExportField } from '@/hooks/useExportData';
