@@ -99,9 +99,18 @@ export const PendenciasDebugEmpresa: React.FC = () => {
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>Debug Pendências da Empresa</CardTitle>
-        <Button onClick={runDebug} disabled={isLoading || !empresaId}>
-          {isLoading ? 'Debugando...' : 'Debugar Pendências'}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={runDebug} disabled={isLoading || !empresaId}>
+            {isLoading ? 'Debugando...' : 'Debugar Pendências'}
+          </Button>
+          <Button
+            onClick={repairPendencias}
+            disabled={isLoading || !empresaId}
+            variant="destructive"
+          >
+            {isLoading ? 'Reparando...' : 'Reparar Pendências'}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {result && (
