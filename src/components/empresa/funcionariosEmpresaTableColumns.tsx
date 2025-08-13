@@ -1,4 +1,3 @@
-
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +27,10 @@ interface FuncionarioEmpresa {
 
 export const createFuncionariosEmpresaTableColumns = (
   onViewDetails: (funcionario: FuncionarioEmpresa) => void,
-  onSolicitarExclusao?: (funcionario: FuncionarioEmpresa) => void
+  onSolicitarExclusao?: (funcionario: FuncionarioEmpresa) => void,
+  onAtivarFuncionario?: (funcionario: FuncionarioEmpresa) => void,
+  onExcluirFuncionario?: (funcionario: FuncionarioEmpresa) => void,
+  userRole?: string
 ): ColumnDef<FuncionarioEmpresa>[] => [
   {
     accessorKey: 'nome',
