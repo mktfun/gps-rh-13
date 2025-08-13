@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
@@ -12,7 +11,7 @@ interface RelatorioFuncionarioEmpresaPaginado {
   status: string;
   cnpj_razao_social: string;
   data_contratacao: string;
-  total_count: number;
+  total_count: number; // Will be converted from BIGINT to number
   // Campos adicionais para compatibilidade com FuncionarioEmpresa
   id: string;
   idade: number;
