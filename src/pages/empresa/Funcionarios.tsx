@@ -12,7 +12,6 @@ import { createFuncionariosEmpresaTableColumns } from '@/components/empresa/func
 import { useEmpresaId } from '@/hooks/useEmpresaId';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
 import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
-import { useCreateFuncionario } from '@/hooks/useCreateFuncionario';
 
 interface FuncionarioEmpresa {
   id: string;
@@ -51,6 +50,7 @@ const Funcionarios = () => {
     totalPages,
     isLoading,
     archiveFuncionario,
+    addFuncionario,
   } = useFuncionarios({
     search,
     page: currentPage,
@@ -58,8 +58,6 @@ const Funcionarios = () => {
     empresaId: empresaId || undefined,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
   });
-
-  const { createFuncionario, isCreating } = useCreateFuncionario();
 
   const handleViewDetails = (funcionario: any) => {
     setSelectedFuncionario(funcionario);
@@ -74,7 +72,7 @@ const Funcionarios = () => {
 
   const handleCreateFuncionario = async (data: any) => {
     try {
-      await createFuncionario.mutateAsync(data);
+      await addFuncionario.mutateAsync(data);
       setCreateModalOpen(false);
       setCurrentPage(0); // Reset to first page to see the new employee
     } catch (error) {
@@ -207,7 +205,7 @@ const Funcionarios = () => {
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateFuncionario}
-        isLoading={isCreating}
+        isLoading={addFuncionario.isPending}
         empresaId={empresaId}
       />
     </div>
