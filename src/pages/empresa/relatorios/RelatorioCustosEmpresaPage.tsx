@@ -122,6 +122,8 @@ const RelatorioCustosEmpresaPage = () => {
         title="Database Raw Data"
       />
 
+      <SqlExecutor />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Relatório de Custos Detalhado</h1>
