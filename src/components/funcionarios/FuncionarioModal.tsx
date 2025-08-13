@@ -136,12 +136,26 @@ const FuncionarioModal: React.FC<FuncionarioModalProps> = ({
             
             <div>
               <Label htmlFor="cpf">CPF *</Label>
-              <Input
-                id="cpf"
-                value={formData.cpf}
-                onChange={(e) => handleChange('cpf', e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="cpf"
+                  value={formData.cpf}
+                  onChange={(e) => handleChange('cpf', e.target.value)}
+                  className={isDuplicate && !funcionario ? 'border-destructive' : ''}
+                  required
+                />
+                {isChecking && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              {isDuplicate && !funcionario && existingFuncionario && (
+                <div className="flex items-center gap-2 text-sm text-destructive mt-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>CPF já cadastrado para: {existingFuncionario.nome}</span>
+                </div>
+              )}
             </div>
           </div>
 
