@@ -10,6 +10,7 @@ import { useExportData } from '@/hooks/useExportData';
 import { createCustoEmpresaTableColumns } from '@/components/empresa/custoEmpresaTableColumns';
 import type { PaginationState } from '@tanstack/react-table';
 import { ExportModal } from '@/components/ui/export-modal';
+import { CostsReportDebug } from '@/components/debug/CostsReportDebug';
 
 const RelatorioCustosEmpresaPage = () => {
   const [pagination, setPagination] = useState<PaginationState>({
