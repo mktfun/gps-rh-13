@@ -2,6 +2,7 @@ import React from 'react';
 import { PermissionDebugger } from '@/components/debug/PermissionDebugger';
 import { FuncionarioPlanoVerification } from '@/components/debug/FuncionarioPlanoVerification';
 import { PlanoValueTest } from '@/components/debug/PlanoValueTest';
+import { PendenciasRLSDebug } from '@/components/debug/PendenciasRLSDebug';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
