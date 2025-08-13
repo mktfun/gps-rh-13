@@ -112,12 +112,12 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
 
       const cnpjIds = cnpjsData.map(c => c.id);
 
-      // 2. Base da query: buscar funcionários da empresa com dados dos planos
+      // 2. Base da query: buscar funcionários da empresa com dados básicos
       let query = supabase
         .from('funcionarios')
         .select(`
           *,
-          cnpjs ( razao_social, cnpj, dados_planos ( seguradora, valor_mensal ) )
+          cnpjs!inner ( id, razao_social, cnpj )
         `)
         .in('cnpj_id', cnpjIds);
 
