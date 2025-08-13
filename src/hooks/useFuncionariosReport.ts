@@ -233,7 +233,7 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         };
       });
 
-      // 9. Calcular evolução temporal (simplificada por enquanto)
+      // 10. Calcular evolução temporal (simplificada por enquanto)
       const evolucao_temporal: EvolucaoTemporal[] = [];
 
       const result: FuncionariosReportData = {
