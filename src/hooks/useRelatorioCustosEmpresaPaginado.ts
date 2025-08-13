@@ -126,10 +126,50 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
       const totalPages = Math.ceil(totalCount / pageSize);
 
       // Totais globais vindos da função SQL (iguais em todas as linhas)
-      const totalFuncionariosAtivos = Number(first?.total_funcionarios_ativos || 0);
-      const totalCnpjsComPlano = Number(first?.total_cnpjs_com_plano || 0);
-      const totalGeral = Number(first?.total_geral || 0);
-      const custoMedioPorCnpj = Number(first?.custo_medio_por_cnpj || 0);
+      let totalFuncionariosAtivos = Number(first?.total_funcionarios_ativos || 0);
+      let totalCnpjsComPlano = Number(first?.total_cnpjs_com_plano || 0);
+      let totalGeral = Number(first?.total_geral || 0);
+      let custoMedioPorCnpj = Number(first?.custo_medio_por_cnpj || 0);
+
+      // Se os totais vieram zerados, recalcular a partir dos dados recebidos
+      if (totalGeral === 0 && results.length > 0) {
+        console.log('🔧 Recalculando totais a partir dos dados recebidos');
+
+        const uniqueCnpjs = new Map();
+        results.forEach(row => {
+          const cnpjKey = row.cnpj_razao_social;
+          if (!uniqueCnpjs.has(cnpjKey)) {
+            uniqueCnpjs.set(cnpjKey, {
+              total_value: row.total_cnpj || 0,
+              active_employees: 0
+            });
+          }
+
+          if (row.status === 'ativo') {
+            const cnpjData = uniqueCnpjs.get(cnpjKey);
+            cnpjData.active_employees++;
+          }
+        });
+
+        // Calcular totais corretos
+        totalFuncionariosAtivos = Array.from(uniqueCnpjs.values())
+          .reduce((sum, cnpj) => sum + cnpj.active_employees, 0);
+
+        totalCnpjsComPlano = Array.from(uniqueCnpjs.values())
+          .filter(cnpj => cnpj.total_value > 0).length;
+
+        totalGeral = Array.from(uniqueCnpjs.values())
+          .reduce((sum, cnpj) => sum + cnpj.total_value, 0);
+
+        custoMedioPorCnpj = totalCnpjsComPlano > 0 ? totalGeral / totalCnpjsComPlano : 0;
+
+        console.log('📊 Totais recalculados:', {
+          totalFuncionariosAtivos,
+          totalCnpjsComPlano,
+          totalGeral,
+          custoMedioPorCnpj
+        });
+      }
 
       return {
         data: results,
