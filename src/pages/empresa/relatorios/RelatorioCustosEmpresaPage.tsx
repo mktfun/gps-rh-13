@@ -51,14 +51,6 @@ const RelatorioCustosEmpresaPage = () => {
   const cnpjsComPlano = result?.totalCnpjsComPlano || 0;
   const mediaPorCnpj = result?.custoMedioPorCnpj || 0;
 
-  // Create CNPJ options for filter dropdown
-  const cnpjOptions = React.useMemo(() => {
-    const uniqueCnpjs = new Set(custos.map(c => c.cnpj_razao_social));
-    return Array.from(uniqueCnpjs).map(cnpj => ({
-      value: cnpj,
-      label: cnpj
-    }));
-  }, [custos]);
 
   const {
     isExporting,
