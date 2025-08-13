@@ -117,7 +117,7 @@ function AppContent() {
           <Route path="empresa/funcionarios" element={<EmpresaFuncionarios />} />
           <Route path="empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
           <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
-          <Route path="empresa/planos/:id" element={<PlanoDetalhesPage />} />
+          <Route path="empresa/planos/:planoId" element={<PlanoDetalhesPage />} />
           <Route path="empresa/planos-saude/:planoId" element={<PlanoSaudeDetalhesPage />} />
           <Route path="empresa/planos-de-saude/:planoId" element={<PlanoSaudeDetalhesPage />} />
           
