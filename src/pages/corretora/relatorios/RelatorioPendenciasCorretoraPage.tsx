@@ -18,7 +18,6 @@ import { Download, Search, Filter, PieChart, BarChart3, Building, Table, AlertTr
 import { addDays, subDays } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
-import { supabase } from '@/integrations/supabase/client';
 
 const RelatorioPendenciasCorretoraPage = () => {
   const location = useLocation();
@@ -33,35 +32,6 @@ const RelatorioPendenciasCorretoraPage = () => {
 
   const { cnpjs } = useAllCnpjs();
 
-  // Debug: Check existing data sources
-  useEffect(() => {
-    const checkDataSources = async () => {
-      if (!cnpjs || cnpjs.length === 0) return;
-
-      // Check for funcionarios with pending status
-      const { data: pendingFuncionarios, error: funcError } = await supabase
-        .from('funcionarios')
-        .select('id, nome, status, cnpj_id, cnpjs(razao_social)')
-        .in('status', ['pendente', 'exclusao_solicitada']);
-
-      console.log('Funcionários com status pendente/exclusão:', { pendingFuncionarios, funcError });
-
-      // Check existing pendencias
-      const { data: existingPendencias, error: pendError } = await supabase
-        .from('pendencias')
-        .select('*')
-        .limit(10);
-
-      console.log('Pendências existentes:', { existingPendencias, pendError });
-
-      // If no pendencias exist but we have pending funcionarios, we should create them
-      if (existingPendencias && existingPendencias.length === 0 && pendingFuncionarios && pendingFuncionarios.length > 0) {
-        console.log('🚨 Pendências table is empty but we have pending funcionarios. This might need manual population.');
-      }
-    };
-
-    checkDataSources();
-  }, [cnpjs]);
 
   // ✅ NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
   useEffect(() => {
@@ -81,16 +51,13 @@ const RelatorioPendenciasCorretoraPage = () => {
     }
   }, [location.state, cnpjs]);
 
-  const { data: reportData, isLoading, error } = usePendenciasReport(
+  const { data: reportData, isLoading } = usePendenciasReport(
     dateRange.from,
     dateRange.to,
     statusFilter,
     tipoFilter,
     cnpjFilter
   );
-
-  // Debug information
-  console.log('Pendencias Report Debug:', { reportData, isLoading, error });
 
   const {
     openExportPreview,
