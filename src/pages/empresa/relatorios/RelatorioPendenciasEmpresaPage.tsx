@@ -30,14 +30,27 @@ const RelatorioPendenciasEmpresaPage = () => {
   const [cnpjFilter, setCnpjFilter] = useState<string>('todas');
   const [searchValue, setSearchValue] = useState<string>('');
 
+  const { role } = useAuth();
   const { cnpjs } = useAllCnpjs();
-  const { data: reportData, isLoading } = usePendenciasReport(
+
+  // Use different hook based on user role
+  const isEmpresa = role === 'empresa';
+
+  // For empresa users, use the specific empresa pendencias hook
+  const { data: empresaPendencias, isLoading: isLoadingEmpresa } = useRelatorioPendenciasEmpresa();
+
+  // For corretora users, use the general pendencias report hook
+  const { data: corretoraReportData, isLoading: isLoadingCorretora } = usePendenciasReport(
     dateRange.from,
     dateRange.to,
     statusFilter,
     tipoFilter,
     cnpjFilter
   );
+
+  // Determine which data to use
+  const reportData = isEmpresa ? null : corretoraReportData; // For now, corretora data structure
+  const isLoading = isEmpresa ? isLoadingEmpresa : isLoadingCorretora;
 
   const {
     openExportPreview,
