@@ -22,7 +22,7 @@ interface PlanoFuncionariosTabProps {
   onAddFuncionarios?: () => void;
 }
 
-export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({ 
+export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   cnpjId,
   plano,
   shouldOpenAddModal,
@@ -32,6 +32,15 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Handle shouldOpenAddModal prop to trigger modal opening
+  useEffect(() => {
+    if (shouldOpenAddModal) {
+      setIsAddModalOpen(true);
+      onAddModalHandled?.();
+    }
+  }, [shouldOpenAddModal, onAddModalHandled]);
 
   // Usar hooks refatorados com planoId e tipoSeguro
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
