@@ -153,14 +153,25 @@ export const PendenciasDebugEmpresa: React.FC = () => {
               </div>
             </div>
 
+            {result.repairResult && (
+              <div>
+                <h3 className="font-semibold mb-2">Resultado do Reparo</h3>
+                <div className="bg-purple-50 border rounded p-4 max-h-60 overflow-auto">
+                  <pre className="text-xs">
+                    {JSON.stringify(result.repairResult, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
+
             <div>
               <h3 className="font-semibold mb-2">Análise</h3>
               <div className="bg-green-50 border rounded p-4">
                 <p><strong>Funcionários pendentes:</strong> {result.funcionariosPendentes.length}</p>
                 <p><strong>Pendências criadas:</strong> {result.pendenciasExistentes.length}</p>
                 <p><strong>Status:</strong> {
-                  result.funcionariosPendentes.length === result.pendenciasExistentes.length 
-                    ? '✅ Sincronizado' 
+                  result.funcionariosPendentes.length === result.pendenciasExistentes.length
+                    ? '✅ Sincronizado'
                     : '❌ Dessincronizado - deveria ter ' + result.funcionariosPendentes.length + ' pendências'
                 }</p>
               </div>
