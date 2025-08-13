@@ -20,6 +20,12 @@ interface RelatorioCustoEmpresaPaginado {
 interface UseRelatorioCustosEmpresaPaginadoParams {
   pageSize?: number;
   pageIndex?: number;
+  filters?: {
+    cnpjSearch?: string;
+    statusFilter?: string;
+    valorMin?: string;
+    valorMax?: string;
+  };
 }
 
 export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpresaPaginadoParams = {}) => {
