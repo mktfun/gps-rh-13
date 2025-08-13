@@ -7,7 +7,6 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import RevenueCard from '@/components/dashboard/RevenueCard';
 import ChartCard from '@/components/dashboard/ChartCard';
 import RankingCard from '@/components/dashboard/RankingCard';
-import Breadcrumbs from '@/components/ui/breadcrumbs';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
