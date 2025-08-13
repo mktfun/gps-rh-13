@@ -161,6 +161,8 @@ export const createFuncionariosEmpresaTableColumns = (
     cell: ({ row }) => {
       const funcionario = row.original;
       const canSolicitarExclusao = funcionario.status === 'ativo' && onSolicitarExclusao;
+      const isCorretora = userRole === 'corretora';
+      const isEmpresa = userRole === 'empresa';
 
       return (
         <DropdownMenu>
@@ -175,15 +177,40 @@ export const createFuncionariosEmpresaTableColumns = (
               <Eye className="mr-2 h-4 w-4" />
               Ver Detalhes
             </DropdownMenuItem>
-            
-            {canSolicitarExclusao && (
-              <DropdownMenuItem 
+
+            {/* Ações para EMPRESA */}
+            {isEmpresa && canSolicitarExclusao && (
+              <DropdownMenuItem
                 onClick={() => onSolicitarExclusao!(funcionario)}
                 className="text-orange-600"
               >
                 <AlertTriangle className="mr-2 h-4 w-4" />
                 Solicitar Exclusão
               </DropdownMenuItem>
+            )}
+
+            {/* Ações para CORRETORA */}
+            {isCorretora && (
+              <>
+                {/* Ativar funcionário pendente */}
+                {funcionario.status === 'pendente' && onAtivarFuncionario && (
+                  <DropdownMenuItem onClick={() => onAtivarFuncionario(funcionario)}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Ativar Funcionário
+                  </DropdownMenuItem>
+                )}
+
+                {/* Excluir funcionário ativo */}
+                {funcionario.status === 'ativo' && onExcluirFuncionario && (
+                  <DropdownMenuItem
+                    onClick={() => onExcluirFuncionario(funcionario)}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir Funcionário
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
