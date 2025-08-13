@@ -199,6 +199,11 @@ const RelatorioCustosEmpresaPage = () => {
           <CardTitle>Custos Detalhados</CardTitle>
           <CardDescription>
             Breakdown completo dos custos por funcionário e CNPJ ({totalCount} registros)
+            {Object.values(filters).some(v => v !== '') && (
+              <span className="ml-2 text-blue-600">
+                • Filtros aplicados
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
