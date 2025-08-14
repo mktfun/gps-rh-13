@@ -134,25 +134,26 @@ const RelatorioPendenciasEmpresaPage = () => {
         acc[key] = {
           cnpj: p.cnpj,
           razao_social: p.razao_social,
-          quantidade: 0,
+          total_pendencias: 0,
           criticas: 0,
-          urgentes: 0,
-          normais: 0
+          urgentes: 0
         };
       }
 
-      acc[key].quantidade += 1;
+      acc[key].total_pendencias += 1;
 
       const priority = calculatePriority(p.prioridade, p.dias_em_aberto);
-      if (priority === 'critica') acc[key].criticas += 1;
-      else if (priority === 'urgente') acc[key].urgentes += 1;
-      else acc[key].normais += 1;
+      if (priority === 'critica') {
+        acc[key].criticas += 1;
+      } else if (priority === 'urgente') {
+        acc[key].urgentes += 1;
+      }
 
       return acc;
     }, {} as Record<string, any>);
 
     const pendencias_por_cnpj = Object.values(cnpjCounts)
-      .sort((a: any, b: any) => b.quantidade - a.quantidade); // Sort by quantity descending
+      .sort((a: any, b: any) => b.total_pendencias - a.total_pendencias); // Sort by quantity descending
 
     return {
       kpis,
