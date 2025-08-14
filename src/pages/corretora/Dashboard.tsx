@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { OperationalIntelligencePanel } from '@/components/dashboard/OperationalIntelligencePanel';
@@ -6,6 +6,9 @@ import SmartActionsSection from '@/components/dashboard/SmartActionsSection';
 import TopEmpresasReceita from '@/components/dashboard/TopEmpresasReceita';
 import InsightsAutomaticos from '@/components/dashboard/InsightsAutomaticos';
 import ActionsNeededSection from '@/components/dashboard/ActionsNeededSection';
+import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 const CorretoraDashboard = () => {
   const {
     user
