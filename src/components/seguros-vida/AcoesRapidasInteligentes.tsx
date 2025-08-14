@@ -208,7 +208,7 @@ export const AcoesRapidasInteligentes: React.FC<AcoesRapidasInteligentesProps> =
       <BulkActivationModal
         isOpen={isBulkActivationOpen}
         onClose={() => setIsBulkActivationOpen(false)}
-        funcionarios={funcionariosPendentes}
+        funcionarios={funcionariosPendentesProcessados}
         plano={plano}
       />
     </>
