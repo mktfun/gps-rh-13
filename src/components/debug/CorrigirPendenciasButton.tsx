@@ -88,9 +88,8 @@ export const CorrigirPendenciasButton: React.FC<CorrigirPendenciasButtonProps> =
       
       <div className="text-xs text-muted-foreground max-w-md">
         <p>
-          <strong>🔧 Debug Tool:</strong> Cria pendências em falta para funcionários 
-          que estão com status "pendente" em planos mas não possuem pendências 
-          correspondentes na tabela de pendências.
+          <strong>🧪 Debug Tool:</strong> Teste para criar uma pendência simples e
+          identificar onde estão os erros na criação de pendências.
         </p>
         {result && result.success && result.created > 0 && (
           <p className="mt-1 text-green-600">
