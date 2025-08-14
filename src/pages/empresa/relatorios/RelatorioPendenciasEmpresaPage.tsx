@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,12 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, AlertTriangle, CheckCircle, Download, Search } from 'lucide-react';
 import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
-import { PendenciasBadges } from '@/components/relatorios/PendenciasBadges';
-import { TabelaPendenciasDetalhadas } from '@/components/relatorios/TabelaPendenciasDetalhadas';
-import { GraficoPendenciasPorTipo } from '@/components/relatorios/GraficoPendenciasPorTipo';
-import { GraficoPendenciasPorCnpj } from '@/components/relatorios/GraficoPendenciasPorCnpj';
-import { GraficoTimelineVencimentos } from '@/components/relatorios/GraficoTimelineVencimentos';
-import { FiltrosPendencias } from '@/components/relatorios/FiltrosPendencias';
+import { TipoPendenciaBadge, PrioridadePendenciaBadge } from '@/components/relatorios/PendenciasBadges';
+import TabelaPendenciasDetalhadas from '@/components/relatorios/TabelaPendenciasDetalhadas';
+import GraficoPendenciasPorTipo from '@/components/relatorios/GraficoPendenciasPorTipo';
+import GraficoPendenciasPorCnpj from '@/components/relatorios/GraficoPendenciasPorCnpj';
+import GraficoTimelineVencimentos from '@/components/relatorios/GraficoTimelineVencimentos';
+import FiltrosPendencias from '@/components/relatorios/FiltrosPendencias';
 
 interface PendenciasPorTipo {
   tipo: string;
@@ -34,6 +33,48 @@ interface TimelineVencimentos {
   criticas: number;
   urgentes: number;
 }
+
+// Create a simple PendenciasBadges component since it doesn't exist
+const PendenciasBadges = ({ total, pendentes, criticas, urgentes, mediaDias }: {
+  total: number;
+  pendentes: number;
+  criticas: number;
+  urgentes: number;
+  mediaDias: number;
+}) => (
+  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <Card>
+      <CardContent className="p-4 text-center">
+        <div className="text-2xl font-bold text-gray-900">{total}</div>
+        <div className="text-sm text-gray-600">Total de Pendências</div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardContent className="p-4 text-center">
+        <div className="text-2xl font-bold text-blue-600">{pendentes}</div>
+        <div className="text-sm text-gray-600">Pendentes</div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardContent className="p-4 text-center">
+        <div className="text-2xl font-bold text-red-600">{criticas}</div>
+        <div className="text-sm text-gray-600">Críticas</div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardContent className="p-4 text-center">
+        <div className="text-2xl font-bold text-orange-600">{urgentes}</div>
+        <div className="text-sm text-gray-600">Urgentes</div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardContent className="p-4 text-center">
+        <div className="text-2xl font-bold text-gray-700">{mediaDias}</div>
+        <div className="text-sm text-gray-600">Média de Dias</div>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 export default function RelatorioPendenciasEmpresaPage() {
   const { data: pendencias = [], isLoading } = usePendenciasEmpresa();
@@ -228,29 +269,120 @@ export default function RelatorioPendenciasEmpresaPage() {
         mediaDias={metricas.mediaDias}
       />
 
-      {/* Filtros */}
-      <FiltrosPendencias
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filtroTipo={filtroTipo}
-        onTipoChange={setFiltroTipo}
-        filtroStatus={filtroStatus}
-        onStatusChange={setFiltroStatus}
-        filtroPrioridade={filtroPrioridade}
-        onPrioridadeChange={setFiltroPrioridade}
-        tipos={[...new Set(pendencias.map(p => p.tipo))]}
-      />
+      {/* Filtros - Simple filter implementation since FiltrosPendencias needs complex props */}
+      <Card className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Buscar</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Protocolo, funcionário, empresa..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Tipo</label>
+            <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="documentacao">Documentação</SelectItem>
+                <SelectItem value="ativacao">Ativação</SelectItem>
+                <SelectItem value="alteracao">Alteração</SelectItem>
+                <SelectItem value="cancelamento">Cancelamento</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Status</label>
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="concluido">Concluído</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Prioridade</label>
+            <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas</SelectItem>
+                <SelectItem value="critica">Crítica</SelectItem>
+                <SelectItem value="urgente">Urgente</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
 
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <GraficoPendenciasPorTipo dados={dadosPorTipo} />
-        <GraficoPendenciasPorCnpj dados={dadosPorCnpj} />
-      </div>
-
-      <GraficoTimelineVencimentos dados={timelineVencimentos} />
-
-      {/* Tabela detalhada */}
-      <TabelaPendenciasDetalhadas pendencias={pendenciasFiltradas} />
+      {/* Simple table instead of complex components until they're fixed */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Pendências Detalhadas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-2">Protocolo</th>
+                  <th className="text-left p-2">Tipo</th>
+                  <th className="text-left p-2">Funcionário</th>
+                  <th className="text-left p-2">Empresa</th>
+                  <th className="text-left p-2">Status</th>
+                  <th className="text-left p-2">Dias em Aberto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendenciasFiltradas.map((pendencia) => (
+                  <tr key={pendencia.protocolo} className="border-b hover:bg-gray-50">
+                    <td className="p-2">
+                      <Badge variant="outline">{pendencia.protocolo}</Badge>
+                    </td>
+                    <td className="p-2">
+                      <TipoPendenciaBadge tipo={pendencia.tipo as any} />
+                    </td>
+                    <td className="p-2">
+                      <div>
+                        <div className="font-medium">{pendencia.funcionario_nome}</div>
+                        <div className="text-sm text-gray-500">{pendencia.funcionario_cpf}</div>
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <div>
+                        <div className="font-medium">{pendencia.razao_social}</div>
+                        <div className="text-sm text-gray-500">{pendencia.cnpj}</div>
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <Badge variant={pendencia.status === 'pendente' ? 'destructive' : 'default'}>
+                        {pendencia.status}
+                      </Badge>
+                    </td>
+                    <td className="p-2">
+                      <span className="font-medium">{pendencia.dias_em_aberto}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

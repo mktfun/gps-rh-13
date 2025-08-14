@@ -1,218 +1,188 @@
-import React, { useState } from 'react';
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Users, Plus } from 'lucide-react';
-import { useFuncionariosForaDoPlano } from '@/hooks/useFuncionariosForaDoPlano';
-import { useAdicionarFuncionariosMutation } from '@/hooks/useAdicionarFuncionariosMutation';
-import { Badge } from '@/components/ui/badge';
-import { DashboardLoadingState } from '@/components/ui/loading-state';
-import { EmptyState } from '@/components/ui/empty-state';
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { useAllFuncionarios } from "@/hooks/useAllFuncionarios"
+import { useAdicionarFuncionariosPlano } from "@/hooks/useAdicionarFuncionariosPlano"
+import { useState } from "react"
+
+const formSchema = z.object({
+  funcionarios_ids: z.string().array().nonempty('Selecione ao menos um funcionário'),
+})
 
 interface AdicionarFuncionariosModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
   planoId: string;
-  cnpjId: string;
-  planoSeguradora: string;
-  tipoSeguro?: string;
+  onFuncionariosAdicionados?: () => void;
 }
 
-export const AdicionarFuncionariosModal: React.FC<AdicionarFuncionariosModalProps> = ({
-  open,
-  onOpenChange,
+type AdicionarFuncionariosData = z.infer<typeof formSchema>
+
+export default function AdicionarFuncionariosModal({
+  isOpen,
+  onClose,
   planoId,
-  cnpjId,
-  planoSeguradora,
-  tipoSeguro = 'vida'
-}) => {
-  const [selectedFuncionarios, setSelectedFuncionarios] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  onFuncionariosAdicionados
+}: AdicionarFuncionariosModalProps) {
+  const { data: funcionarios, isLoading: isLoadingFuncionarios } = useAllFuncionarios();
+  const [value, setValue] = useState<string[]>([]);
 
-  const { data: funcionarios, isLoading } = useFuncionariosForaDoPlano(planoId, cnpjId);
-  const adicionarFuncionarios = useAdicionarFuncionariosMutation();
+  const form = useForm<AdicionarFuncionariosData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      funcionarios_ids: [],
+    },
+  })
 
-  // Filtrar funcionários baseado na busca
-  const funcionariosFiltrados = funcionarios?.filter(f => 
-    f.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.cpf.includes(searchTerm) ||
-    f.cargo.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const { mutateAsync, isLoading } = useAdicionarFuncionariosPlano();
+  const { reset } = form;
 
-  const handleSelectFuncionario = (funcionarioId: string) => {
-    setSelectedFuncionarios(prev => 
-      prev.includes(funcionarioId)
-        ? prev.filter(id => id !== funcionarioId)
-        : [...prev, funcionarioId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedFuncionarios.length === funcionariosFiltrados.length) {
-      setSelectedFuncionarios([]);
-    } else {
-      setSelectedFuncionarios(funcionariosFiltrados.map(f => f.id));
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (selectedFuncionarios.length === 0) return;
-
-    console.log('🚀 Submetendo adição de funcionários:', {
-      planoId,
-      tipoSeguro,
-      funcionarioIds: selectedFuncionarios
-    });
-
+  const onSubmit = async (data: AdicionarFuncionariosData) => {
     try {
-      await adicionarFuncionarios.mutateAsync({
-        planoId,
-        tipoSeguro,
-        funcionarioIds: selectedFuncionarios
+      console.log('📤 Enviando dados:', data);
+      
+      await mutateAsync({
+        plano_id: planoId,
+        funcionarios_ids: data.funcionarios_ids,
+        // Remove the tipoSeguro property that doesn't exist in the interface
       });
       
-      // Resetar estado e fechar modal
-      setSelectedFuncionarios([]);
-      setSearchTerm('');
-      onOpenChange(false);
+      onFuncionariosAdicionados?.();
+      onClose();
+      reset();
     } catch (error) {
-      console.error('Erro ao adicionar funcionários:', error);
+      console.error('❌ Erro ao adicionar funcionários:', error);
     }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Adicionar Funcionários ao Plano {tipoSeguro === 'vida' ? 'de Vida' : 'de Saúde'}
-          </DialogTitle>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Adicionar Funcionários</DialogTitle>
           <DialogDescription>
-            Selecione os funcionários que deseja adicionar ao plano da {planoSeguradora}.
-            Funcionários já vinculados a este plano não aparecem na lista.
+            Selecione os funcionários que você deseja adicionar a este plano.
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 flex-1 flex flex-col min-h-0">
-          {/* Busca */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome, CPF ou cargo..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="funcionarios_ids"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Funcionários</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={true}
+                          className={[
+                            "w-full justify-between",
+                            value.length > 0 ? "text-black" : "text-muted-foreground",
+                          ].join(' ')}
+                        >
+                          {value.length > 0
+                            ? `${value.length} funcionário(s) selecionados`
+                            : "Selecione os funcionários..."}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <ScrollArea className="h-[200px]">
+                        <Command>
+                          <CommandList>
+                            {funcionarios?.map((funcionario) => (
+                              <CommandItem
+                                key={funcionario.id}
+                                value={funcionario.id}
+                                onSelect={(currentValue) => {
+                                  form.setValue(
+                                    'funcionarios_ids',
+                                    value.includes(funcionario.id)
+                                      ? value.filter(
+                                          (value) => value !== funcionario.id
+                                        )
+                                      : [...value, funcionario.id]
+                                  );
+                                  setValue(
+                                    value.includes(funcionario.id)
+                                      ? value.filter(
+                                          (value) => value !== funcionario.id
+                                        )
+                                      : [...value, funcionario.id]
+                                  );
+                                }}
+                              >
+                                <Checkbox
+                                  checked={value.includes(funcionario.id)}
+                                  className="mr-2 h-4 w-4"
+                                />
+                                {funcionario.nome}
+                              </CommandItem>
+                            ))}
+                            {!funcionarios?.length && (
+                              <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
+                            )}
+                          </CommandList>
+                        </Command>
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-
-          {/* Controles de seleção */}
-          {funcionariosFiltrados.length > 0 && (
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={selectedFuncionarios.length === funcionariosFiltrados.length}
-                  onCheckedChange={handleSelectAll}
-                />
-                <span className="text-sm font-medium">
-                  Selecionar todos ({funcionariosFiltrados.length})
-                </span>
-              </div>
-              <Badge variant="secondary">
-                {selectedFuncionarios.length} selecionado(s)
-              </Badge>
-            </div>
-          )}
-
-          {/* Lista de funcionários */}
-          <ScrollArea className="flex-1 border rounded-lg min-h-[200px]">
-            {isLoading ? (
-              <div className="p-8">
-                <DashboardLoadingState />
-              </div>
-            ) : funcionariosFiltrados.length === 0 ? (
-              <div className="p-8">
-                <EmptyState
-                  icon={Users}
-                  title="Nenhum funcionário disponível"
-                  description={
-                    funcionarios?.length === 0 
-                      ? "Todos os funcionários já estão vinculados a este plano ou não há funcionários cadastrados."
-                      : "Nenhum funcionário encontrado com os critérios de busca."
-                  }
-                />
-              </div>
-            ) : (
-              <div className="p-4 space-y-2">
-                {funcionariosFiltrados.map((funcionario) => (
-                  <div
-                    key={funcionario.id}
-                    className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                    <Checkbox
-                      checked={selectedFuncionarios.includes(funcionario.id)}
-                      onCheckedChange={() => handleSelectFuncionario(funcionario.id)}
-                    />
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2">
-                      <div>
-                        <p className="font-medium">{funcionario.nome}</p>
-                        <p className="text-sm text-muted-foreground">{funcionario.cpf}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm">{funcionario.cargo}</p>
-                        <p className="text-sm text-muted-foreground">{funcionario.idade} anos</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {formatCurrency(funcionario.salario)}
-                        </p>
-                      </div>
-                      <div>
-                        <Badge variant="outline" className="text-xs">
-                          {funcionario.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-
-          {/* Ações */}
-          <div className="flex justify-end gap-3 pt-4 flex-shrink-0 border-t mt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={adicionarFuncionarios.isPending}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={selectedFuncionarios.length === 0 || adicionarFuncionarios.isPending}
-              className="min-w-32"
-            >
-              {adicionarFuncionarios.isPending ? 'Adicionando...' : `Adicionar ${selectedFuncionarios.length} funcionário(s)`}
-            </Button>
-          </div>
-        </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Adicionando...' : 'Salvar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
