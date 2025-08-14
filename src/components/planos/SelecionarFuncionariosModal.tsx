@@ -50,30 +50,35 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
     queryFn: async (): Promise<FuncionarioDisponivel[]> => {
       if (!cnpjId || !planoId) return [];
 
-      // Get funcionários from CNPJ that are not in this plan using a subquery
-      const { data, error } = await supabase
+      // First get funcionarios IDs that are already in this plan
+      const { data: funcionariosNoPlano, error: errorPlano } = await supabase
+        .from('planos_funcionarios')
+        .select('funcionario_id')
+        .eq('plano_id', planoId);
+
+      if (errorPlano) {
+        console.error('Erro ao buscar funcionários do plano:', errorPlano);
+        throw new Error('Erro ao buscar funcionários do plano');
+      }
+
+      const funcionarioIdsNoPlano = funcionariosNoPlano?.map(pf => pf.funcionario_id) || [];
+
+      // Get all funcionários from CNPJ
+      const { data: allFuncionarios, error } = await supabase
         .from('funcionarios')
-        .select(`
-          id,
-          nome,
-          cpf,
-          cargo,
-          salario,
-          idade,
-          data_nascimento,
-          email,
-          status,
-          estado_civil,
-          created_at
-        `)
+        .select('*')
         .eq('cnpj_id', cnpjId)
-        .in('status', ['ativo', 'pendente'])
-        .not('id', 'in',
-          supabase
-            .from('planos_funcionarios')
-            .select('funcionario_id')
-            .eq('plano_id', planoId)
-        );
+        .in('status', ['ativo', 'pendente']);
+
+      if (error) {
+        console.error('Erro ao buscar funcionários:', error);
+        throw new Error('Erro ao buscar funcionários');
+      }
+
+      // Filter out funcionários that are already in this plan
+      const data = allFuncionarios?.filter(funcionario =>
+        !funcionarioIdsNoPlano.includes(funcionario.id)
+      ) || [];
 
       if (error) {
         console.error('Erro ao buscar funcionários disponíveis:', error);
