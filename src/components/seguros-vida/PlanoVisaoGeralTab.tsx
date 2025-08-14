@@ -214,7 +214,6 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
           <ValoresVidaTable
             valorMensal={plano.valor_mensal}
             funcionarios={funcionarios}
-            onEditValores={() => setIsCoberturasModalOpen(true)}
           />
         ) : (
           <Card>
