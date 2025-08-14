@@ -53,18 +53,19 @@ const RelatorioPendenciasEmpresaPage = () => {
   const adaptEmpresaData = (empresaData: any[]) => {
     if (!empresaData) return null;
 
-    // Calculate priority based on days open
-    const calculatePriority = (dias: number) => {
-      if (dias > 7) return 'critica';
-      if (dias > 3) return 'urgente';
+    // Calculate priority based on database priority field and days open
+    const calculatePriority = (prioridade: number, dias: number) => {
+      // Database priority: 1 = Overdue, 2 = Due today, 3 = Future
+      if (prioridade === 1 || dias > 7) return 'critica';
+      if (prioridade === 2 || dias > 3) return 'urgente';
       return 'normal';
     };
 
     const kpis = {
       total_pendencias: empresaData.length,
-      pendencias_criticas: empresaData.filter(p => calculatePriority(p.dias_em_aberto) === 'critica').length,
-      pendencias_urgentes: empresaData.filter(p => calculatePriority(p.dias_em_aberto) === 'urgente').length,
-      pendencias_normais: empresaData.filter(p => calculatePriority(p.dias_em_aberto) === 'normal').length,
+      pendencias_criticas: empresaData.filter(p => calculatePriority(p.prioridade, p.dias_em_aberto) === 'critica').length,
+      pendencias_urgentes: empresaData.filter(p => calculatePriority(p.prioridade, p.dias_em_aberto) === 'urgente').length,
+      pendencias_normais: empresaData.filter(p => calculatePriority(p.prioridade, p.dias_em_aberto) === 'normal').length,
     };
 
     const tabela_detalhada = empresaData.map((p) => ({
@@ -78,7 +79,7 @@ const RelatorioPendenciasEmpresaPage = () => {
       descricao: p.descricao,
       data_criacao: p.data_criacao,
       data_vencimento: p.data_vencimento,
-      status_prioridade: calculatePriority(p.dias_em_aberto) as 'critica' | 'urgente' | 'normal',
+      status_prioridade: calculatePriority(p.prioridade, p.dias_em_aberto) as 'critica' | 'urgente' | 'normal',
       dias_em_aberto: p.dias_em_aberto,
       comentarios_count: p.comentarios_count
     }));
@@ -95,12 +96,73 @@ const RelatorioPendenciasEmpresaPage = () => {
       percentual: Math.round((quantidade / empresaData.length) * 100)
     }));
 
+    // Generate timeline data based on due dates
+    const today = new Date();
+    const timelineData = empresaData
+      .filter(p => p.data_vencimento) // Only items with due dates
+      .reduce((acc, p) => {
+        const vencimento = new Date(p.data_vencimento);
+        const dateKey = vencimento.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        if (!acc[dateKey]) {
+          acc[dateKey] = {
+            data: dateKey,
+            quantidade: 0,
+            vencidas: 0,
+            hoje: 0,
+            futuras: 0
+          };
+        }
+
+        acc[dateKey].quantidade += 1;
+
+        if (vencimento < today) {
+          acc[dateKey].vencidas += 1;
+        } else if (vencimento.toDateString() === today.toDateString()) {
+          acc[dateKey].hoje += 1;
+        } else {
+          acc[dateKey].futuras += 1;
+        }
+
+        return acc;
+      }, {} as Record<string, any>);
+
+    const timeline_vencimentos = Object.values(timelineData)
+      .sort((a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
+    // Generate CNPJ distribution data
+    const cnpjCounts = empresaData.reduce((acc, p) => {
+      const key = `${p.cnpj} - ${p.razao_social}`;
+      if (!acc[key]) {
+        acc[key] = {
+          cnpj: p.cnpj,
+          razao_social: p.razao_social,
+          quantidade: 0,
+          criticas: 0,
+          urgentes: 0,
+          normais: 0
+        };
+      }
+
+      acc[key].quantidade += 1;
+
+      const priority = calculatePriority(p.prioridade, p.dias_em_aberto);
+      if (priority === 'critica') acc[key].criticas += 1;
+      else if (priority === 'urgente') acc[key].urgentes += 1;
+      else acc[key].normais += 1;
+
+      return acc;
+    }, {} as Record<string, any>);
+
+    const pendencias_por_cnpj = Object.values(cnpjCounts)
+      .sort((a: any, b: any) => b.quantidade - a.quantidade); // Sort by quantity descending
+
     return {
       kpis,
       tabela_detalhada,
       pendencias_por_tipo,
-      timeline_vencimentos: [],
-      pendencias_por_cnpj: []
+      timeline_vencimentos,
+      pendencias_por_cnpj
     };
   };
 
