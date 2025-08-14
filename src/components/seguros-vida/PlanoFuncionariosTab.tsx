@@ -61,6 +61,9 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   const totalCount = funcionariosData?.totalCount || 0;
   const totalPages = funcionariosData?.totalPages || 0;
 
+  // Process funcionarios for bulk activation
+  const funcionariosPendentesProcessados = useFuncionariosParaAtivacao(funcionarios);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
