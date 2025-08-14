@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarPendenciasPendentesEmFalta } from '@/utils/criarPendenciasPendentes';
+import { criarPendenciaSimplesDebug } from '@/utils/criarPendenciasSimplesDebug';
 
 interface CorrigirPendenciasButtonProps {
   className?: string;
