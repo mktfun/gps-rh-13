@@ -50,17 +50,32 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
     queryFn: async (): Promise<FuncionarioDisponivel[]> => {
       if (!cnpjId || !planoId) return [];
 
-      // Buscar funcionários do CNPJ que não estão no plano
-      const { data, error } = await supabase
+      // First get funcionarios IDs that are already in this plan
+      const { data: funcionariosNoPlano, error: errorPlano } = await supabase
+        .from('planos_funcionarios')
+        .select('funcionario_id')
+        .eq('plano_id', planoId);
+
+      if (errorPlano) {
+        console.error('Erro ao buscar funcionários do plano:', errorPlano);
+        throw new Error('Erro ao buscar funcionários do plano');
+      }
+
+      const funcionarioIdsNoPlano = funcionariosNoPlano?.map(pf => pf.funcionario_id) || [];
+
+      // Then get funcionários from CNPJ that are not in this plan
+      let query = supabase
         .from('funcionarios')
         .select('*')
         .eq('cnpj_id', cnpjId)
-        .not('id', 'in', `(
-          SELECT funcionario_id 
-          FROM planos_funcionarios 
-          WHERE plano_id = '${planoId}'
-        )`)
         .in('status', ['ativo', 'pendente']);
+
+      // Exclude funcionários already in this plan
+      if (funcionarioIdsNoPlano.length > 0) {
+        query = query.not('id', 'in', `(${funcionarioIdsNoPlano.map(id => `'${id}'`).join(',')})`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Erro ao buscar funcionários disponíveis:', error);
@@ -133,7 +148,7 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
       handleClose();
     } catch (error) {
       console.error('Erro ao adicionar funcionários:', error);
-      toast.error('Erro ao adicionar funcionários ao plano');
+      toast.error('Erro ao adicionar funcion��rios ao plano');
     }
   };
 
