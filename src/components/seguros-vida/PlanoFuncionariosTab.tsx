@@ -18,6 +18,7 @@ interface PlanoFuncionariosTabProps {
     id: string;
     seguradora: string;
     valor_mensal: number;
+    empresa_nome?: string;
   };
   shouldOpenAddModal?: boolean;
   onAddModalHandled?: () => void;
