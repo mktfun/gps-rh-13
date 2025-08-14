@@ -122,7 +122,7 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
             </CardTitle>
             <Button onClick={() => setAddModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Adicionar Funcionário
+              Adicionar Funcionários
             </Button>
           </div>
         </CardHeader>
