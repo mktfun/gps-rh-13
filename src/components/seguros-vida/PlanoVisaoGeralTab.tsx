@@ -46,6 +46,9 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
   onNavigateToFuncionarios,
   onAddFuncionario
 }) => {
+  // Debug logs
+  console.log('PlanoVisaoGeralTab - plano:', plano);
+  console.log('PlanoVisaoGeralTab - plano.valor_mensal:', plano.valor_mensal);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isCoberturasModalOpen, setIsCoberturasModalOpen] = useState(false);
   const {
