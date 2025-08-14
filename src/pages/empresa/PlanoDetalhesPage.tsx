@@ -25,7 +25,7 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isAdicionarFuncionariosModalOpen, setIsAdicionarFuncionariosModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const { data: plano, isLoading: isLoadingPlano, refetch: refetchPlano } = usePlano(planoId);
+  const { data: plano, isLoading: isLoadingPlano, refetch: refetchPlano } = usePlanoDetalhes(planoId);
   const { data: funcionariosForaDoPlano, isLoading: isLoadingFuncionariosForaDoPlano, refetch: refetchFuncionariosForaDoPlano } = useFuncionariosForaDoPlano(planoId);
   const { data: planoFuncionarios, isLoading: isLoadingPlanoFuncionarios, refetch: refetchPlanoFuncionarios } = usePlanoFuncionarios(planoId);
   const { mutateAsync: deletarPlano, isLoading: isDeletingPlano } = useDeletarPlano();
