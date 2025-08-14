@@ -226,7 +226,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
           id: plano.id,
           seguradora: plano.seguradora,
           valor_mensal: plano.valor_mensal,
-          empresa_nome: 'N/A' // This will need to be passed from parent if needed
+          empresa_nome: plano.empresa_nome || 'Empresa'
         }}
       />
     </div>
