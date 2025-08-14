@@ -8,33 +8,10 @@ export const criarPendenciasPendentesEmFalta = async () => {
   try {
     console.log('🔍 Buscando funcionários pendentes sem pendências...');
 
-    // 1. Buscar todos os funcionários em planos com status 'pendente'
+    // 1. Buscar todos os funcionários em planos com status 'pendente' - query simplificada
     const { data: funcionariosPendentes, error: errorFuncionarios } = await supabase
       .from('planos_funcionarios')
-      .select(`
-        funcionario_id,
-        plano_id,
-        status,
-        funcionarios!inner (
-          id,
-          nome,
-          cnpj_id,
-          cnpjs!inner (
-            id,
-            empresa_id,
-            cnpj,
-            razao_social,
-            empresas!inner (
-              id,
-              corretora_id
-            )
-          )
-        ),
-        planos!inner (
-          id,
-          seguradora
-        )
-      `)
+      .select('funcionario_id, plano_id, status')
       .eq('status', 'pendente');
 
     if (errorFuncionarios) {
