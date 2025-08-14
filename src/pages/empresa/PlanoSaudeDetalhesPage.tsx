@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -300,7 +299,7 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                 </TabsList>
 
                 <TabsContent value="funcionarios" className="mt-6">
-                  <PlanoFuncionariosTab 
+                  <PlanoFuncionariosTab
                     cnpjId={plano.cnpj_id}
                     plano={{
                       id: plano.id,
@@ -309,6 +308,7 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                     }}
                     shouldOpenAddModal={shouldOpenAddModal}
                     onAddModalHandled={handleAddModalHandled}
+                    tipoSeguro="saude"
                   />
                 </TabsContent>
 
