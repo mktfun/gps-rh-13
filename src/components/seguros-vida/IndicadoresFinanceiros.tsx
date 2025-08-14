@@ -27,8 +27,10 @@ export const IndicadoresFinanceiros: React.FC<IndicadoresFinanceirosProps> = ({ 
   const indicadores = [
     {
       titulo: 'Receita do Plano',
-      valor: formatCurrency(custoPlanosAtivos),
-      descricao: 'Valor fixo mensal do plano',
+      valor: formatCurrency(receitaTotal),
+      descricao: plano.tipo_seguro === 'saude'
+        ? `${formatCurrency(plano.valor_mensal)} × ${funcionariosAtivos.length} funcionários`
+        : 'Valor fixo mensal do plano',
       icone: DollarSign,
       cor: 'text-green-600',
       bgCor: 'bg-green-50'
