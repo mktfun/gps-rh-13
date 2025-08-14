@@ -206,12 +206,6 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
               </div>
             </div>
 
-            <div className="pt-4 border-t">
-              <Button variant="outline" className="w-full" onClick={() => setIsInfoModalOpen(true)}>
-                <Calendar className="h-4 w-4 mr-2" />
-                Editar Informações
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
