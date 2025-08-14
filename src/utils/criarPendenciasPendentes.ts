@@ -55,31 +55,79 @@ export const criarPendenciasPendentesEmFalta = async () => {
 
     console.log(`🆕 ${funcionariosSemPendencia.length} funcionários precisam de pendências`);
 
-    // 3. Criar pendências para funcionários que não possuem
-    const pendenciasParaCriar = funcionariosSemPendencia.map((funcionario: any) => {
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const protocolo = `PLN-${timestamp}-${randomString}`;
-      const dataVencimento = new Date();
-      dataVencimento.setDate(dataVencimento.getDate() + 7); // +7 dias
+    // 3. Para cada funcionário sem pendência, buscar os dados necessários e criar a pendência
+    const pendenciasParaCriar = [];
 
-      const funcionarioData = funcionario.funcionarios;
-      const cnpjData = funcionarioData.cnpjs;
-      const empresaData = cnpjData.empresas;
-      const planoData = funcionario.planos;
+    for (const funcionario of funcionariosSemPendencia) {
+      try {
+        // Buscar dados do funcionário
+        const { data: funcionarioData, error: errorFuncionarioData } = await supabase
+          .from('funcionarios')
+          .select('nome, cnpj_id')
+          .eq('id', funcionario.funcionario_id)
+          .single();
 
-      return {
-        protocolo,
-        tipo: 'ativacao',
-        descricao: `Ativação pendente para ${funcionarioData.nome} no plano ${planoData.seguradora}.`,
-        funcionario_id: funcionario.funcionario_id,
-        cnpj_id: funcionarioData.cnpj_id,
-        corretora_id: empresaData.corretora_id,
-        status: 'pendente',
-        data_vencimento: dataVencimento.toISOString().split('T')[0],
-        data_criacao: new Date().toISOString()
-      };
-    });
+        if (errorFuncionarioData || !funcionarioData) {
+          console.error('❌ Erro ao buscar dados do funcionário:', errorFuncionarioData);
+          continue;
+        }
+
+        // Buscar dados do plano
+        const { data: planoData, error: errorPlanoData } = await supabase
+          .from('planos')
+          .select('seguradora')
+          .eq('id', funcionario.plano_id)
+          .single();
+
+        if (errorPlanoData || !planoData) {
+          console.error('❌ Erro ao buscar dados do plano:', errorPlanoData);
+          continue;
+        }
+
+        // Buscar corretora através do CNPJ
+        const { data: cnpjData, error: errorCnpjData } = await supabase
+          .from('cnpjs')
+          .select(`
+            empresa_id,
+            empresas!inner (
+              corretora_id
+            )
+          `)
+          .eq('id', funcionarioData.cnpj_id)
+          .single();
+
+        if (errorCnpjData || !cnpjData) {
+          console.error('❌ Erro ao buscar dados do CNPJ:', errorCnpjData);
+          continue;
+        }
+
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 8);
+        const protocolo = `PLN-${timestamp}-${randomString}`;
+        const dataVencimento = new Date();
+        dataVencimento.setDate(dataVencimento.getDate() + 7); // +7 dias
+
+        pendenciasParaCriar.push({
+          protocolo,
+          tipo: 'ativacao',
+          descricao: `Ativação pendente para ${funcionarioData.nome} no plano ${planoData.seguradora}.`,
+          funcionario_id: funcionario.funcionario_id,
+          cnpj_id: funcionarioData.cnpj_id,
+          corretora_id: (cnpjData.empresas as any).corretora_id,
+          status: 'pendente',
+          data_vencimento: dataVencimento.toISOString().split('T')[0],
+          data_criacao: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('❌ Erro ao processar funcionário:', funcionario.funcionario_id, error);
+        continue;
+      }
+    }
+
+    if (pendenciasParaCriar.length === 0) {
+      console.log('⚠️ Nenhuma pendência pôde ser criada devido a erros nos dados');
+      return { success: false, created: 0, message: 'Nenhuma pendência pôde ser criada devido a erros nos dados' };
+    }
 
     // 4. Inserir todas as pendências de uma vez
     const { data: pendenciasCriadas, error: errorInserir } = await supabase
