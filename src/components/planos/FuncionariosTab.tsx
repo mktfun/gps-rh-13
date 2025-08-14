@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
-import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 
 interface PlanoDetalhes {
   id: string;
