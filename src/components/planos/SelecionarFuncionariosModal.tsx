@@ -79,8 +79,9 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
         .eq('plano_id', cleanPlanoId);
 
       if (errorPlano) {
-        console.error('Erro ao buscar funcionários do plano:', errorPlano);
-        throw new Error('Erro ao buscar funcionários do plano');
+        console.error('❌ Erro ao buscar funcionários do plano:', errorPlano);
+        console.error('Query details:', { planoId: cleanPlanoId, table: 'planos_funcionarios' });
+        throw new Error(`Erro ao buscar funcionários do plano: ${errorPlano.message}`);
       }
 
       const funcionarioIdsNoPlano = funcionariosNoPlano?.map(pf => pf.funcionario_id) || [];
