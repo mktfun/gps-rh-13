@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, PencilIcon, TrashIcon, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePlano } from '@/hooks/usePlano';
+import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
 import { useFuncionariosForaDoPlano } from '@/hooks/useFuncionariosForaDoPlano';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { DataTable } from '@/components/ui/data-table';
