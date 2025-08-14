@@ -10,9 +10,9 @@ import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 const CorretoraDashboard = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const [showDebug, setShowDebug] = useState(false);
+
   if (!user) {
     return <DashboardLoadingState />;
   }
@@ -32,7 +32,7 @@ const CorretoraDashboard = () => {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-          <h2 className="text-xl font-semibold">🎯 Inteligência Operacional</h2>
+          <h2 className="text-xl font-semibold">�� Inteligência Operacional</h2>
         </div>
         <OperationalIntelligencePanel />
       </div>
