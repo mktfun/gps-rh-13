@@ -121,8 +121,7 @@ export const criarPendenciasPendentesEmFalta = async () => {
           cnpj_id: funcionarioData.cnpj_id,
           corretora_id: (cnpjData.empresas as any).corretora_id,
           status: 'pendente',
-          data_vencimento: dataVencimento.toISOString().split('T')[0],
-          data_criacao: new Date().toISOString()
+          data_vencimento: dataVencimento.toISOString().split('T')[0]
         });
       } catch (error) {
         console.error('❌ Erro ao processar funcionário:', funcionario.funcionario_id, error);
