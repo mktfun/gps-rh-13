@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const criarPendenciasPendentesEmFalta = async () => {
   try {
     console.log('🔍 Buscando funcionários pendentes sem pendências...');
+    console.log('🔗 Conectando ao Supabase...');
 
     // 1. Buscar todos os funcionários em planos com status 'pendente' - query simplificada
     const { data: funcionariosPendentes, error: errorFuncionarios } = await supabase
