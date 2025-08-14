@@ -94,8 +94,9 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
         .in('status', ['ativo', 'pendente']);
 
       if (error) {
-        console.error('Erro ao buscar funcionários:', error);
-        throw new Error('Erro ao buscar funcionários');
+        console.error('❌ Erro ao buscar funcionários:', error);
+        console.error('Query details:', { cnpjId: cleanCnpjId, table: 'funcionarios' });
+        throw new Error(`Erro ao buscar funcionários: ${error.message}`);
       }
 
       // Filter out funcionários that are already in this plan
@@ -252,7 +253,7 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Carregando funcionários...</p>
+                    <p className="text-muted-foreground">Carregando funcion��rios...</p>
                   </div>
                 </div>
               ) : funcionariosFiltrados.length === 0 ? (
