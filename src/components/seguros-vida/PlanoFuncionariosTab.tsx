@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
-import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
+import AdicionarFuncionariosModal from '@/components/planos/AdicionarFuncionariosModal';
 
 interface PlanoFuncionariosTabProps {
   cnpjId: string;

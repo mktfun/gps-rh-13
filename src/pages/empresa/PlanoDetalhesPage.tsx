@@ -1,277 +1,178 @@
-
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
-import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
-import { EmptyState } from '@/components/ui/empty-state';
-import { DashboardLoadingState } from '@/components/ui/loading-state';
-import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
-import { FuncionariosTab } from '@/components/planos/FuncionariosTab';
-import { AdicionarFuncionariosModal } from '@/components/planos/AdicionarFuncionariosModal';
-import { 
-  FileText, 
-  Building2, 
-  AlertTriangle, 
-  Users, 
-  UserCheck, 
-  Clock, 
-  DollarSign, 
-  Plus,
-  Edit,
-  Download,
-  ArrowLeft
-} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { PlusIcon, PencilIcon, TrashIcon, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { ContratoTab } from '@/components/planos/ContratoTab';
-import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
+import { usePlano } from '@/hooks/usePlano';
+import { useFuncionariosForaDoPlano } from '@/hooks/useFuncionariosForaDoPlano';
+import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
+import { DataTable } from '@/components/ui/data-table';
+import { PlanoFuncionariosColunas } from '@/components/planos/PlanoFuncionariosColunas';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useDeletarPlano } from '@/hooks/useDeletarPlano';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EditarPlanoModal } from '@/components/planos/EditarPlanoModal';
+import AdicionarFuncionariosModal from '@/components/planos/AdicionarFuncionariosModal';
 
-const PlanoDetalhesPage: React.FC = () => {
-  const { planoId } = useParams<{ planoId: string }>();
-  const [activeTab, setActiveTab] = useState('funcionarios');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
-  const { data: plano, isLoading, error } = usePlanoDetalhes(planoId!);
-  
-  // Para planos de saúde, usar o valor calculado se disponível
-  const valorReal = plano?.tipo_seguro === 'saude' 
-    ? (plano?.valor_mensal_calculado ?? plano?.valor_mensal ?? 0)
-    : (plano?.valor_mensal ?? 0);
-    
-  const { data: stats } = usePlanoFuncionariosStats(
-    plano?.id || '', 
-    plano?.tipo_seguro || 'vida',
-    valorReal
-  );
+interface PlanoDetalhesPageProps {
+  planoId: string;
+}
 
-  // Debugging específico para plano genérico
-  console.log('🏠 DEBUGGING PlanoDetalhesPage:', {
-    planoId,
-    isLoading,
-    error: error?.message,
-    plano,
-    hasPlano: !!plano,
-    valorOriginal: plano?.valor_mensal,
-    valorCalculado: plano?.valor_mensal_calculado,
-    valorReal,
-    tipoSeguro: plano?.tipo_seguro
-  });
+export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
+  const router = useRouter();
+  const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
+  const [isAdicionarFuncionariosModalOpen, setIsAdicionarFuncionariosModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const { data: plano, isLoading: isLoadingPlano, refetch: refetchPlano } = usePlano(planoId);
+  const { data: funcionariosForaDoPlano, isLoading: isLoadingFuncionariosForaDoPlano, refetch: refetchFuncionariosForaDoPlano } = useFuncionariosForaDoPlano(planoId);
+  const { data: planoFuncionarios, isLoading: isLoadingPlanoFuncionarios, refetch: refetchPlanoFuncionarios } = usePlanoFuncionarios(planoId);
+  const { mutateAsync: deletarPlano, isLoading: isDeletingPlano } = useDeletarPlano();
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+  useEffect(() => {
+    if (!planoId) {
+      toast.error('ID do plano não fornecido.');
+      return;
+    }
+    refetchPlano();
+    refetchFuncionariosForaDoPlano();
+    refetchPlanoFuncionarios();
+  }, [planoId, refetchPlano, refetchFuncionariosForaDoPlano, refetchPlanoFuncionarios]);
+
+  const handleEditarPlano = () => {
+    setIsEditarModalOpen(true);
   };
 
-  const handleExportReport = () => {
-    toast.info('Funcionalidade de exportação em desenvolvimento');
+  const handleAdicionarFuncionarios = () => {
+    setIsAdicionarFuncionariosModalOpen(true);
   };
 
-  if (isLoading) {
+  const handleExcluirPlano = async () => {
+    try {
+      await deletarPlano(planoId);
+      toast.success('Plano excluído com sucesso!');
+      router.push('/empresa/planos');
+    } catch (error) {
+      console.error('Erro ao excluir plano:', error);
+      toast.error('Erro ao excluir plano.');
+    } finally {
+      setIsDeleteAlertOpen(false);
+    }
+  };
+
+  if (isLoadingPlano) {
     return (
-      <div className="container mx-auto py-6">
-        <DashboardLoadingState />
+      <div className="container mx-auto p-4">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle><Skeleton className="h-6 w-64 mb-2" /></CardTitle>
+            <CardDescription><Skeleton className="h-4 w-96" /></CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <div>
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-6 w-48" />
+              </div>
+              <div>
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-6 w-48" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (error || !plano) {
+  if (!plano) {
     return (
-      <div className="container mx-auto py-6">
-        <EmptyState
-          icon={AlertTriangle}
-          title="Erro ao carregar plano"
-          description="Não foi possível carregar os detalhes do plano. Tente novamente."
-        />
+      <div className="container mx-auto p-4">
+        <Card className="w-full">
+          <CardContent>
+            <p>Plano não encontrado.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
-
-  console.log('✅ Renderizando plano com sucesso!', plano.seguradora);
 
   return (
-    <div className="container mx-auto py-6">
-      {/* Layout Principal - Duas Colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-        {/* Coluna Esquerda - Fixa/Sticky (30%) */}
-        <div className="lg:col-span-3 space-y-6">
-          <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5" />
-                Resumo do Plano
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Seguradora</label>
-                  <Badge variant="secondary" className="block w-fit">
-                    {plano.seguradora}
-                  </Badge>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
-                  <p className="text-sm font-medium">{plano.empresa_nome}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Valor Mensal</label>
-                  <p className="text-lg font-bold text-green-600">
-                    {formatCurrency(valorReal)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Tipo de Seguro</label>
-                  <Badge variant="outline" className="block w-fit mt-1">
-                    {plano.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro de Vida'}
-                  </Badge>
-                </div>
-              </div>
-              
-              {/* KPIs */}
-              <div className="pt-4 border-t space-y-3">
-                <h4 className="font-medium text-sm">Estatísticas</h4>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-green-50 rounded-lg border">
-                    <UserCheck className="h-4 w-4 mx-auto text-green-600 mb-1" />
-                    <div className="text-lg font-bold text-green-600">
-                      {stats?.ativos || 0}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Ativos</div>
-                  </div>
-                  
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg border">
-                    <Clock className="h-4 w-4 mx-auto text-yellow-600 mb-1" />
-                    <div className="text-lg font-bold text-yellow-600">
-                      {stats?.pendentes || 0}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Pendentes</div>
-                  </div>
-                  
-                  <div className="text-center p-3 bg-blue-50 rounded-lg border">
-                    <Users className="h-4 w-4 mx-auto text-blue-600 mb-1" />
-                    <div className="text-lg font-bold text-blue-600">
-                      {stats?.total || 0}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Total</div>
-                  </div>
-                  
-                  <div className="text-center p-3 bg-purple-50 rounded-lg border">
-                    <DollarSign className="h-4 w-4 mx-auto text-purple-600 mb-1" />
-                    <div className="text-sm font-bold text-purple-600">
-                      {formatCurrency(stats?.custoPorFuncionario || 0)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Por Func.</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Ações Rápidas */}
-              <div className="pt-4 border-t space-y-2">
-                <h4 className="font-medium text-sm mb-3">Ações Rápidas</h4>
-                
-                <Button 
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="w-full"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Funcionários
+    <div className="container mx-auto p-4">
+      <Card className="w-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>{plano.nome}</CardTitle>
+          <div className="space-x-2">
+            <Button variant="outline" onClick={handleEditarPlano}>
+              <PencilIcon className="mr-2 h-4 w-4" />
+              Editar Plano
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isDeletingPlano}>
+                  <TrashIcon className="mr-2 h-4 w-4" />
+                  Excluir Plano
                 </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  size="sm"
-                  onClick={() => toast.info('Funcionalidade em desenvolvimento')}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Plano
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  size="sm"
-                  onClick={handleExportReport}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Relatório
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Coluna Direita - Conteúdo Principal (70%) */}
-        <div className="lg:col-span-7">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Gerenciamento do Plano
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="funcionarios">
-                    <Users className="h-4 w-4 mr-2" />
-                    Funcionários
-                  </TabsTrigger>
-                  <TabsTrigger value="informacoes">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Informações
-                  </TabsTrigger>
-                  <TabsTrigger value="contrato">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Contrato
-                  </TabsTrigger>
-                  <TabsTrigger value="documentos">
-                    <Download className="h-4 w-4 mr-2" />
-                    Documentos
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="funcionarios" className="mt-6">
-                  <FuncionariosTab 
-                    plano={plano}
-                  />
-                </TabsContent>
-
-                <TabsContent value="informacoes" className="mt-6">
-                  {plano && <InformacoesGeraisTab plano={plano} />}
-                </TabsContent>
-
-                <TabsContent value="contrato" className="mt-6">
-                  {plano && <ContratoTab planoId={plano.id} isCorretora={false} />}
-                </TabsContent>
-
-                <TabsContent value="documentos" className="mt-6">
-                  {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Modal para Adicionar Funcionários */}
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação irá excluir o plano permanentemente. Tem certeza que deseja prosseguir?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <Button variant="destructive" disabled={isDeletingPlano} onClick={handleExcluirPlano}>
+                    {isDeletingPlano ? 'Excluindo...' : 'Excluir'}
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <div>
+              <h2 className="text-lg font-semibold">Informações do Plano</h2>
+              <p><strong>Nome:</strong> {plano.nome}</p>
+              <p><strong>Descrição:</strong> {plano.descricao}</p>
+              <p><strong>Valor Mensal:</strong> R$ {plano.valor_mensal}</p>
+            </div>
+          </div>
+          <Separator className="my-4" />
+          <div>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Funcionários no Plano</h2>
+              <Button variant="outline" onClick={handleAdicionarFuncionarios}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Adicionar Funcionários
+              </Button>
+            </div>
+            <DataTable columns={PlanoFuncionariosColunas} data={planoFuncionarios || []} isLoading={isLoadingPlanoFuncionarios} />
+          </div>
+        </CardContent>
+      </Card>
+      <EditarPlanoModal
+        isOpen={isEditarModalOpen}
+        onClose={() => setIsEditarModalOpen(false)}
+        plano={plano}
+        onPlanoUpdated={() => {
+          refetchPlano();
+          toast.success('Plano atualizado com sucesso!');
+        }}
+      />
       <AdicionarFuncionariosModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        planoId={plano.id}
-        cnpjId={plano.cnpj_id}
-        planoSeguradora={plano.seguradora}
-        tipoSeguro={plano.tipo_seguro || 'vida'}
+        isOpen={isAdicionarFuncionariosModalOpen}
+        onClose={() => setIsAdicionarFuncionariosModalOpen(false)}
+        planoId={planoId}
+        onFuncionariosAdicionados={() => {
+          refetchPlanoFuncionarios();
+          refetchFuncionariosForaDoPlano();
+          toast.success('Funcionários adicionados ao plano com sucesso!');
+        }}
       />
     </div>
   );
-};
-
-export default PlanoDetalhesPage;
+}

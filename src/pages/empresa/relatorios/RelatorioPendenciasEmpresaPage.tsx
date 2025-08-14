@@ -7,11 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Clock, AlertTriangle, CheckCircle, Download, Search } from 'lucide-react';
 import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { TipoPendenciaBadge, PrioridadePendenciaBadge } from '@/components/relatorios/PendenciasBadges';
-import TabelaPendenciasDetalhadas from '@/components/relatorios/TabelaPendenciasDetalhadas';
-import GraficoPendenciasPorTipo from '@/components/relatorios/GraficoPendenciasPorTipo';
-import GraficoPendenciasPorCnpj from '@/components/relatorios/GraficoPendenciasPorCnpj';
-import GraficoTimelineVencimentos from '@/components/relatorios/GraficoTimelineVencimentos';
-import FiltrosPendencias from '@/components/relatorios/FiltrosPendencias';
 
 interface PendenciasPorTipo {
   tipo: string;
@@ -269,7 +264,7 @@ export default function RelatorioPendenciasEmpresaPage() {
         mediaDias={metricas.mediaDias}
       />
 
-      {/* Filtros - Simple filter implementation since FiltrosPendencias needs complex props */}
+      {/* Filtros - Simple filter implementation */}
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -329,7 +324,7 @@ export default function RelatorioPendenciasEmpresaPage() {
         </div>
       </Card>
 
-      {/* Simple table instead of complex components until they're fixed */}
+      {/* Simple table instead of complex components */}
       <Card>
         <CardHeader>
           <CardTitle>Pendências Detalhadas</CardTitle>
