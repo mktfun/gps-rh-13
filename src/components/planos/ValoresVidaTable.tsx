@@ -40,61 +40,61 @@ export const ValoresVidaTable: React.FC<ValoresVidaTableProps> = ({
   const faixasEtarias: FaixaEtaria[] = [
     {
       faixa: '00-18 anos',
-      valorMensal: valorMensal * 0.6, // 40% de desconto para menores
+      valorMensal: valorBase * 0.6, // 40% de desconto para menores
       vidas: funcionariosAtivos.filter(f => f.idade >= 0 && f.idade <= 18).length,
       total: 0
     },
     {
       faixa: '19-23 anos',
-      valorMensal: valorMensal * 0.8, // 20% de desconto para jovens
+      valorMensal: valorBase * 0.8, // 20% de desconto para jovens
       vidas: funcionariosAtivos.filter(f => f.idade >= 19 && f.idade <= 23).length,
       total: 0
     },
     {
       faixa: '24-28 anos',
-      valorMensal: valorMensal,
+      valorMensal: valorBase,
       vidas: funcionariosAtivos.filter(f => f.idade >= 24 && f.idade <= 28).length,
       total: 0
     },
     {
       faixa: '29-33 anos',
-      valorMensal: valorMensal * 1.1, // 10% de acréscimo
+      valorMensal: valorBase * 1.1, // 10% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 29 && f.idade <= 33).length,
       total: 0
     },
     {
       faixa: '34-38 anos',
-      valorMensal: valorMensal * 1.2, // 20% de acréscimo
+      valorMensal: valorBase * 1.2, // 20% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 34 && f.idade <= 38).length,
       total: 0
     },
     {
       faixa: '39-43 anos',
-      valorMensal: valorMensal * 1.4, // 40% de acréscimo
+      valorMensal: valorBase * 1.4, // 40% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 39 && f.idade <= 43).length,
       total: 0
     },
     {
       faixa: '44-48 anos',
-      valorMensal: valorMensal * 1.6, // 60% de acréscimo
+      valorMensal: valorBase * 1.6, // 60% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 44 && f.idade <= 48).length,
       total: 0
     },
     {
       faixa: '49-53 anos',
-      valorMensal: valorMensal * 1.9, // 90% de acréscimo
+      valorMensal: valorBase * 1.9, // 90% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 49 && f.idade <= 53).length,
       total: 0
     },
     {
       faixa: '54-58 anos',
-      valorMensal: valorMensal * 2.3, // 130% de acréscimo
+      valorMensal: valorBase * 2.3, // 130% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 54 && f.idade <= 58).length,
       total: 0
     },
     {
       faixa: '59+ anos',
-      valorMensal: valorMensal * 2.8, // 180% de acréscimo
+      valorMensal: valorBase * 2.8, // 180% de acréscimo
       vidas: funcionariosAtivos.filter(f => f.idade >= 59).length,
       total: 0
     }
