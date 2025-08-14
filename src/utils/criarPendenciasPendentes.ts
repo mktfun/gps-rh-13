@@ -17,7 +17,12 @@ export const criarPendenciasPendentesEmFalta = async () => {
 
     if (errorFuncionarios) {
       console.error('❌ Erro ao buscar funcionários pendentes:', errorFuncionarios);
-      throw errorFuncionarios;
+      return {
+        success: false,
+        created: 0,
+        message: `Erro ao buscar funcionários pendentes: ${errorFuncionarios.message}`,
+        error: errorFuncionarios
+      };
     }
 
     if (!funcionariosPendentes || funcionariosPendentes.length === 0) {
