@@ -105,29 +105,27 @@ const RelatorioPendenciasEmpresaPage = () => {
 
         if (!acc[dateKey]) {
           acc[dateKey] = {
-            data: dateKey,
+            data_vencimento: dateKey,
             quantidade: 0,
-            vencidas: 0,
-            hoje: 0,
-            futuras: 0
+            criticas: 0,
+            urgentes: 0
           };
         }
 
         acc[dateKey].quantidade += 1;
 
-        if (vencimento < today) {
-          acc[dateKey].vencidas += 1;
-        } else if (vencimento.toDateString() === today.toDateString()) {
-          acc[dateKey].hoje += 1;
-        } else {
-          acc[dateKey].futuras += 1;
+        const priority = calculatePriority(p.prioridade, p.dias_em_aberto);
+        if (priority === 'critica') {
+          acc[dateKey].criticas += 1;
+        } else if (priority === 'urgente') {
+          acc[dateKey].urgentes += 1;
         }
 
         return acc;
       }, {} as Record<string, any>);
 
     const timeline_vencimentos = Object.values(timelineData)
-      .sort((a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime());
+      .sort((a: any, b: any) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime());
 
     // Generate CNPJ distribution data
     const cnpjCounts = empresaData.reduce((acc, p) => {
