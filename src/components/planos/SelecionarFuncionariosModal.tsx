@@ -50,6 +50,13 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
     queryFn: async (): Promise<FuncionarioDisponivel[]> => {
       if (!cnpjId || !planoId) return [];
 
+      // Validate UUID format to prevent injection
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(cnpjId) || !uuidRegex.test(planoId)) {
+        console.error('Invalid UUID format:', { cnpjId, planoId });
+        throw new Error('IDs inválidos fornecidos');
+      }
+
       // First get funcionarios IDs that are already in this plan
       const { data: funcionariosNoPlano, error: errorPlano } = await supabase
         .from('planos_funcionarios')
