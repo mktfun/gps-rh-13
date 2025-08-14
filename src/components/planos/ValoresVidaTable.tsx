@@ -142,14 +142,6 @@ export const ValoresVidaTable: React.FC<ValoresVidaTableProps> = ({
               </TableBody>
             </Table>
 
-            {onEditValores && (
-              <div className="pt-4 border-t">
-                <Button variant="outline" className="w-full" onClick={onEditValores}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Valores
-                </Button>
-              </div>
-            )}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
