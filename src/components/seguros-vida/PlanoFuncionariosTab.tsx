@@ -177,7 +177,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
             setStatusFilter={setStatusFilter}
             plano={{
               id: plano.id,
-              tipoSeguro: 'vida',
+              tipoSeguro,
               seguradora: plano.seguradora,
               valor_mensal: plano.valor_mensal,
               cnpj_id: cnpjId,
