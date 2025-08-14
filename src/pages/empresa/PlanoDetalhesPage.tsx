@@ -52,7 +52,7 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
     try {
       await deletarPlano(planoId);
       toast.success('Plano excluído com sucesso!');
-      router.push('/empresa/planos');
+      navigate('/empresa/planos');
     } catch (error) {
       console.error('Erro ao excluir plano:', error);
       toast.error('Erro ao excluir plano.');
