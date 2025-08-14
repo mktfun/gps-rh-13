@@ -176,13 +176,13 @@ export const FuncionariosTab: React.FC<FuncionariosTabProps> = ({ plano }) => {
         </CardContent>
       </Card>
 
-      {/* Modal para Adicionar Funcionário */}
-      <AdicionarFuncionarioModal
+      {/* Modal para Selecionar Funcionários */}
+      <SelecionarFuncionariosModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
         cnpjId={plano.cnpj_id}
-        planoSeguradora={plano.seguradora}
-        open={addModalOpen}
-        onOpenChange={setAddModalOpen}
-        onFuncionarioAdded={resetPagination}
+        planoId={plano.id}
+        onFuncionariosAdicionados={resetPagination}
       />
     </div>
   );
