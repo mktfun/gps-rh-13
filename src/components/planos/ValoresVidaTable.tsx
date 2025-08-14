@@ -18,8 +18,7 @@ interface ValoresVidaTableProps {
 
 export const ValoresVidaTable: React.FC<ValoresVidaTableProps> = ({
   valorMensal,
-  funcionarios,
-  onEditValores
+  funcionarios
 }) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
