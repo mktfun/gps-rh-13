@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DollarSign, TrendingUp, Target, Calculator } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,13 +12,17 @@ interface IndicadoresFinanceirosProps {
 export const IndicadoresFinanceiros: React.FC<IndicadoresFinanceirosProps> = ({ funcionarios, plano }) => {
   const funcionariosAtivos = funcionarios.filter(f => f.status === 'ativo');
   const funcionariosPendentes = funcionarios.filter(f => f.status === 'pendente');
-  
-  // Valor fixo por plano/CNPJ (não multiplicar por funcionários)
-  const custoPlanosAtivos = plano.valor_mensal; // Valor fixo do plano
+
+  // Para planos de saúde, multiplicar por funcionários ativos
+  // Para seguros de vida, usar valor fixo
+  const receitaTotal = plano.tipo_seguro === 'saude'
+    ? plano.valor_mensal * funcionariosAtivos.length
+    : plano.valor_mensal;
+
   const ticketMedio = plano.valor_mensal;
-  
-  // Simulação de comissão (5% da receita do plano)
-  const comissaoEstimada = custoPlanosAtivos * 0.05;
+
+  // Simulação de comissão (5% da receita total)
+  const comissaoEstimada = receitaTotal * 0.05;
 
   const indicadores = [
     {
