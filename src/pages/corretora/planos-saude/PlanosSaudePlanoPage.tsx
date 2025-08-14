@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Stethoscope, Settings } from 'lucide-react';
+import { Plus, ArrowLeft, Stethoscope, Settings, Edit } from 'lucide-react';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
+import { EditarPlanoSaudeModal } from '@/components/planos/EditarPlanoSaudeModal';
 
 interface PlanoDetalhes {
   id: string;
@@ -56,6 +57,7 @@ const PlanosSaudePlanoPage = () => {
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showConfigurarModal, setShowConfigurarModal] = useState(false);
+  const [showEditarModal, setShowEditarModal] = useState(false);
 
   console.log('🔍 PlanosSaudePlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
@@ -206,6 +208,11 @@ const PlanosSaudePlanoPage = () => {
     setShowConfigurarModal(true);
   };
 
+  const handleEditarPlano = () => {
+    console.log('🔧 Abrindo modal de edição de plano de saúde para CNPJ:', cnpjId);
+    setShowEditarModal(true);
+  };
+
   if (isRedirecting || autocorrectCheck?.needsRedirect) {
     return (
       <div className="container py-8">
@@ -305,10 +312,18 @@ const PlanosSaudePlanoPage = () => {
             {planoDetalhes?.cnpj_razao_social} ({planoDetalhes?.cnpj_numero})
           </p>
         </div>
-        <Button onClick={handleAddFuncionario}>
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar Funcionário
-        </Button>
+        <div className="flex gap-2">
+          {planoDetalhes && (
+            <Button variant="outline" onClick={handleEditarPlano}>
+              <Edit className="mr-2 h-4 w-4" />
+              Editar Plano
+            </Button>
+          )}
+          <Button onClick={handleAddFuncionario}>
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Funcionário
+          </Button>
+        </div>
       </div>
 
       <Separator className="mb-4" />
@@ -369,11 +384,22 @@ const PlanosSaudePlanoPage = () => {
       </Tabs>
 
       {cnpjId && (
-        <ConfigurarPlanoSaudeModal
-          open={showConfigurarModal}
-          onOpenChange={setShowConfigurarModal}
-          cnpjId={cnpjId}
-        />
+        <>
+          <ConfigurarPlanoSaudeModal
+            open={showConfigurarModal}
+            onOpenChange={setShowConfigurarModal}
+            cnpjId={cnpjId}
+          />
+          <EditarPlanoSaudeModal
+            open={showEditarModal}
+            onOpenChange={setShowEditarModal}
+            plano={planoDetalhes ? {
+              id: planoDetalhes.id,
+              seguradora: planoDetalhes.seguradora,
+              cnpj_razao_social: planoDetalhes.cnpj_razao_social
+            } : null}
+          />
+        </>
       )}
     </div>
   );
