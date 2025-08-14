@@ -32,6 +32,7 @@ interface FuncionarioPlano {
   id: string;
   nome: string;
   status: string;
+  idade: number;
 }
 interface PlanoVisaoGeralTabProps {
   plano: PlanoDetalhes;
