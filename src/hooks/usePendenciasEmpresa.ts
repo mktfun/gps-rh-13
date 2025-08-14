@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
@@ -33,7 +34,7 @@ export const usePendenciasEmpresa = () => {
 
       console.log('🔍 Buscando pendências da empresa:', empresaId);
 
-      const { data, error } = await supabase.rpc('get_pendencias_empresa', {
+      const { data, error } = await supabase.rpc('get_pendencias_empresa' as any, {
         p_empresa_id: empresaId
       });
 
@@ -48,7 +49,7 @@ export const usePendenciasEmpresa = () => {
             console.log('✅ Função criada com sucesso, tentando novamente...');
 
             // Try the query again after creating the function
-            const { data: retryData, error: retryError } = await supabase.rpc('get_pendencias_empresa', {
+            const { data: retryData, error: retryError } = await supabase.rpc('get_pendencias_empresa' as any, {
               p_empresa_id: empresaId
             });
 
@@ -57,8 +58,8 @@ export const usePendenciasEmpresa = () => {
               throw retryError;
             }
 
-            console.log('✅ Pendências encontradas após criar função:', retryData?.length || 0);
-            return retryData || [];
+            console.log('✅ Pendências encontradas após criar função:', Array.isArray(retryData) ? retryData.length : 0);
+            return Array.isArray(retryData) ? retryData : [];
           } else {
             console.error('❌ Não foi possível criar a função:', createResult.message);
             // Return empty array instead of throwing error to avoid breaking the UI
@@ -70,8 +71,8 @@ export const usePendenciasEmpresa = () => {
         }
       }
 
-      console.log('✅ Pendências encontradas:', data?.length || 0);
-      return data || [];
+      console.log('✅ Pendências encontradas:', Array.isArray(data) ? data.length : 0);
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!empresaId,
     staleTime: 1000 * 60 * 2, // 2 minutes

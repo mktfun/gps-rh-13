@@ -1,135 +1,119 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DateRangePicker } from '@/components/relatorios/DateRangePicker';
-import { DataTable } from '@/components/ui/data-table';
-import { PendenciasKPICards } from '@/components/relatorios/PendenciasKPICards';
-import PendenciasByTypeChart from '@/components/relatorios/PendenciasByTypeChart';
-import PendenciasTimelineChart from '@/components/relatorios/PendenciasTimelineChart';
-import PendenciasByCNPJChart from '@/components/relatorios/PendenciasByCNPJChart';
-import { createPendenciasTableColumns } from '@/components/relatorios/pendenciasDetailedTableColumns';
-import { usePendenciasReport } from '@/hooks/usePendenciasReport';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, Clock, AlertTriangle, CheckCircle, Download, Search } from 'lucide-react';
 import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
-import { useAllCnpjs } from '@/hooks/useAllCnpjs';
-import { useAuth } from '@/hooks/useAuth';
-import { useExportData, ExportField } from '@/hooks/useExportData';
-import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
-import { addDays, subDays } from 'date-fns';
-import type { DateRange } from 'react-day-picker';
+import { PendenciasBadges } from '@/components/relatorios/PendenciasBadges';
+import { TabelaPendenciasDetalhadas } from '@/components/relatorios/TabelaPendenciasDetalhadas';
+import { GraficoPendenciasPorTipo } from '@/components/relatorios/GraficoPendenciasPorTipo';
+import { GraficoPendenciasPorCnpj } from '@/components/relatorios/GraficoPendenciasPorCnpj';
+import { GraficoTimelineVencimentos } from '@/components/relatorios/GraficoTimelineVencimentos';
+import { FiltrosPendencias } from '@/components/relatorios/FiltrosPendencias';
 
-const RelatorioPendenciasEmpresaPage = () => {
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-    from: subDays(new Date(), 30),
-    to: new Date()
-  });
-  const [statusFilter, setStatusFilter] = useState<string>('todas');
-  const [tipoFilter, setTipoFilter] = useState<string>('todas');
-  const [cnpjFilter, setCnpjFilter] = useState<string>('todas');
-  const [searchValue, setSearchValue] = useState<string>('');
+interface PendenciasPorTipo {
+  tipo: string;
+  quantidade: number;
+  percentual: number;
+}
 
-  const { role } = useAuth();
-  const { cnpjs } = useAllCnpjs();
+interface PendenciasPorCnpj {
+  cnpj: string;
+  razao_social: string;
+  total_pendencias: number;
+  criticas: number;
+  urgentes: number;
+}
 
-  // Use different hook based on user role
-  const isEmpresa = role === 'empresa';
+interface TimelineVencimentos {
+  data_vencimento: string;
+  quantidade: number;
+  criticas: number;
+  urgentes: number;
+}
 
-  // For empresa users, use the specific empresa pendencias hook
-  const { data: empresaPendencias, isLoading: isLoadingEmpresa } = usePendenciasEmpresa();
+export default function RelatorioPendenciasEmpresaPage() {
+  const { data: pendencias = [], isLoading } = usePendenciasEmpresa();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState<string>('todos');
+  const [filtroStatus, setFiltroStatus] = useState<string>('todos');
+  const [filtroPrioridade, setFiltroPrioridade] = useState<string>('todos');
 
-  // For corretora users, use the general pendencias report hook
-  const { data: corretoraReportData, isLoading: isLoadingCorretora } = usePendenciasReport(
-    dateRange.from,
-    dateRange.to,
-    statusFilter,
-    tipoFilter,
-    cnpjFilter
-  );
+  // Aplicar filtros
+  const pendenciasFiltradas = useMemo(() => {
+    return pendencias.filter(pendencia => {
+      const matchSearch = searchTerm === '' || 
+        pendencia.funcionario_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pendencia.protocolo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pendencia.razao_social.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchTipo = filtroTipo === 'todos' || pendencia.tipo === filtroTipo;
+      const matchStatus = filtroStatus === 'todos' || pendencia.status === filtroStatus;
+      
+      // Safe arithmetic operation - check if dias_em_aberto is a number
+      const diasEmAberto = typeof pendencia.dias_em_aberto === 'number' ? pendencia.dias_em_aberto : 0;
+      const matchPrioridade = filtroPrioridade === 'todos' || 
+        (filtroPrioridade === 'critica' && diasEmAberto > 30) ||
+        (filtroPrioridade === 'urgente' && diasEmAberto > 15 && diasEmAberto <= 30) ||
+        (filtroPrioridade === 'normal' && diasEmAberto <= 15);
 
-  // Create adapter for empresa data to match expected format
-  const adaptEmpresaData = (empresaData: any[]) => {
-    if (!empresaData) return null;
+      return matchSearch && matchTipo && matchStatus && matchPrioridade;
+    });
+  }, [pendencias, searchTerm, filtroTipo, filtroStatus, filtroPrioridade]);
 
-    // Calculate priority based on database priority field and days open
-    const calculatePriority = (prioridade: number, dias: number) => {
-      // Database priority: 1 = Overdue, 2 = Due today, 3 = Future
-      if (prioridade === 1 || dias > 7) return 'critica';
-      if (prioridade === 2 || dias > 3) return 'urgente';
-      return 'normal';
+  // Calcular métricas
+  const metricas = useMemo(() => {
+    const total = pendenciasFiltradas.length;
+    const pendentesTotais = pendenciasFiltradas.filter(p => p.status === 'pendente').length;
+    
+    // Safe arithmetic operations
+    const criticas = pendenciasFiltradas.filter(p => {
+      const dias = typeof p.dias_em_aberto === 'number' ? p.dias_em_aberto : 0;
+      return dias > 30;
+    }).length;
+    
+    const urgentes = pendenciasFiltradas.filter(p => {
+      const dias = typeof p.dias_em_aberto === 'number' ? p.dias_em_aberto : 0;
+      return dias > 15 && dias <= 30;
+    }).length;
+
+    const mediaDias = total > 0 ? 
+      pendenciasFiltradas.reduce((acc, p) => {
+        const dias = typeof p.dias_em_aberto === 'number' ? p.dias_em_aberto : 0;
+        return acc + dias;
+      }, 0) / total : 0;
+
+    return {
+      total,
+      pendentes: pendentesTotais,
+      criticas,
+      urgentes,
+      mediaDias: Math.round(mediaDias)
     };
+  }, [pendenciasFiltradas]);
 
-    const kpis = {
-      total_pendencias: empresaData.length,
-      pendencias_criticas: empresaData.filter(p => calculatePriority(p.prioridade, p.dias_em_aberto) === 'critica').length,
-      pendencias_urgentes: empresaData.filter(p => calculatePriority(p.prioridade, p.dias_em_aberto) === 'urgente').length,
-      pendencias_normais: empresaData.filter(p => calculatePriority(p.prioridade, p.dias_em_aberto) === 'normal').length,
-    };
-
-    const tabela_detalhada = empresaData.map((p) => ({
-      id: p.id,
-      protocolo: p.protocolo,
-      tipo: p.tipo as 'documentacao' | 'ativacao' | 'alteracao' | 'cancelamento',
-      funcionario_nome: p.funcionario_nome,
-      funcionario_cpf: p.funcionario_cpf,
-      cnpj: p.cnpj,
-      razao_social: p.razao_social,
-      descricao: p.descricao,
-      data_criacao: p.data_criacao,
-      data_vencimento: p.data_vencimento,
-      status_prioridade: calculatePriority(p.prioridade, p.dias_em_aberto) as 'critica' | 'urgente' | 'normal',
-      dias_em_aberto: p.dias_em_aberto,
-      comentarios_count: p.comentarios_count
-    }));
-
-    // Group by type for chart
-    const tiposCounts = empresaData.reduce((acc, p) => {
+  // Dados para gráficos com safe type handling
+  const dadosPorTipo = useMemo(() => {
+    const tiposCount = pendenciasFiltradas.reduce((acc, p) => {
       acc[p.tipo] = (acc[p.tipo] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const pendencias_por_tipo = Object.entries(tiposCounts).map(([tipo, quantidade]) => ({
+    const total = Object.values(tiposCount).reduce((sum, count) => sum + count, 0);
+
+    return Object.entries(tiposCount).map(([tipo, quantidade]): PendenciasPorTipo => ({
       tipo,
-      quantidade,
-      percentual: Math.round((quantidade / empresaData.length) * 100)
+      quantidade: Number(quantidade) || 0,
+      percentual: total > 0 ? Math.round((Number(quantidade) / total) * 100) : 0
     }));
+  }, [pendenciasFiltradas]);
 
-    // Generate timeline data based on due dates
-    const today = new Date();
-    const timelineData = empresaData
-      .filter(p => p.data_vencimento) // Only items with due dates
-      .reduce((acc, p) => {
-        const vencimento = new Date(p.data_vencimento);
-        const dateKey = vencimento.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-        if (!acc[dateKey]) {
-          acc[dateKey] = {
-            data_vencimento: dateKey,
-            quantidade: 0,
-            criticas: 0,
-            urgentes: 0
-          };
-        }
-
-        acc[dateKey].quantidade += 1;
-
-        const priority = calculatePriority(p.prioridade, p.dias_em_aberto);
-        if (priority === 'critica') {
-          acc[dateKey].criticas += 1;
-        } else if (priority === 'urgente') {
-          acc[dateKey].urgentes += 1;
-        }
-
-        return acc;
-      }, {} as Record<string, any>);
-
-    const timeline_vencimentos = Object.values(timelineData)
-      .sort((a: any, b: any) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime());
-
-    // Generate CNPJ distribution data
-    const cnpjCounts = empresaData.reduce((acc, p) => {
-      const key = `${p.cnpj} - ${p.razao_social}`;
+  const dadosPorCnpj = useMemo(() => {
+    const cnpjsData = pendenciasFiltradas.reduce((acc, p) => {
+      const key = p.cnpj;
       if (!acc[key]) {
         acc[key] = {
           cnpj: p.cnpj,
@@ -139,254 +123,134 @@ const RelatorioPendenciasEmpresaPage = () => {
           urgentes: 0
         };
       }
-
-      acc[key].total_pendencias += 1;
-
-      const priority = calculatePriority(p.prioridade, p.dias_em_aberto);
-      if (priority === 'critica') {
-        acc[key].criticas += 1;
-      } else if (priority === 'urgente') {
-        acc[key].urgentes += 1;
-      }
-
+      
+      acc[key].total_pendencias++;
+      
+      const dias = typeof p.dias_em_aberto === 'number' ? p.dias_em_aberto : 0;
+      if (dias > 30) acc[key].criticas++;
+      else if (dias > 15) acc[key].urgentes++;
+      
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, PendenciasPorCnpj>);
 
-    const pendencias_por_cnpj = Object.values(cnpjCounts)
-      .sort((a: any, b: any) => b.total_pendencias - a.total_pendencias); // Sort by quantity descending
+    return Object.values(cnpjsData);
+  }, [pendenciasFiltradas]);
 
-    return {
-      kpis,
-      tabela_detalhada,
-      pendencias_por_tipo,
-      timeline_vencimentos,
-      pendencias_por_cnpj
-    };
-  };
+  const timelineVencimentos = useMemo(() => {
+    const vencimentosData = pendenciasFiltradas.reduce((acc, p) => {
+      const key = p.data_vencimento;
+      if (!acc[key]) {
+        acc[key] = {
+          data_vencimento: key,
+          quantidade: 0,
+          criticas: 0,
+          urgentes: 0
+        };
+      }
+      
+      acc[key].quantidade++;
+      
+      const dias = typeof p.dias_em_aberto === 'number' ? p.dias_em_aberto : 0;
+      if (dias > 30) acc[key].criticas++;
+      else if (dias > 15) acc[key].urgentes++;
+      
+      return acc;
+    }, {} as Record<string, TimelineVencimentos>);
 
-  // Determine which data to use
-  const reportData = isEmpresa ? adaptEmpresaData(empresaPendencias) : corretoraReportData;
-  const isLoading = isEmpresa ? isLoadingEmpresa : isLoadingCorretora;
-
-  const {
-    openExportPreview,
-    formatCurrency,
-    formatCPF,
-    formatDate,
-    formatDateTime
-  } = useExportData();
-
-  const columns = createPendenciasTableColumns();
-
-  // Filtrar dados da tabela por busca
-  const filteredTableData = reportData?.tabela_detalhada?.filter(item => {
-    if (!searchValue) return true;
-    const searchLower = searchValue.toLowerCase();
-    return (
-      item.protocolo.toLowerCase().includes(searchLower) ||
-      item.funcionario_nome.toLowerCase().includes(searchLower) ||
-      item.descricao.toLowerCase().includes(searchLower) ||
-      item.razao_social.toLowerCase().includes(searchLower)
+    return Object.values(vencimentosData).sort((a, b) => 
+      new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime()
     );
-  }) || [];
+  }, [pendenciasFiltradas]);
 
-  const handleExport = () => {
-    if (!filteredTableData || filteredTableData.length === 0) {
-      console.log('Nenhum dado para exportar');
-      return;
-    }
+  const exportarRelatorio = () => {
+    const csvContent = [
+      ['Protocolo', 'Tipo', 'Funcionário', 'CPF', 'CNPJ', 'Razão Social', 'Status', 'Dias em Aberto', 'Data Vencimento'].join(','),
+      ...pendenciasFiltradas.map(p => [
+        p.protocolo,
+        p.tipo,
+        p.funcionario_nome,
+        p.funcionario_cpf,
+        p.cnpj,
+        p.razao_social,
+        p.status,
+        p.dias_em_aberto,
+        p.data_vencimento
+      ].join(','))
+    ].join('\n');
 
-    const exportFields: ExportField[] = [
-      { key: 'protocolo', label: 'Protocolo', selected: true },
-      { key: 'tipo', label: 'Tipo', selected: true },
-      { key: 'funcionario_nome', label: 'Nome do Funcionário', selected: true },
-      { key: 'funcionario_cpf', label: 'CPF do Funcionário', selected: true, format: formatCPF },
-      { key: 'razao_social', label: 'Razão Social', selected: true },
-      { key: 'cnpj', label: 'CNPJ', selected: true },
-      { key: 'descricao', label: 'Descrição', selected: true },
-      { key: 'data_criacao', label: 'Data de Criação', selected: true, format: formatDate },
-      { key: 'data_vencimento', label: 'Data de Vencimento', selected: true, format: formatDate },
-      { key: 'status_prioridade', label: 'Prioridade', selected: true },
-      { key: 'dias_em_aberto', label: 'Dias em Aberto', selected: true },
-      { key: 'comentarios_count', label: 'Qtd. Comentários', selected: true }
-    ];
-
-    const filename = `relatorio-pendencias-${new Date().toISOString().split('T')[0]}`;
-    
-    openExportPreview(filteredTableData, exportFields, filename);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pendencias_empresa_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    if (range?.from && range?.to) {
-      setDateRange({
-        from: range.from,
-        to: range.to
-      });
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Relatório de Pendências</h1>
-          <p className="text-muted-foreground">
-            Análise completa de pendências e solicitações em aberto
+          <h1 className="text-3xl font-bold text-gray-900">Relatório de Pendências</h1>
+          <p className="text-gray-600 mt-1">
+            Acompanhe todas as pendências da sua empresa
           </p>
         </div>
-        <Button onClick={handleExport} className="gap-2">
+        <Button onClick={exportarRelatorio} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
-          Exportar Excel
+          Exportar CSV
         </Button>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Período</label>
-              <DateRangePicker
-                dateRange={dateRange}
-                onDateRangeChange={handleDateRangeChange}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas</SelectItem>
-                  <SelectItem value="critica">Críticas</SelectItem>
-                  <SelectItem value="urgente">Urgentes</SelectItem>
-                  <SelectItem value="normal">Normais</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Tipo</label>
-              <Select value={tipoFilter} onValueChange={setTipoFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas</SelectItem>
-                  <SelectItem value="documentacao">Documentação</SelectItem>
-                  <SelectItem value="ativacao">Ativação</SelectItem>
-                  <SelectItem value="alteracao">Alteração</SelectItem>
-                  <SelectItem value="cancelamento">Cancelamento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">CNPJ</label>
-              <Select value={cnpjFilter} onValueChange={setCnpjFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o CNPJ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas empresas</SelectItem>
-                  {cnpjs?.map(cnpj => (
-                    <SelectItem key={cnpj.id} value={cnpj.id}>
-                      {cnpj.razao_social}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Buscar</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Protocolo, funcionário..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Badges de métricas */}
+      <PendenciasBadges 
+        total={metricas.total}
+        pendentes={metricas.pendentes}
+        criticas={metricas.criticas}
+        urgentes={metricas.urgentes}
+        mediaDias={metricas.mediaDias}
+      />
 
-      {/* KPIs */}
-      <PendenciasKPICards
-        totalPendencias={reportData?.kpis.total_pendencias || 0}
-        pendenciasCriticas={reportData?.kpis.pendencias_criticas || 0}
-        pendenciasUrgentes={reportData?.kpis.pendencias_urgentes || 0}
-        pendenciasNormais={reportData?.kpis.pendencias_normais || 0}
-        isLoading={isLoading}
+      {/* Filtros */}
+      <FiltrosPendencias
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filtroTipo={filtroTipo}
+        onTipoChange={setFiltroTipo}
+        filtroStatus={filtroStatus}
+        onStatusChange={setFiltroStatus}
+        filtroPrioridade={filtroPrioridade}
+        onPrioridadeChange={setFiltroPrioridade}
+        tipos={[...new Set(pendencias.map(p => p.tipo))]}
       />
 
       {/* Gráficos */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Pendências por Tipo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PendenciasByTypeChart dados={reportData?.pendencias_por_tipo || []} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Timeline de Vencimentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PendenciasTimelineChart dados={reportData?.timeline_vencimentos || []} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Pendências por CNPJ
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PendenciasByCNPJChart dados={reportData?.pendencias_por_cnpj || []} />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GraficoPendenciasPorTipo dados={dadosPorTipo} />
+        <GraficoPendenciasPorCnpj dados={dadosPorCnpj} />
       </div>
 
-      {/* Tabela Detalhada */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Table className="h-5 w-5" />
-            Pendências Detalhadas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={columns}
-            data={filteredTableData}
-            isLoading={isLoading}
-            emptyStateTitle="Nenhuma pendência encontrada"
-            emptyStateDescription="Tente ajustar os filtros para encontrar pendências."
-          />
-        </CardContent>
-      </Card>
+      <GraficoTimelineVencimentos dados={timelineVencimentos} />
+
+      {/* Tabela detalhada */}
+      <TabelaPendenciasDetalhadas pendencias={pendenciasFiltradas} />
     </div>
   );
-};
-
-export default RelatorioPendenciasEmpresaPage;
+}

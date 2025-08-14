@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -45,9 +46,9 @@ export const PendenciasRLSDebug: React.FC = () => {
       if (profileError) throw profileError;
       debugResult.profile = profile;
 
-      // 3. Test RLS debug function
+      // 3. Test RLS debug function with type assertion
       const { data: debugRLS, error: debugRLSError } = await supabase
-        .rpc('debug_pendencias_permissions', { 
+        .rpc('debug_pendencias_permissions' as any, { 
           p_corretora_id: corretoraId || profile.id 
         });
       

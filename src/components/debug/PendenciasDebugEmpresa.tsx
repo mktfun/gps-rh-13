@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
@@ -8,7 +9,7 @@ interface DebugResult {
   funcionariosPendentes: any[];
   pendenciasExistentes: any[];
   empresaId: string | null;
-  repairResult?: any[];
+  repairResult?: any;
   error?: string;
 }
 
@@ -53,12 +54,12 @@ export const PendenciasDebugEmpresa: React.FC = () => {
       if (funcionariosError) throw funcionariosError;
       debugResult.funcionariosPendentes = funcionariosPendentes || [];
 
-      // 2. Buscar pendências existentes para a empresa
+      // 2. Buscar pendências existentes para a empresa com type assertion
       const { data: pendenciasExistentes, error: pendenciasError } = await supabase
-        .rpc('get_pendencias_empresa', { p_empresa_id: empresaId });
+        .rpc('get_pendencias_empresa' as any, { p_empresa_id: empresaId });
 
       if (pendenciasError) throw pendenciasError;
-      debugResult.pendenciasExistentes = pendenciasExistentes || [];
+      debugResult.pendenciasExistentes = Array.isArray(pendenciasExistentes) ? pendenciasExistentes : [];
 
       setResult(debugResult);
     } catch (error) {
@@ -80,7 +81,7 @@ export const PendenciasDebugEmpresa: React.FC = () => {
 
     try {
       const { data: repairResult, error: repairError } = await supabase
-        .rpc('repair_missing_pendencias_for_empresa', { p_empresa_id: empresaId });
+        .rpc('repair_missing_pendencias_for_empresa' as any, { p_empresa_id: empresaId });
 
       if (repairError) throw repairError;
 

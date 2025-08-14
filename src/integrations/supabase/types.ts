@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -862,25 +862,25 @@ export type Database = {
       create_plano: {
         Args: {
           p_cnpj_id: string
-          p_seguradora: string
-          p_valor_mensal: number
+          p_cobertura_auxilio_funeral: number
+          p_cobertura_invalidez_acidente: number
           p_cobertura_morte: number
           p_cobertura_morte_acidental: number
-          p_cobertura_invalidez_acidente: number
-          p_cobertura_auxilio_funeral: number
+          p_seguradora: string
+          p_valor_mensal: number
         }
         Returns: Json
       }
       create_plano_v2: {
         Args: {
           p_cnpj_id: string
-          p_seguradora: string
-          p_valor_mensal: number
+          p_cobertura_auxilio_funeral: number
+          p_cobertura_invalidez_acidente: number
           p_cobertura_morte: number
           p_cobertura_morte_acidental: number
-          p_cobertura_invalidez_acidente: number
-          p_cobertura_auxilio_funeral: number
+          p_seguradora: string
           p_tipo_seguro?: Database["public"]["Enums"]["tipo_seguro"]
+          p_valor_mensal: number
         }
         Returns: Json
       }
@@ -926,29 +926,29 @@ export type Database = {
       }
       get_audit_logs: {
         Args: {
+          p_action_type?: string
+          p_end_date?: string
           p_limit?: number
           p_offset?: number
-          p_user_email?: string
-          p_action_type?: string
           p_start_date?: string
-          p_end_date?: string
+          p_user_email?: string
         }
         Returns: {
-          id: string
-          user_email: string
           action_type: string
-          entity_id: string
-          table_name: string
-          details: Json
           created_at: string
+          details: Json
+          entity_id: string
+          id: string
+          table_name: string
+          user_email: string
         }[]
       }
       get_conversas_usuario: {
         Args: Record<PropertyKey, never>
         Returns: {
           conversa_id: string
-          empresa_nome: string
           created_at: string
+          empresa_nome: string
           protocolo: string
         }[]
       }
@@ -961,21 +961,21 @@ export type Database = {
         Returns: Json
       }
       get_detailed_costs_report: {
-        Args: { p_empresa_id: string; p_start_date: string; p_end_date: string }
+        Args: { p_empresa_id: string; p_end_date: string; p_start_date: string }
         Returns: Json
       }
       get_distribuicao_status_funcionarios: {
         Args: Record<PropertyKey, never>
         Returns: {
-          status: string
           count: number
+          status: string
         }[]
       }
       get_empresa_dashboard_metrics: {
         Args:
           | Record<PropertyKey, never>
           | { p_empresa_id: string }
-          | { p_empresa_id: string; p_start_date: string; p_end_date: string }
+          | { p_empresa_id: string; p_end_date: string; p_start_date: string }
         Returns: Json
       }
       get_empresa_distribuicao_cargos: {
@@ -995,38 +995,38 @@ export type Database = {
       get_empresa_planos_unificados: {
         Args: { p_empresa_id: string }
         Returns: {
-          plano_id: string
           cnpj_id: string
-          seguradora: string
-          valor_unitario: number
-          cobertura_morte: number
-          cobertura_morte_acidental: number
-          cobertura_invalidez_acidente: number
-          cobertura_auxilio_funeral: number
           cnpj_numero: string
           cnpj_razao_social: string
+          cobertura_auxilio_funeral: number
+          cobertura_invalidez_acidente: number
+          cobertura_morte: number
+          cobertura_morte_acidental: number
+          custo_mensal_real: number
           funcionarios_ativos: number
           funcionarios_pendentes: number
+          plano_id: string
+          seguradora: string
           total_funcionarios: number
-          custo_mensal_real: number
+          valor_unitario: number
         }[]
       }
       get_empresas_com_metricas: {
         Args: Record<PropertyKey, never> | { p_corretora_id: string }
         Returns: {
+          custo_mensal_total: number
+          email: string
           id: string
           nome: string
           responsavel: string
-          email: string
           telefone: string
           total_cnpjs: number
           total_funcionarios: number
           total_funcionarios_ativos: number
-          custo_mensal_total: number
         }[]
       }
       get_empresas_com_planos_por_tipo: {
-        Args: { p_tipo_seguro: string; p_corretora_id: string }
+        Args: { p_corretora_id: string; p_tipo_seguro: string }
         Returns: {
           id: string
           nome: string
@@ -1036,47 +1036,47 @@ export type Database = {
       get_funcionarios_arquivados: {
         Args: { p_cnpj_id: string }
         Returns: {
-          id: string
-          nome: string
-          cpf: string
-          data_nascimento: string
-          idade: number
           cargo: string
-          salario: number
-          estado_civil: Database["public"]["Enums"]["estado_civil"]
-          email: string
           cnpj_id: string
-          status: Database["public"]["Enums"]["funcionario_status"]
+          cpf: string
           created_at: string
-          updated_at: string
-          data_solicitacao_exclusao: string
           data_exclusao: string
+          data_nascimento: string
+          data_solicitacao_exclusao: string
+          email: string
+          estado_civil: Database["public"]["Enums"]["estado_civil"]
+          id: string
+          idade: number
           motivo_exclusao: string
-          usuario_solicitante: string
+          nome: string
+          salario: number
+          status: Database["public"]["Enums"]["funcionario_status"]
+          updated_at: string
           usuario_executor: string
+          usuario_solicitante: string
         }[]
       }
       get_funcionarios_ativos: {
         Args: { p_cnpj_id: string }
         Returns: {
-          id: string
-          nome: string
-          cpf: string
-          data_nascimento: string
-          idade: number
           cargo: string
-          salario: number
-          estado_civil: Database["public"]["Enums"]["estado_civil"]
-          email: string
           cnpj_id: string
-          status: Database["public"]["Enums"]["funcionario_status"]
+          cpf: string
           created_at: string
-          updated_at: string
-          data_solicitacao_exclusao: string
           data_exclusao: string
+          data_nascimento: string
+          data_solicitacao_exclusao: string
+          email: string
+          estado_civil: Database["public"]["Enums"]["estado_civil"]
+          id: string
+          idade: number
           motivo_exclusao: string
-          usuario_solicitante: string
+          nome: string
+          salario: number
+          status: Database["public"]["Enums"]["funcionario_status"]
+          updated_at: string
           usuario_executor: string
+          usuario_solicitante: string
         }[]
       }
       get_funcionarios_ativos_count: {
@@ -1086,42 +1086,42 @@ export type Database = {
       get_funcionarios_empresa_completo: {
         Args: {
           p_empresa_id: string
+          p_page_num?: number
+          p_page_size?: number
           p_search_term?: string
           p_status_filter?: string
-          p_page_size?: number
-          p_page_num?: number
         }
         Returns: {
-          funcionario_id: string
-          nome: string
-          cpf: string
           cargo: string
-          salario: number
-          status: string
-          idade: number
-          data_nascimento: string
-          estado_civil: string
-          email: string
-          created_at: string
-          updated_at: string
           cnpj_id: string
-          cnpj_razao_social: string
           cnpj_numero: string
+          cnpj_razao_social: string
+          cpf: string
+          created_at: string
+          data_nascimento: string
+          email: string
+          estado_civil: string
+          funcionario_id: string
+          idade: number
+          nome: string
+          plano_cobertura_morte: number
           plano_seguradora: string
           plano_valor_mensal: number
-          plano_cobertura_morte: number
+          salario: number
+          status: string
           total_count: number
+          updated_at: string
         }[]
       }
       get_funcionarios_fora_do_plano: {
-        Args: { p_plano_id: string; p_cnpj_id: string }
+        Args: { p_cnpj_id: string; p_plano_id: string }
         Returns: {
-          id: string
-          nome: string
-          cpf: string
           cargo: string
-          salario: number
+          cpf: string
+          id: string
           idade: number
+          nome: string
+          salario: number
           status: string
         }[]
       }
@@ -1137,35 +1137,55 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_pendencias_empresa: {
+        Args: { p_empresa_id: string }
+        Returns: {
+          cnpj: string
+          comentarios_count: number
+          corretora_id: string
+          data_criacao: string
+          data_vencimento: string
+          descricao: string
+          dias_em_aberto: number
+          funcionario_cpf: string
+          funcionario_nome: string
+          id: string
+          prioridade: number
+          protocolo: string
+          razao_social: string
+          status: string
+          tipo: string
+        }[]
+      }
       get_plano_detalhes: {
         Args: { p_plano_id: string }
         Returns: {
-          id: string
-          seguradora: string
-          valor_mensal: number
-          cobertura_morte: number
-          cobertura_morte_acidental: number
-          cobertura_invalidez_acidente: number
-          cobertura_auxilio_funeral: number
           cnpj_id: string
           cnpj_numero: string
           cnpj_razao_social: string
+          cobertura_auxilio_funeral: number
+          cobertura_invalidez_acidente: number
+          cobertura_morte: number
+          cobertura_morte_acidental: number
           empresa_nome: string
+          id: string
+          seguradora: string
+          valor_mensal: number
         }[]
       }
       get_planos_por_empresa: {
         Args: { p_empresa_id: string }
         Returns: {
-          id: string
-          seguradora: string
-          valor_mensal: number
-          cobertura_morte: number
-          cobertura_morte_acidental: number
-          cobertura_invalidez_acidente: number
-          cobertura_auxilio_funeral: number
           cnpj_id: string
           cnpj_numero: string
           cnpj_razao_social: string
+          cobertura_auxilio_funeral: number
+          cobertura_invalidez_acidente: number
+          cobertura_morte: number
+          cobertura_morte_acidental: number
+          id: string
+          seguradora: string
+          valor_mensal: number
         }[]
       }
       get_pulse_financeiro_corretor: {
@@ -1175,47 +1195,47 @@ export type Database = {
       get_relatorio_custos_empresa: {
         Args: {
           p_empresa_id: string
-          p_page_size?: number
           p_page_offset?: number
+          p_page_size?: number
         }
         Returns: {
           cnpj_razao_social: string
-          funcionario_nome: string
           funcionario_cpf: string
-          valor_individual: number
+          funcionario_nome: string
           status: string
           total_cnpj: number
           total_count: number
+          valor_individual: number
         }[]
       }
       get_relatorio_financeiro_corretora: {
         Args: { p_corretora_id: string }
         Returns: {
+          custo_total_mensal: number
           empresa_id: string
           empresa_nome: string
           total_cnpjs_ativos: number
           total_funcionarios_segurados: number
-          custo_total_mensal: number
         }[]
       }
       get_relatorio_funcionarios_empresa: {
         Args:
-          | { p_empresa_id: string; p_cnpj_id?: string }
+          | { p_cnpj_id?: string; p_empresa_id: string }
           | {
-              p_empresa_id: string
               p_cnpj_id?: string
-              p_page_size?: number
+              p_empresa_id: string
               p_page_offset?: number
+              p_page_size?: number
             }
         Returns: {
+          cargo: string
+          cnpj_razao_social: string
+          cpf: string
+          data_contratacao: string
           funcionario_id: string
           nome: string
-          cpf: string
-          cargo: string
           salario: number
           status: string
-          cnpj_razao_social: string
-          data_contratacao: string
           total_count: number
         }[]
       }
@@ -1226,41 +1246,41 @@ export type Database = {
           p_status?: string
         }
         Returns: {
+          cnpj_numero: string
+          cnpj_razao_social: string
+          empresa_nome: string
+          funcionario_cargo: string
+          funcionario_cpf: string
+          funcionario_data_contratacao: string
           funcionario_id: string
           funcionario_nome: string
-          funcionario_cpf: string
-          funcionario_cargo: string
           funcionario_salario: number
           funcionario_status: string
-          funcionario_data_contratacao: string
-          empresa_nome: string
-          cnpj_razao_social: string
-          cnpj_numero: string
         }[]
       }
       get_relatorio_movimentacao_corretora: {
         Args: {
           p_corretora_id: string
-          p_data_inicio: string
           p_data_fim: string
+          p_data_inicio: string
         }
         Returns: {
-          mes: string
-          inclusoes: number
           exclusoes: number
+          inclusoes: number
+          mes: string
           saldo: number
         }[]
       }
       get_relatorio_pendencias_empresa: {
         Args: { p_empresa_id: string }
         Returns: {
-          funcionario_nome: string
-          cpf: string
           cargo: string
-          status: string
           cnpj_razao_social: string
+          cpf: string
           data_solicitacao: string
+          funcionario_nome: string
           motivo: string
+          status: string
         }[]
       }
       get_smart_actions_corretor: {
@@ -1276,7 +1296,7 @@ export type Database = {
         Returns: string
       }
       iniciar_conversa_com_protocolo: {
-        Args: { p_empresa_id: string; p_assunto_id: string }
+        Args: { p_assunto_id: string; p_empresa_id: string }
         Returns: string
       }
       iniciar_ou_obter_conversa_por_protocolo: {
@@ -1299,10 +1319,19 @@ export type Database = {
         Args: { _name: string }
         Returns: string
       }
+      repair_missing_pendencias_for_empresa: {
+        Args: { p_empresa_id?: string }
+        Returns: {
+          erro: string
+          funcionario_id: string
+          funcionario_nome: string
+          pendencia_criada: boolean
+        }[]
+      }
       resolver_exclusao_funcionario: {
         Args:
-          | { p_funcionario_id: string; p_acao: string; p_executor_id: string }
-          | { p_funcionario_id: string; p_aprovado: boolean }
+          | { p_acao: string; p_executor_id: string; p_funcionario_id: string }
+          | { p_aprovado: boolean; p_funcionario_id: string }
         Returns: undefined
       }
       solicitar_exclusao_funcionario: {
@@ -1315,26 +1344,26 @@ export type Database = {
       }
       update_plano: {
         Args: {
+          p_cobertura_auxilio_funeral: number
+          p_cobertura_invalidez_acidente: number
+          p_cobertura_morte: number
+          p_cobertura_morte_acidental: number
           p_plano_id: string
           p_seguradora: string
           p_valor_mensal: number
-          p_cobertura_morte: number
-          p_cobertura_morte_acidental: number
-          p_cobertura_invalidez_acidente: number
-          p_cobertura_auxilio_funeral: number
         }
         Returns: Json
       }
       update_plano_v2: {
         Args: {
-          p_plano_id: string
-          p_seguradora: string
-          p_valor_mensal: number
+          p_cobertura_auxilio_funeral: number
+          p_cobertura_invalidez_acidente: number
           p_cobertura_morte: number
           p_cobertura_morte_acidental: number
-          p_cobertura_invalidez_acidente: number
-          p_cobertura_auxilio_funeral: number
+          p_plano_id: string
+          p_seguradora: string
           p_tipo_seguro?: Database["public"]["Enums"]["tipo_seguro"]
+          p_valor_mensal: number
         }
         Returns: Json
       }

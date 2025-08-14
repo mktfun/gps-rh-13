@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export const createGetPendenciasEmpresaFunction = async (): Promise<{ success: boolean; message: string }> => {
@@ -49,8 +50,8 @@ export const createGetPendenciasEmpresaFunction = async (): Promise<{ success: b
       GRANT EXECUTE ON FUNCTION public.get_pendencias_empresa(UUID) TO authenticated;
     `;
 
-    // Try using exec_sql RPC first
-    const { error: execError } = await supabase.rpc('exec_sql', {
+    // Try using exec_sql RPC first with type assertion
+    const { error: execError } = await supabase.rpc('exec_sql' as any, {
       sql: functionSQL
     });
 
@@ -62,7 +63,7 @@ export const createGetPendenciasEmpresaFunction = async (): Promise<{ success: b
     console.log('⚠️ exec_sql não funcionou, tentando abordagem alternativa...');
 
     // Alternative approach: Test if we can call the function and handle 404 gracefully
-    const { data, error: testError } = await supabase.rpc('get_pendencias_empresa', {
+    const { data, error: testError } = await supabase.rpc('get_pendencias_empresa' as any, {
       p_empresa_id: '00000000-0000-0000-0000-000000000000'
     });
 
@@ -91,7 +92,7 @@ export const testGetPendenciasEmpresaFunction = async (empresaId: string): Promi
   try {
     console.log('🧪 Testando função get_pendencias_empresa com empresa ID:', empresaId);
     
-    const { data, error } = await supabase.rpc('get_pendencias_empresa', {
+    const { data, error } = await supabase.rpc('get_pendencias_empresa' as any, {
       p_empresa_id: empresaId
     });
 
@@ -108,10 +109,11 @@ export const testGetPendenciasEmpresaFunction = async (empresaId: string): Promi
       };
     }
 
-    console.log('✅ Função executada com sucesso, retornou', data?.length || 0, 'pendências');
+    const dataLength = Array.isArray(data) ? data.length : 0;
+    console.log('✅ Função executada com sucesso, retornou', dataLength, 'pendências');
     return { 
       success: true, 
-      message: `Função funcionando! Encontradas ${data?.length || 0} pendências`,
+      message: `Função funcionando! Encontradas ${dataLength} pendências`,
       data 
     };
 

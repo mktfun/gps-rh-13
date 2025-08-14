@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -129,7 +130,7 @@ export const SqlExecutor = () => {
       `;
 
       console.log('🔧 Executando correção SQL...');
-      const { data, error } = await supabase.rpc('exec_sql', { sql: sqlFix });
+      const { data, error } = await supabase.rpc('exec_sql' as any, { sql: sqlFix });
       
       if (error) {
         throw error;
