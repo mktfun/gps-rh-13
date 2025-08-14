@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PlanoInfoFormModal } from './PlanoInfoFormModal';
 import { PlanoCoberturasFormModal } from './PlanoCoberturasFormModal';
 import { PlanoAlertas } from './PlanoAlertas';
-import { AcoesRapidas } from './AcoesRapidas';
+import { AcoesRapidasInteligentes } from './AcoesRapidasInteligentes';
 import { IndicadoresFinanceiros } from './IndicadoresFinanceiros';
 import { GestorPendencias } from './GestorPendencias';
 import { ValoresVidaTable } from '@/components/planos/ValoresVidaTable';
