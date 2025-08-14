@@ -158,8 +158,19 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
       {/* Alertas Críticos */}
       <PlanoAlertas funcionarios={funcionarios} plano={plano} />
 
-      {/* Aç��es Rápidas */}
-      <AcoesRapidas funcionarios={funcionarios} plano={plano} onAtivarPendentes={handleAtivarPendentes} onGerarRelatorio={handleGerarRelatorio} onEditarPlano={() => setIsInfoModalOpen(true)} onAdicionarFuncionario={onAddFuncionario} />
+      {/* Ações Operacionais Inteligentes */}
+      <AcoesRapidasInteligentes
+        funcionarios={funcionarios}
+        plano={{
+          id: plano.id,
+          seguradora: plano.seguradora,
+          valor_mensal: plano.valor_mensal,
+          empresa_nome: plano.empresa_nome
+        }}
+        onGerarRelatorio={handleGerarRelatorio}
+        onEditarPlano={() => setIsInfoModalOpen(true)}
+        onAdicionarFuncionario={onAddFuncionario}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Indicadores Financeiros */}
