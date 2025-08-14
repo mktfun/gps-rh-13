@@ -48,14 +48,29 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
   const { data: funcionariosDisponiveis, isLoading } = useQuery({
     queryKey: ['funcionarios-disponiveis', cnpjId, planoId],
     queryFn: async (): Promise<FuncionarioDisponivel[]> => {
-      if (!cnpjId || !planoId) return [];
+      if (!cnpjId || !planoId) {
+        console.log('📝 Missing required IDs:', { cnpjId, planoId });
+        return [];
+      }
 
-      // Validate UUID format to prevent injection
+      // Clean and validate UUID format to prevent injection
+      const cleanCnpjId = cnpjId.trim();
+      const cleanPlanoId = planoId.trim();
+
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(cnpjId) || !uuidRegex.test(planoId)) {
-        console.error('Invalid UUID format:', { cnpjId, planoId });
+      if (!uuidRegex.test(cleanCnpjId) || !uuidRegex.test(cleanPlanoId)) {
+        console.error('❌ Invalid UUID format:', {
+          cnpjId: cleanCnpjId,
+          planoId: cleanPlanoId,
+          cnpjIdLength: cleanCnpjId.length,
+          planoIdLength: cleanPlanoId.length,
+          cnpjIdBytes: [...cleanCnpjId].map(c => c.charCodeAt(0)),
+          planoIdBytes: [...cleanPlanoId].map(c => c.charCodeAt(0))
+        });
         throw new Error('IDs inválidos fornecidos');
       }
+
+      console.log('✅ Valid UUIDs:', { cnpjId: cleanCnpjId, planoId: cleanPlanoId });
 
       // First get funcionarios IDs that are already in this plan
       const { data: funcionariosNoPlano, error: errorPlano } = await supabase
