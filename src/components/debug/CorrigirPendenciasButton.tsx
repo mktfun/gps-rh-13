@@ -25,8 +25,8 @@ export const CorrigirPendenciasButton: React.FC<CorrigirPendenciasButtonProps> =
     setResult(null);
 
     try {
-      console.log('🔧 Iniciando correção de pendências...');
-      const resultado = await criarPendenciasPendentesEmFalta();
+      console.log('🔧 Iniciando teste de criação de pendência...');
+      const resultado = await criarPendenciaSimplesDebug();
       
       setResult(resultado);
       
