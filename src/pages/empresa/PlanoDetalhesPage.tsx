@@ -21,7 +21,7 @@ interface PlanoDetalhesPageProps {
 }
 
 export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isAdicionarFuncionariosModalOpen, setIsAdicionarFuncionariosModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
