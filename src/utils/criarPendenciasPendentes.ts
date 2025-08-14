@@ -130,6 +130,8 @@ export const criarPendenciasPendentesEmFalta = async () => {
     }
 
     // 4. Inserir todas as pendências de uma vez
+    console.log(`📝 Tentando criar ${pendenciasParaCriar.length} pendências...`);
+
     const { data: pendenciasCriadas, error: errorInserir } = await supabase
       .from('pendencias')
       .insert(pendenciasParaCriar)
@@ -137,7 +139,12 @@ export const criarPendenciasPendentesEmFalta = async () => {
 
     if (errorInserir) {
       console.error('❌ Erro ao criar pendências:', errorInserir);
-      throw errorInserir;
+      return {
+        success: false,
+        created: 0,
+        message: `Erro ao inserir pendências: ${errorInserir.message}`,
+        error: errorInserir
+      };
     }
 
     console.log(`✅ ${pendenciasCriadas?.length || 0} pendências criadas com sucesso!`);
