@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -37,6 +36,8 @@ export const useAdicionarFuncionariosPlano = () => {
       toast.success('Funcionários adicionados ao plano com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
       queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-report'] });
     },
     onError: (error) => {
       console.error('Erro na mutação:', error);
