@@ -70,9 +70,9 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
         .eq('cnpj_id', cnpjId)
         .in('status', ['ativo', 'pendente']);
 
-      // Exclude funcionários already in this plan
+      // Exclude funcionários already in this plan using the proper not.in syntax
       if (funcionarioIdsNoPlano.length > 0) {
-        query = query.not('id', 'in', `(${funcionarioIdsNoPlano.map(id => `'${id}'`).join(',')})`);
+        query = query.not('id', 'in', `(${funcionarioIdsNoPlano.join(',')})`);
       }
 
       const { data, error } = await query;
@@ -148,7 +148,7 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
       handleClose();
     } catch (error) {
       console.error('Erro ao adicionar funcionários:', error);
-      toast.error('Erro ao adicionar funcion��rios ao plano');
+      toast.error('Erro ao adicionar funcionários ao plano');
     }
   };
 
