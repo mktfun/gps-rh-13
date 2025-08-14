@@ -89,7 +89,7 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
       const { data: allFuncionarios, error } = await supabase
         .from('funcionarios')
         .select('*')
-        .eq('cnpj_id', cnpjId)
+        .eq('cnpj_id', cleanCnpjId)
         .in('status', ['ativo', 'pendente']);
 
       if (error) {
