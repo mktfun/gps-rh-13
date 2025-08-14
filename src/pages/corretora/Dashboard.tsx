@@ -57,8 +57,19 @@ const CorretoraDashboard = () => {
         <SmartActionsSection />
       </div>
 
+      {/* Debug Section - Only visible when toggled */}
+      {showDebug && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1 h-6 bg-red-500 rounded-full"></div>
+            <h2 className="text-xl font-semibold">🔧 Diagnóstico Financeiro</h2>
+          </div>
+          <FinancialDataDebug />
+        </div>
+      )}
+
       {/* Grid de Análises */}
-      
+
 
       {/* Ações Detalhadas - Seção de Backup */}
       
