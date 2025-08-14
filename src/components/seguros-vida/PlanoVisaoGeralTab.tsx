@@ -9,6 +9,7 @@ import { PlanoAlertas } from './PlanoAlertas';
 import { AcoesRapidas } from './AcoesRapidas';
 import { IndicadoresFinanceiros } from './IndicadoresFinanceiros';
 import { GestorPendencias } from './GestorPendencias';
+import { ValoresVidaTable } from '@/components/planos/ValoresVidaTable';
 import { usePlanosMutation } from '@/hooks/usePlanosMutation';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
