@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +21,14 @@ export const usePulseFinanceiro = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const { data, error } = await supabase.rpc('get_pulse_financeiro_corretor');
+      // Try the safe function first, fallback to original if not available
+      let { data, error } = await supabase.rpc('get_pulse_financeiro_corretor_safe');
+
+      // If safe function doesn't exist, try the original
+      if (error && error.code === '42883') {
+        console.log('Safe function not found, trying original...');
+        ({ data, error } = await supabase.rpc('get_pulse_financeiro_corretor'));
+      }
 
       if (error) {
         console.error('Erro ao buscar pulse financeiro:', error);
