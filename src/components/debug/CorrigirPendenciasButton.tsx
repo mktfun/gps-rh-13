@@ -36,6 +36,7 @@ export const CorrigirPendenciasButton: React.FC<CorrigirPendenciasButtonProps> =
           toast.info(resultado.message);
         }
       } else {
+        console.error('Detalhes do erro:', resultado);
         toast.error(`Erro: ${resultado.message}`);
       }
     } catch (error) {
