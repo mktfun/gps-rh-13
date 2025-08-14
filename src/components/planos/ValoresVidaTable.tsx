@@ -14,7 +14,6 @@ interface FaixaEtaria {
 interface ValoresVidaTableProps {
   valorMensal: number;
   funcionarios: Array<{ idade: number; status: string }>;
-  onEditValores?: () => void;
 }
 
 export const ValoresVidaTable: React.FC<ValoresVidaTableProps> = ({
