@@ -304,7 +304,8 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                     plano={{
                       id: plano.id,
                       seguradora: plano.seguradora,
-                      valor_mensal: valorReal
+                      valor_mensal: valorReal,
+                      empresa_nome: plano.empresa_nome
                     }}
                     shouldOpenAddModal={shouldOpenAddModal}
                     onAddModalHandled={handleAddModalHandled}
