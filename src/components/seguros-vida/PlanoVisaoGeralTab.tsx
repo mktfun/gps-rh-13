@@ -158,7 +158,7 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
       {/* Alertas Críticos */}
       <PlanoAlertas funcionarios={funcionarios} plano={plano} />
 
-      {/* Ações Rápidas */}
+      {/* Aç��es Rápidas */}
       <AcoesRapidas funcionarios={funcionarios} plano={plano} onAtivarPendentes={handleAtivarPendentes} onGerarRelatorio={handleGerarRelatorio} onEditarPlano={() => setIsInfoModalOpen(true)} onAdicionarFuncionario={onAddFuncionario} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -203,7 +203,7 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-green-600" />
                   <span className="text-lg font-semibold text-green-600">
-                    {formatCurrency(plano.valor_mensal)}
+                    {formatCurrency(plano.valor_mensal || 200)}
                   </span>
                 </div>
               </div>
