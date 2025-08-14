@@ -35,6 +35,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   const [statusFilter, setStatusFilter] = useState('todos');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBulkActivationOpen, setIsBulkActivationOpen] = useState(false);
 
   // Handle shouldOpenAddModal prop to trigger modal opening
   useEffect(() => {
