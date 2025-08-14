@@ -19,6 +19,7 @@ interface PlanoFuncionariosTabProps {
   };
   shouldOpenAddModal?: boolean;
   onAddModalHandled?: () => void;
+  tipoSeguro?: 'vida' | 'saude';
 }
 
 export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
