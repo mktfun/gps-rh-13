@@ -184,10 +184,11 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Modal para Adicionar Funcionários */}
-      <AdicionarFuncionariosModal
+      {/* Modal para Selecionar Funcionários */}
+      <SelecionarFuncionariosModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        cnpjId={cnpjId}
         planoId={plano.id}
         onFuncionariosAdicionados={() => {
           // Refresh data when funcionários are added
