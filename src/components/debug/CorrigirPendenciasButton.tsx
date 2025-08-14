@@ -68,7 +68,7 @@ export const CorrigirPendenciasButton: React.FC<CorrigirPendenciasButtonProps> =
           ) : (
             <AlertTriangle className="h-4 w-4" />
           )}
-          {isLoading ? 'Corrigindo...' : 'Corrigir Pendências'}
+          {isLoading ? 'Testando...' : 'Teste Criar Pendência'}
         </Button>
         
         {result && (
