@@ -160,7 +160,7 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
     );
   }
 
-  // Not found state - só mostrar se NÃO está carregando E NÃO há plano E NÃO há erro
+  // Not found state - só mostrar se NÃO está carregando E NÃO há plano E N��O há erro
   if (!isLoading && !plano && !error) {
     console.log('🔍 Mostrando not found state...');
     return (
@@ -350,6 +350,13 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                     shouldOpenAddModal={shouldOpenAddModal}
                     onAddModalHandled={handleAddModalHandled}
                     tipoSeguro="saude"
+                  />
+                </TabsContent>
+
+                <TabsContent value="valores" className="mt-6">
+                  <ValoresVidaTable
+                    valorMensal={valorReal}
+                    funcionarios={funcionariosParaTabela}
                   />
                 </TabsContent>
 
