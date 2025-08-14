@@ -76,7 +76,7 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
       const { data: funcionariosNoPlano, error: errorPlano } = await supabase
         .from('planos_funcionarios')
         .select('funcionario_id')
-        .eq('plano_id', planoId);
+        .eq('plano_id', cleanPlanoId);
 
       if (errorPlano) {
         console.error('Erro ao buscar funcionários do plano:', errorPlano);
