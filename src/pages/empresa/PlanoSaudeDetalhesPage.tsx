@@ -44,10 +44,18 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
     : (plano?.valor_mensal ?? 0);
     
   const { data: stats } = usePlanoFuncionariosStats(
-    plano?.id || '', 
+    plano?.id || '',
     'saude',
     valorReal
   );
+
+  // Fetch funcionarios data for ValoresVidaTable
+  const { data: funcionariosData } = usePlanoFuncionarios({
+    planoId: plano?.id || '',
+    tipoSeguro: 'saude',
+    pageIndex: 0,
+    pageSize: 1000 // Get all funcionarios for the table
+  });
 
   // Debugging específico para plano de saúde
   console.log('🏠 DEBUGGING PlanoSaudeDetalhesPage:', {
