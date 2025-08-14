@@ -10,19 +10,21 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
-import { 
-  Stethoscope, 
-  Building2, 
-  FileText, 
-  AlertTriangle, 
-  Users, 
-  UserCheck, 
-  Clock, 
-  DollarSign, 
+import { ValoresVidaTable } from '@/components/planos/ValoresVidaTable';
+import {
+  Stethoscope,
+  Building2,
+  FileText,
+  AlertTriangle,
+  Users,
+  UserCheck,
+  Clock,
+  DollarSign,
   Plus,
   Edit,
   Download,
-  ArrowLeft
+  ArrowLeft,
+  Calculator
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ContratoTab } from '@/components/planos/ContratoTab';
