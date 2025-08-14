@@ -319,10 +319,14 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="funcionarios">
                     <Users className="h-4 w-4 mr-2" />
                     Funcionários
+                  </TabsTrigger>
+                  <TabsTrigger value="valores">
+                    <Calculator className="h-4 w-4 mr-2" />
+                    Valores
                   </TabsTrigger>
                   <TabsTrigger value="contrato">
                     <FileText className="h-4 w-4 mr-2" />
