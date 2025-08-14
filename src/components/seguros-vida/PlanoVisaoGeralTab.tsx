@@ -215,42 +215,50 @@ export const PlanoVisaoGeralTab: React.FC<PlanoVisaoGeralTabProps> = ({
           </CardContent>
         </Card>
 
-        {/* Coberturas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Coberturas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Morte Natural</span>
-                <span className="font-medium">{formatCurrency(plano.cobertura_morte)}</span>
+        {/* Coberturas ou Valores de Vida baseado no tipo de plano */}
+        {plano.tipo_seguro === 'saude' ? (
+          <ValoresVidaTable
+            valorMensal={plano.valor_mensal}
+            funcionarios={funcionarios}
+            onEditValores={() => setIsCoberturasModalOpen(true)}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Coberturas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Morte Natural</span>
+                  <span className="font-medium">{formatCurrency(plano.cobertura_morte)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Morte Acidental</span>
+                  <span className="font-medium">{formatCurrency(plano.cobertura_morte_acidental)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Invalidez por Acidente</span>
+                  <span className="font-medium">{formatCurrency(plano.cobertura_invalidez_acidente)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Auxílio Funeral</span>
+                  <span className="font-medium">{formatCurrency(plano.cobertura_auxilio_funeral)}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Morte Acidental</span>
-                <span className="font-medium">{formatCurrency(plano.cobertura_morte_acidental)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Invalidez por Acidente</span>
-                <span className="font-medium">{formatCurrency(plano.cobertura_invalidez_acidente)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Auxílio Funeral</span>
-                <span className="font-medium">{formatCurrency(plano.cobertura_auxilio_funeral)}</span>
-              </div>
-            </div>
 
-            <div className="pt-4 border-t">
-              <Button variant="outline" className="w-full" onClick={() => setIsCoberturasModalOpen(true)}>
-                <Shield className="h-4 w-4 mr-2" />
-                Editar Coberturas
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="pt-4 border-t">
+                <Button variant="outline" className="w-full" onClick={() => setIsCoberturasModalOpen(true)}>
+                  <Shield className="h-4 w-4 mr-2" />
+                  Editar Coberturas
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Resumo Estatístico */}
