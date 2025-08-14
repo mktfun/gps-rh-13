@@ -17,6 +17,8 @@ interface PendenciaEmpresa {
   status: string;
   dias_em_aberto: number;
   comentarios_count: number;
+  prioridade: number;
+  corretora_id: string;
 }
 
 export const usePendenciasEmpresa = () => {
