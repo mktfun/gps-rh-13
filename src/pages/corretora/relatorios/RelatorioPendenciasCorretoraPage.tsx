@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +18,7 @@ import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from '
 import { addDays, subDays } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
+import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
 
 const RelatorioPendenciasCorretoraPage = () => {
   const location = useLocation();
