@@ -45,14 +45,14 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   // Usar hooks refatorados com planoId e tipoSeguro
   const { data: funcionariosData, isLoading } = usePlanoFuncionarios({
     planoId: plano.id,
-    tipoSeguro: 'vida',
+    tipoSeguro,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
     search: search || undefined,
     pageIndex: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
 
-  const { data: stats } = usePlanoFuncionariosStats(plano.id, 'vida', plano.valor_mensal);
+  const { data: stats } = usePlanoFuncionariosStats(plano.id, tipoSeguro, plano.valor_mensal);
 
   const funcionarios = funcionariosData?.funcionarios || [];
   const totalCount = funcionariosData?.totalCount || 0;
