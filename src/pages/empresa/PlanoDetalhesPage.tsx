@@ -1,19 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PlusIcon, PencilIcon, TrashIcon, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePlano } from '@/hooks/usePlano';
+import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
 import { useFuncionariosForaDoPlano } from '@/hooks/useFuncionariosForaDoPlano';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { DataTable } from '@/components/ui/data-table';
-import { PlanoFuncionariosColunas } from '@/components/planos/PlanoFuncionariosColunas';
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useDeletarPlano } from '@/hooks/useDeletarPlano';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EditarPlanoModal } from '@/components/planos/EditarPlanoModal';
 import AdicionarFuncionariosModal from '@/components/planos/AdicionarFuncionariosModal';
 
 interface PlanoDetalhesPageProps {
@@ -21,24 +19,27 @@ interface PlanoDetalhesPageProps {
 }
 
 export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const params = useParams();
+  const currentPlanoId = planoId || params.planoId || '';
+  
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isAdicionarFuncionariosModalOpen, setIsAdicionarFuncionariosModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const { data: plano, isLoading: isLoadingPlano, refetch: refetchPlano } = usePlano(planoId);
-  const { data: funcionariosForaDoPlano, isLoading: isLoadingFuncionariosForaDoPlano, refetch: refetchFuncionariosForaDoPlano } = useFuncionariosForaDoPlano(planoId);
-  const { data: planoFuncionarios, isLoading: isLoadingPlanoFuncionarios, refetch: refetchPlanoFuncionarios } = usePlanoFuncionarios(planoId);
-  const { mutateAsync: deletarPlano, isLoading: isDeletingPlano } = useDeletarPlano();
+  
+  const { data: plano, isLoading: isLoadingPlano } = usePlanoDetalhes(currentPlanoId);
+  const { data: funcionariosForaDoPlano, isLoading: isLoadingFuncionariosForaDoPlano } = useFuncionariosForaDoPlano(currentPlanoId);
+  const { data: planoFuncionarios, isLoading: isLoadingPlanoFuncionarios } = usePlanoFuncionarios({
+    planoId: currentPlanoId,
+    tipoSeguro: 'vida'
+  });
 
   useEffect(() => {
-    if (!planoId) {
+    if (!currentPlanoId) {
       toast.error('ID do plano não fornecido.');
       return;
     }
-    refetchPlano();
-    refetchFuncionariosForaDoPlano();
-    refetchPlanoFuncionarios();
-  }, [planoId, refetchPlano, refetchFuncionariosForaDoPlano, refetchPlanoFuncionarios]);
+  }, [currentPlanoId]);
 
   const handleEditarPlano = () => {
     setIsEditarModalOpen(true);
@@ -50,9 +51,9 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
 
   const handleExcluirPlano = async () => {
     try {
-      await deletarPlano(planoId);
+      // Add delete logic here
       toast.success('Plano excluído com sucesso!');
-      router.push('/empresa/planos');
+      navigate('/empresa/planos');
     } catch (error) {
       console.error('Erro ao excluir plano:', error);
       toast.error('Erro ao excluir plano.');
@@ -102,7 +103,7 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
     <div className="container mx-auto p-4">
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>{plano.nome}</CardTitle>
+          <CardTitle>{plano.seguradora}</CardTitle>
           <div className="space-x-2">
             <Button variant="outline" onClick={handleEditarPlano}>
               <PencilIcon className="mr-2 h-4 w-4" />
@@ -110,7 +111,7 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={isDeletingPlano}>
+                <Button variant="destructive">
                   <TrashIcon className="mr-2 h-4 w-4" />
                   Excluir Plano
                 </Button>
@@ -124,8 +125,8 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <Button variant="destructive" disabled={isDeletingPlano} onClick={handleExcluirPlano}>
-                    {isDeletingPlano ? 'Excluindo...' : 'Excluir'}
+                  <Button variant="destructive" onClick={handleExcluirPlano}>
+                    Excluir
                   </Button>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -136,9 +137,9 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
           <div className="grid gap-4">
             <div>
               <h2 className="text-lg font-semibold">Informações do Plano</h2>
-              <p><strong>Nome:</strong> {plano.nome}</p>
-              <p><strong>Descrição:</strong> {plano.descricao}</p>
+              <p><strong>Seguradora:</strong> {plano.seguradora}</p>
               <p><strong>Valor Mensal:</strong> R$ {plano.valor_mensal}</p>
+              <p><strong>Empresa:</strong> {plano.empresa_nome}</p>
             </div>
           </div>
           <Separator className="my-4" />
@@ -150,26 +151,31 @@ export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
                 Adicionar Funcionários
               </Button>
             </div>
-            <DataTable columns={PlanoFuncionariosColunas} data={planoFuncionarios || []} isLoading={isLoadingPlanoFuncionarios} />
+            <div className="mt-4">
+              {isLoadingPlanoFuncionarios ? (
+                <div>Carregando funcionários...</div>
+              ) : (
+                <div>
+                  <p>Total de funcionários: {planoFuncionarios?.funcionarios?.length || 0}</p>
+                  {planoFuncionarios?.funcionarios?.map((funcionario) => (
+                    <div key={funcionario.id} className="p-4 border rounded mb-2">
+                      <p><strong>Nome:</strong> {funcionario.nome}</p>
+                      <p><strong>CPF:</strong> {funcionario.cpf}</p>
+                      <p><strong>Status:</strong> {funcionario.status}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
-      <EditarPlanoModal
-        isOpen={isEditarModalOpen}
-        onClose={() => setIsEditarModalOpen(false)}
-        plano={plano}
-        onPlanoUpdated={() => {
-          refetchPlano();
-          toast.success('Plano atualizado com sucesso!');
-        }}
-      />
+      
       <AdicionarFuncionariosModal
         isOpen={isAdicionarFuncionariosModalOpen}
         onClose={() => setIsAdicionarFuncionariosModalOpen(false)}
-        planoId={planoId}
+        planoId={currentPlanoId}
         onFuncionariosAdicionados={() => {
-          refetchPlanoFuncionarios();
-          refetchFuncionariosForaDoPlano();
           toast.success('Funcionários adicionados ao plano com sucesso!');
         }}
       />

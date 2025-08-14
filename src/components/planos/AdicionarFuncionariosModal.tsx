@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -11,7 +12,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -19,15 +19,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Command,
   CommandEmpty,
@@ -35,12 +27,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { useAllFuncionarios } from "@/hooks/useAllFuncionarios"
 import { useAdicionarFuncionariosPlano } from "@/hooks/useAdicionarFuncionariosPlano"
 import { useState } from "react"
@@ -74,7 +64,7 @@ export default function AdicionarFuncionariosModal({
     },
   })
 
-  const { mutateAsync, isLoading } = useAdicionarFuncionariosPlano();
+  const { mutateAsync, isPending } = useAdicionarFuncionariosPlano();
   const { reset } = form;
 
   const onSubmit = async (data: AdicionarFuncionariosData) => {
@@ -84,7 +74,6 @@ export default function AdicionarFuncionariosModal({
       await mutateAsync({
         plano_id: planoId,
         funcionarios_ids: data.funcionarios_ids,
-        // Remove the tipoSeguro property that doesn't exist in the interface
       });
       
       onFuncionariosAdicionados?.();
@@ -176,8 +165,8 @@ export default function AdicionarFuncionariosModal({
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Adicionando...' : 'Salvar'}
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Adicionando...' : 'Salvar'}
               </Button>
             </DialogFooter>
           </form>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -186,12 +187,13 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
 
       {/* Modal para Adicionar Funcionários */}
       <AdicionarFuncionariosModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
         planoId={plano.id}
-        cnpjId={cnpjId}
-        planoSeguradora={plano.seguradora}
-        tipoSeguro="vida"
+        onFuncionariosAdicionados={() => {
+          // Refresh data when funcionários are added
+          console.log('Funcionários adicionados com sucesso');
+        }}
       />
     </div>
   );

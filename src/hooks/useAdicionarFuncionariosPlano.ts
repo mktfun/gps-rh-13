@@ -15,15 +15,15 @@ export const useAdicionarFuncionariosPlano = () => {
     mutationFn: async (data: AdicionarFuncionariosPlanoData) => {
       console.log('Adicionando funcionários ao plano:', data);
 
-      // Insert funcionarios_planos records
+      // Insert planos_funcionarios records (correct table name)
       const funcionariosPlanos = data.funcionarios_ids.map(funcionario_id => ({
         plano_id: data.plano_id,
         funcionario_id,
-        ativo: true
+        status: 'pendente'
       }));
 
       const { error } = await supabase
-        .from('funcionarios_planos')
+        .from('planos_funcionarios')
         .insert(funcionariosPlanos);
 
       if (error) {
@@ -35,7 +35,7 @@ export const useAdicionarFuncionariosPlano = () => {
     },
     onSuccess: () => {
       toast.success('Funcionários adicionados ao plano com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['plano-funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
       queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano'] });
     },
     onError: (error) => {
