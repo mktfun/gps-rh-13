@@ -215,6 +215,19 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
           console.log('Funcionários adicionados com sucesso');
         }}
       />
+
+      {/* Bulk Activation Modal */}
+      <BulkActivationModal
+        isOpen={isBulkActivationOpen}
+        onClose={() => setIsBulkActivationOpen(false)}
+        funcionarios={funcionariosPendentesProcessados}
+        plano={{
+          id: plano.id,
+          seguradora: plano.seguradora,
+          valor_mensal: plano.valor_mensal,
+          empresa_nome: 'N/A' // This will need to be passed from parent if needed
+        }}
+      />
     </div>
   );
 };
