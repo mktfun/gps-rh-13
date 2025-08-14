@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
+import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
