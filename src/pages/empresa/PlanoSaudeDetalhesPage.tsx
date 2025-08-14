@@ -57,6 +57,31 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
     pageSize: 1000 // Get all funcionarios for the table
   });
 
+  // Process funcionarios for ValoresVidaTable (it expects { idade: number, status: string })
+  const funcionariosParaTabela = React.useMemo(() => {
+    if (!funcionariosData?.funcionarios) return [];
+
+    return funcionariosData.funcionarios.map(f => {
+      // Calculate age from data_nascimento if available
+      let idade = 30; // default age
+
+      if (f.data_nascimento) {
+        const birthDate = new Date(f.data_nascimento);
+        const today = new Date();
+        idade = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          idade--;
+        }
+      }
+
+      return {
+        idade,
+        status: f.status
+      };
+    });
+  }, [funcionariosData]);
+
   // Debugging específico para plano de saúde
   console.log('🏠 DEBUGGING PlanoSaudeDetalhesPage:', {
     planoId,
