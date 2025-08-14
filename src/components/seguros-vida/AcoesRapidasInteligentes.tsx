@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { BulkActivationModal } from '@/components/funcionarios/BulkActivationModal';
 import { useFuncionariosParaAtivacao } from '@/hooks/useFuncionariosParaAtivacao';
 
-interface FuncionarioPendente {
+interface FuncionarioData {
   id: string;
   nome: string;
   cpf: string;
@@ -15,13 +15,11 @@ interface FuncionarioPendente {
   data_nascimento: string;
   data_admissao: string;
   departamento?: string;
-  idade: number;
-  tempo_empresa_dias: number;
   status: string;
 }
 
 interface AcoesRapidasInteligentesProps {
-  funcionarios: FuncionarioPendente[];
+  funcionarios: FuncionarioData[];
   plano: {
     id: string;
     seguradora: string;
@@ -41,6 +39,9 @@ export const AcoesRapidasInteligentes: React.FC<AcoesRapidasInteligentesProps> =
   onAdicionarFuncionario
 }) => {
   const [isBulkActivationOpen, setIsBulkActivationOpen] = useState(false);
+
+  // Process funcionarios data for bulk activation
+  const funcionariosPendentesProcessados = useFuncionariosParaAtivacao(funcionarios);
 
   const funcionariosPendentes = funcionarios.filter(f => f.status === 'pendente');
   const funcionariosExclusaoSolicitada = funcionarios.filter(f => f.status === 'exclusao_solicitada');
