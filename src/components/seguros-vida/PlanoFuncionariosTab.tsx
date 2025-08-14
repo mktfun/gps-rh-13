@@ -9,6 +9,8 @@ import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
 import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
+import { BulkActivationModal } from '@/components/funcionarios/BulkActivationModal';
+import { useFuncionariosParaAtivacao } from '@/hooks/useFuncionariosParaAtivacao';
 
 interface PlanoFuncionariosTabProps {
   cnpjId: string;
