@@ -18,21 +18,32 @@ const CorretoraDashboard = () => {
   }
   return <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Dashboard Inteligente
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Bem-vindo, <span className="font-medium text-blue-600">{user?.email}</span>! 
-          Seu painel de controle inteligente está sempre atualizado.
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            Dashboard Inteligente
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Bem-vindo, <span className="font-medium text-blue-600">{user?.email}</span>!
+            Seu painel de controle inteligente está sempre atualizado.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDebug(!showDebug)}
+          className="flex items-center gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          {showDebug ? 'Ocultar Debug' : 'Debug Financeiro'}
+        </Button>
       </div>
 
       {/* Painel Operacional Inteligente - Seção Principal */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-          <h2 className="text-xl font-semibold">�� Inteligência Operacional</h2>
+          <h2 className="text-xl font-semibold">🎯 Inteligência Operacional</h2>
         </div>
         <OperationalIntelligencePanel />
       </div>
