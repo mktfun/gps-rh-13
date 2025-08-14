@@ -136,10 +136,22 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
               <Users className="h-5 w-5" />
               Funcionários do Plano ({totalCount})
             </CardTitle>
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Funcionários
-            </Button>
+            <div className="flex gap-2">
+              {stats?.pendentes > 0 && (
+                <Button
+                  variant="default"
+                  onClick={() => setIsBulkActivationOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Ativar {stats.pendentes} Pendente(s)
+                </Button>
+              )}
+              <Button onClick={() => setIsAddModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Funcionários
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
