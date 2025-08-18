@@ -29,15 +29,18 @@ const CorretoraDashboard = () => {
             Seu painel de controle inteligente está sempre atualizado.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowDebug(!showDebug)}
-          className="flex items-center gap-2"
-        >
-          <Settings className="h-4 w-4" />
-          {showDebug ? 'Ocultar Debug' : 'Debug Financeiro'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <CorrigirPendenciasButton />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDebug(!showDebug)}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            {showDebug ? 'Ocultar Debug' : 'Debug Financeiro'}
+          </Button>
+        </div>
       </div>
 
       {/* Painel Operacional Inteligente - Seção Principal */}
