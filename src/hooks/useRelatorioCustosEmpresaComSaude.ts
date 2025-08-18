@@ -111,9 +111,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
           });
         }
         
-        const valorReal = plano.tipo_seguro === 'saude' 
-          ? (plano.valor_mensal_calculado ?? plano.valor_mensal)
-          : plano.valor_mensal;
+        const valorReal = plano.valor_mensal;
           
         planosPorCnpj.get(cnpjId).planos.push({
           tipo: plano.tipo_seguro,
