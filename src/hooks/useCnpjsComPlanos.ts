@@ -110,7 +110,6 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         // Contar apenas funcionários ativos e pendentes para o total
         // Separate counts for clarity
         const funcionariosAtivos = funcionariosCnpj.filter(f => f.status === 'ativo').length;
-        const funcionariosPendentes = funcionariosCnpj.filter(f => f.status === 'pendente').length;
         const totalFuncionarios = funcionariosAtivos + funcionariosPendentes;
 
         return {
