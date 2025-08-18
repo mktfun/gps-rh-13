@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -108,7 +107,10 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         const totalPendencias = funcionariosPendentes + funcionariosExclusaoSolicitada;
 
         // Contar apenas funcionários ativos e pendentes para o total
-        const funcionariosAtivos = funcionariosCnpj.filter(f => f.status === 'ativo' || f.status === 'pendente').length;
+        // Separate counts for clarity
+        const funcionariosAtivos = funcionariosCnpj.filter(f => f.status === 'ativo').length;
+        const funcionariosPendentes = funcionariosCnpj.filter(f => f.status === 'pendente').length;
+        const totalFuncionarios = funcionariosAtivos + funcionariosPendentes;
 
         return {
           id: cnpj.id,
