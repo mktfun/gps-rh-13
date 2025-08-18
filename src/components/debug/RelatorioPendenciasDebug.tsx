@@ -8,7 +8,7 @@ import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Bug, Calendar, Filter, AlertTriangle } from 'lucide-react';
-import { subDays } from 'date-fns';
+import { subDays, addDays } from 'date-fns';
 
 export const RelatorioPendenciasDebug = () => {
   const [isLoading, setIsLoading] = useState(false);
