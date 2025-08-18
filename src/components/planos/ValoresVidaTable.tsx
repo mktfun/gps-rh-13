@@ -35,8 +35,12 @@ export const ValoresVidaTable: React.FC<ValoresVidaTableProps> = ({
   const funcionariosAtivos = funcionarios.filter(f => f.status === 'ativo');
   const valorBase = funcionariosAtivos.length > 0 ? valorMensal / funcionariosAtivos.length : 200;
 
-  // Agrupar funcionários ativos por faixa etária
-  const funcionariosAtivos = funcionarios.filter(f => f.status === 'ativo');
+  // Debug logs do cálculo
+  console.log('ValoresVidaTable - Cálculo:', {
+    valorMensalTotal: valorMensal,
+    funcionariosAtivos: funcionariosAtivos.length,
+    valorBasePorFuncionario: valorBase
+  });
   
   const faixasEtarias: FaixaEtaria[] = [
     {
