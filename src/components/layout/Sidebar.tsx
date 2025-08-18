@@ -56,11 +56,6 @@ const Sidebar = () => {
       href: '/corretora/empresas',
       icon: Building2,
     },
-    {
-      name: 'Visão Geral Empresas',
-      href: '/corretora/empresas-overview',
-      icon: Building2,
-    },
   ];
 
   // Corretora navigation - Operacional (dia a dia)
