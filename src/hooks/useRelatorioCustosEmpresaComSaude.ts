@@ -33,7 +33,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Buscando relatório de custos completo (vida + saúde):', {
+      console.log('🔍 Buscando relatório de custos completo (vida + sa��de):', {
         empresaId,
         pageSize,
         pageOffset: pageIndex * pageSize,
@@ -199,6 +199,12 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
             row.valor_individual <= maxValue
           );
         }
+      }
+
+      if (filters.tipoPlanoFilter && filters.tipoPlanoFilter !== 'todos') {
+        filteredResults = filteredResults.filter(row =>
+          row.tipo_plano === filters.tipoPlanoFilter
+        );
       }
 
       // Calcular totais
