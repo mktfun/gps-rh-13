@@ -111,6 +111,26 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         };
       }
 
+      // Buscar funcionários vinculados a planos para calcular valores de saúde
+      const funcionariosVinculados = await supabase
+        .from('planos_funcionarios')
+        .select(`
+          plano_id,
+          status
+        `)
+        .eq('status', 'ativo');
+
+      if (funcionariosVinculados.error) {
+        console.error('❌ Erro ao buscar funcionários vinculados:', funcionariosVinculados.error);
+      }
+
+      // Criar mapa de contagem de funcionários por plano
+      const funcionariosPorPlano = new Map();
+      funcionariosVinculados.data?.forEach(vinculo => {
+        const count = funcionariosPorPlano.get(vinculo.plano_id) || 0;
+        funcionariosPorPlano.set(vinculo.plano_id, count + 1);
+      });
+
       // Criar mapa de planos por CNPJ
       const planosPorCnpj = new Map();
       planosData.forEach(plano => {
@@ -122,18 +142,29 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
             planos: []
           });
         }
-        
-        const valorReal = plano.valor_mensal;
-          
+
+        // Calcular valor real baseado no tipo de plano
+        let valorReal = plano.valor_mensal || 0;
+
+        if (plano.tipo_seguro === 'saude') {
+          // Para planos de saúde, usar valor configurado se existir, senão calcular por funcionário
+          if (valorReal === 0) {
+            const funcionariosNoPlano = funcionariosPorPlano.get(plano.id) || 0;
+            valorReal = funcionariosNoPlano * 200; // R$ 200 por funcionário ativo no plano
+            console.log(`🔍 Debug - Plano de saúde calculado: ${funcionariosNoPlano} funcionários × R$ 200 = R$ ${valorReal}`);
+          }
+        }
+
         planosPorCnpj.get(cnpjId).planos.push({
           tipo: plano.tipo_seguro,
-          valor: valorReal || 0
+          valor: valorReal
         });
 
         console.log(`🔍 Debug - Plano adicionado para CNPJ ${plano.cnpjs.razao_social}:`, {
           tipo: plano.tipo_seguro,
           valor_original: plano.valor_mensal,
-          valor_real: valorReal
+          valor_real: valorReal,
+          funcionarios_vinculados: plano.tipo_seguro === 'saude' ? funcionariosPorPlano.get(plano.id) || 0 : 'N/A'
         });
       });
 
