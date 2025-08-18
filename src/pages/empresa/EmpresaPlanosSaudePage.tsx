@@ -113,7 +113,7 @@ const EmpresaPlanosSaudePage = () => {
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
-                        Custo por Funcionário: {formatCurrency(custoPorFuncionario)}
+                        Custo por Funcionário: {formatCurrency(custoPorFuncionario, true)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
