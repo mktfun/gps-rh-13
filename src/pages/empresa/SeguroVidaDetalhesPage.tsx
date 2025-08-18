@@ -314,6 +314,10 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                 <TabsContent value="documentos" className="mt-6">
                   {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
                 </TabsContent>
+
+                <TabsContent value="debug" className="mt-6">
+                  <PendenciasDebugMaster />
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
