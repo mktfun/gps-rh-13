@@ -76,18 +76,19 @@ const PendenciasByCNPJChart: React.FC<PendenciasByCNPJChartProps> = ({ dados }) 
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart 
-        data={chartData} 
+      <BarChart
+        data={chartData}
         layout="horizontal"
         margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
       >
         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-        <XAxis 
+        <XAxis
           type="number"
           tick={{ fontSize: 12 }}
           tickLine={{ stroke: '#94a3b8' }}
+          domain={[0, 'dataMax']}
         />
-        <YAxis 
+        <YAxis
           type="category"
           dataKey="nome_curto"
           tick={{ fontSize: 11 }}
@@ -95,23 +96,26 @@ const PendenciasByCNPJChart: React.FC<PendenciasByCNPJChartProps> = ({ dados }) 
           width={90}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar 
-          dataKey="criticas" 
-          stackId="a" 
+        <Bar
+          dataKey="criticas"
+          stackId="a"
           fill="#EF4444"
           radius={[0, 0, 0, 0]}
+          minPointSize={1}
         />
-        <Bar 
-          dataKey="urgentes" 
-          stackId="a" 
+        <Bar
+          dataKey="urgentes"
+          stackId="a"
           fill="#F59E0B"
           radius={[0, 0, 0, 0]}
+          minPointSize={1}
         />
-        <Bar 
-          dataKey="normais" 
-          stackId="a" 
+        <Bar
+          dataKey="normais"
+          stackId="a"
           fill="#3B82F6"
           radius={[0, 4, 4, 0]}
+          minPointSize={1}
         />
       </BarChart>
     </ResponsiveContainer>
