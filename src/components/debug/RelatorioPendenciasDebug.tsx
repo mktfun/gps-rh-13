@@ -133,7 +133,11 @@ export const RelatorioPendenciasDebug = () => {
             data_vencimento: p.data_vencimento,
             data_criacao: p.data_criacao,
             dias_em_aberto: p.dias_em_aberto,
-            funcionario_nome: p.funcionario_nome
+            funcionario_nome: p.funcionario_nome,
+            cnpj: p.cnpj,
+            razao_social: p.razao_social,
+            // Log ALL fields for debugging
+            all_fields: Object.keys(p)
           }))
         },
         filteredByDate: {
