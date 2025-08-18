@@ -186,7 +186,7 @@ export const RelatorioPendenciasDebug = () => {
             <CardContent>
               <div className="text-xs space-y-1">
                 <div><strong>De:</strong> {subDays(new Date(), 30).toLocaleDateString()}</div>
-                <div><strong>Até:</strong> {new Date().toLocaleDateString()}</div>
+                <div><strong>Até:</strong> {addDays(new Date(), 30).toLocaleDateString()}</div>
               </div>
             </CardContent>
           </Card>
