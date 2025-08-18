@@ -288,6 +288,10 @@ const SeguroVidaDetalhesPage: React.FC = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Documentos
                   </TabsTrigger>
+                  <TabsTrigger value="debug">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Debug
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="funcionarios" className="mt-6">
