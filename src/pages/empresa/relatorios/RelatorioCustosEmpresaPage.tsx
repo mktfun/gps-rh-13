@@ -77,6 +77,7 @@ const RelatorioCustosEmpresaPage = () => {
       { key: 'funcionario_cpf', label: 'CPF', selected: true, format: formatCPF },
       { key: 'valor_individual', label: 'Valor Individual', selected: true, format: formatCurrency },
       { key: 'status', label: 'Status', selected: true },
+      { key: 'tipo_plano', label: 'Tipo de Plano', selected: true },
       { key: 'total_cnpj', label: 'Total CNPJ', selected: true, format: formatCurrency },
     ];
 
