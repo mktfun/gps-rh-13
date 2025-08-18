@@ -33,7 +33,7 @@ const RelatorioPendenciasCorretoraPage = () => {
 
   const { cnpjs } = useAllCnpjs();
 
-  // ✅ NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
+  // ��� NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
   useEffect(() => {
     const state = location.state as { empresaId?: string; empresaNome?: string } | null;
     if (state?.empresaId) {
@@ -126,10 +126,13 @@ const RelatorioPendenciasCorretoraPage = () => {
             Análise completa de pendências e solicitações em aberto
           </p>
         </div>
-        <Button onClick={handleExport} className="gap-2">
-          <Download className="h-4 w-4" />
-          Exportar Excel
-        </Button>
+        <div className="flex items-center gap-2">
+          <CorrigirPendenciasButton />
+          <Button onClick={handleExport} className="gap-2">
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
