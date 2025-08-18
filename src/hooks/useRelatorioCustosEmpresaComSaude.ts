@@ -211,10 +211,14 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         );
       }
 
-      // Calcular totais
+      // Calcular totais (agora os funcionários já estão únicos)
       const cnpjsUnicos = new Map();
+      const funcionariosUnicos = new Set();
+
       filteredResults.forEach(row => {
         const cnpjKey = row.cnpj_razao_social;
+        const funcionarioKey = `${row.cnpj_razao_social}_${row.funcionario_cpf}`;
+
         if (!cnpjsUnicos.has(cnpjKey)) {
           cnpjsUnicos.set(cnpjKey, {
             total_value: row.total_cnpj,
@@ -222,14 +226,15 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
           });
         }
 
-        if (row.status === 'ativo') {
+        // Contar funcionários únicos apenas uma vez
+        if (row.status === 'ativo' && !funcionariosUnicos.has(funcionarioKey)) {
+          funcionariosUnicos.add(funcionarioKey);
           const cnpjData = cnpjsUnicos.get(cnpjKey);
           cnpjData.active_employees++;
         }
       });
 
-      const totalFuncionariosAtivos = Array.from(cnpjsUnicos.values())
-        .reduce((sum, cnpj) => sum + cnpj.active_employees, 0);
+      const totalFuncionariosAtivos = funcionariosUnicos.size;
 
       const totalCnpjsComPlano = Array.from(cnpjsUnicos.values())
         .filter(cnpj => cnpj.total_value > 0).length;
