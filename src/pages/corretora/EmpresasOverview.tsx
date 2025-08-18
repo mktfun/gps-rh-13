@@ -23,16 +23,16 @@ export default function EmpresasOverview() {
   };
 
   const getStatusBadge = (empresa: EmpresaUnificada) => {
-    if (empresa.funcionarios_pendentes > 0) {
+    if (empresa.status === 'com_pendencias') {
       return (
         <Badge variant="destructive" className="gap-1">
           <AlertTriangle className="h-3 w-3" />
-          {empresa.funcionarios_pendentes} pendente(s)
+          {empresa.funcionarios_pendentes + empresa.pendencias_criticas} pendente(s)
         </Badge>
       );
     }
-    
-    if (empresa.total_planos === 0) {
+
+    if (empresa.status === 'configuracao_pendente') {
       return (
         <Badge variant="outline" className="gap-1">
           <Clock className="h-3 w-3" />
@@ -40,7 +40,7 @@ export default function EmpresasOverview() {
         </Badge>
       );
     }
-    
+
     return (
       <Badge variant="secondary" className="gap-1">
         ✓ Ativo
