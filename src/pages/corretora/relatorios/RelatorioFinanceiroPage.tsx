@@ -89,14 +89,17 @@ const RelatorioFinanceiroPage = () => {
             Análise financeira detalhada de todas as empresas clientes
           </p>
         </div>
-        <Button 
-          onClick={handleExport}
-          disabled={isLoading || !relatorioData?.length}
-          className="gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Exportar Relatório
-        </Button>
+        <div className="flex items-center gap-2">
+          <FixFinancialReportFunction />
+          <Button
+            onClick={handleExport}
+            disabled={isLoading || !relatorioData?.length}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Exportar Relatório
+          </Button>
+        </div>
       </div>
 
       {/* Cards de Resumo */}
