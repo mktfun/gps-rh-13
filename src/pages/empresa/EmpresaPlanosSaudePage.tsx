@@ -20,12 +20,12 @@ const EmpresaPlanosSaudePage = () => {
   const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('saude');
   console.log('🩺 EmpresaPlanosSaudePage: Estado dos dados', { planos: planos?.length, isLoading, error });
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number, precise = false) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: precise ? 4 : 2,
     }).format(value);
   };
 
