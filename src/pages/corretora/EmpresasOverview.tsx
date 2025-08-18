@@ -223,7 +223,7 @@ export default function EmpresasOverview() {
                 <div className="text-2xl font-bold text-blue-600">
                   {empresasUnificadas.reduce((sum, e) => sum + e.planos_saude, 0)}
                 </div>
-                <div className="text-sm text-blue-700">Planos de Sa��de</div>
+                <div className="text-sm text-blue-700">Planos de Saúde</div>
               </CardContent>
             </Card>
             
@@ -248,9 +248,9 @@ export default function EmpresasOverview() {
             <Card className="bg-orange-50 border-orange-200">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-orange-600">
-                  {empresasUnificadas.reduce((sum, e) => sum + e.funcionarios_pendentes, 0)}
+                  {empresasUnificadas.reduce((sum, e) => sum + e.funcionarios_pendentes + e.pendencias_criticas, 0)}
                 </div>
-                <div className="text-sm text-orange-700">Pendências</div>
+                <div className="text-sm text-orange-700">Total Pendências</div>
               </CardContent>
             </Card>
           </div>
