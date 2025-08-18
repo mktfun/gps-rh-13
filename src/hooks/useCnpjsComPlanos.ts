@@ -12,6 +12,7 @@ export interface CnpjComPlano {
   planoId?: string;
   seguradora?: string;
   valor_mensal?: number;
+  funcionariosAtivos: number;
   totalFuncionarios: number;
   totalPendencias: number;
   funcionariosPendentes: number;
