@@ -70,7 +70,7 @@ export const RelatorioPendenciasDebug = () => {
 
         // Analisar status de cada pendência
         statusAnalysis = pendenciasRaw.reduce((acc, p) => {
-          const status = p.dias_em_aberto > 30 ? 'critica' : 
+          const status = p.dias_em_aberto > 30 ? 'critica' :
                         p.dias_em_aberto > 15 ? 'urgente' : 'normal';
           acc[p.protocolo] = {
             diasEmAberto: p.dias_em_aberto,
@@ -78,6 +78,24 @@ export const RelatorioPendenciasDebug = () => {
             dataVencimento: p.data_vencimento,
             dataCriacao: p.data_criacao
           };
+          return acc;
+        }, {});
+
+        // Analisar dados por CNPJ (simular o processamento do relatório)
+        cnpjAnalysis = filteredByDate.reduce((acc, p) => {
+          const key = p.cnpj || 'N/A';
+          if (!acc[key]) {
+            acc[key] = {
+              cnpj: p.cnpj || 'N/A',
+              razao_social: p.razao_social || 'N/A',
+              total_pendencias: 0,
+              criticas: 0,
+              urgentes: 0
+            };
+          }
+          acc[key].total_pendencias++;
+          if (p.dias_em_aberto > 30) acc[key].criticas++;
+          else if (p.dias_em_aberto > 15) acc[key].urgentes++;
           return acc;
         }, {});
       }
