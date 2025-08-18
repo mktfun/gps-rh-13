@@ -129,6 +129,12 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
           tipo: plano.tipo_seguro,
           valor: valorReal || 0
         });
+
+        console.log(`🔍 Debug - Plano adicionado para CNPJ ${plano.cnpjs.razao_social}:`, {
+          tipo: plano.tipo_seguro,
+          valor_original: plano.valor_mensal,
+          valor_real: valorReal
+        });
       });
 
       // Processar funcionários e gerar relatório
