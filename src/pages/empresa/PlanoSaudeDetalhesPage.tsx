@@ -266,7 +266,7 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
                   <div className="text-center p-3 bg-purple-50 rounded-lg border">
                     <DollarSign className="h-4 w-4 mx-auto text-purple-600 mb-1" />
                     <div className="text-sm font-bold text-purple-600">
-                      {formatCurrency(stats?.custoPorFuncionario || 0)}
+                      {formatCurrency(stats?.custoPorFuncionario || 0, true)}
                     </div>
                     <div className="text-xs text-muted-foreground">Por Func.</div>
                   </div>
