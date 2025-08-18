@@ -11,6 +11,7 @@ export interface CustosReportFiltersData {
   statusFilter: string;
   valorMin: string;
   valorMax: string;
+  tipoPlanoFilter: string;
 }
 
 interface CustosReportFiltersProps {
