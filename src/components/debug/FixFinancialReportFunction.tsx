@@ -67,8 +67,8 @@ $$;
     try {
       console.log('🔧 Executando correção da função de relatório financeiro...');
 
-      const { data, error } = await supabase.rpc('exec_sql', { 
-        sql_query: fixFinancialReportSQL 
+      const { data, error } = await supabase.rpc('exec_sql', {
+        sql: fixFinancialReportSQL
       });
 
       if (error) {
