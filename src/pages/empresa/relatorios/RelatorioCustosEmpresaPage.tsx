@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataTable } from '@/components/ui/data-table';
 import { TableLoadingState } from '@/components/ui/loading-state';
 // Removido breadcrumb local para usar o do cabeçalho (SmartBreadcrumbs)
-import { useRelatorioCustosEmpresaComSaude } from '@/hooks/useRelatorioCustosEmpresaComSaude';
+import { useRelatorioCustosEmpresaPaginado } from '@/hooks/useRelatorioCustosEmpresaPaginado';
 import { useExportData } from '@/hooks/useExportData';
 import { createCustoEmpresaTableColumns } from '@/components/empresa/custoEmpresaTableColumns';
 import type { PaginationState } from '@tanstack/react-table';
