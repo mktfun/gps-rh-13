@@ -19,6 +19,7 @@ import { addDays, subDays } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
+import { SincronizarPendenciasButton } from '@/components/debug/SincronizarPendenciasButton';
 import { PendencyVisibilityDebug } from '@/components/debug/PendencyVisibilityDebug';
 
 const RelatorioPendenciasCorretoraPage = () => {
