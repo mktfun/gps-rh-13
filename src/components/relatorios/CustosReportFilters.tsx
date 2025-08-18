@@ -121,6 +121,25 @@ export const CustosReportFilters = ({
               step="0.01"
             />
           </div>
+
+          {/* Filtro por Tipo de Plano */}
+          <div className="space-y-2">
+            <Label htmlFor="tipo-plano-filter">Tipo de Plano</Label>
+            <Select
+              value={filters.tipoPlanoFilter}
+              onValueChange={(value) => updateFilter('tipoPlanoFilter', value)}
+              disabled={isLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todos os tipos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os tipos</SelectItem>
+                <SelectItem value="vida">Seguro de Vida</SelectItem>
+                <SelectItem value="saude">Plano de Saúde</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Botão para limpar filtros */}
