@@ -27,7 +27,6 @@ import {
 import { toast } from 'sonner';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
-import { PendenciasDebugMaster } from '@/components/debug/PendenciasDebugMaster';
 
 const SeguroVidaDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
