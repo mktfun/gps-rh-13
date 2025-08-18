@@ -136,7 +136,7 @@ const EmpresaPlanosPage = () => {
                     <Button asChild className="flex-1">
                       <Link to={`/empresa/seguros-de-vida/${plano.id}`}>
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        Abrir Plano
+                        Gerenciar Plano
                       </Link>
                     </Button>
                     
