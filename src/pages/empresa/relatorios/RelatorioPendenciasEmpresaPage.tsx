@@ -21,7 +21,7 @@ import { RelatorioPendenciasDebug } from '@/components/debug/RelatorioPendencias
 const RelatorioPendenciasEmpresaPage = () => {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: subDays(new Date(), 30),
-    to: new Date()
+    to: addDays(new Date(), 30) // Incluir próximos 30 dias para pendências futuras
   });
   const [statusFilter, setStatusFilter] = useState<string>('todas');
   const [tipoFilter, setTipoFilter] = useState<string>('todas');
