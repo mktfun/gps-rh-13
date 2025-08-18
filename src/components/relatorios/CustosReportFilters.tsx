@@ -39,7 +39,8 @@ export const CustosReportFilters = ({
       cnpjSearch: '',
       statusFilter: 'todos',
       valorMin: '',
-      valorMax: ''
+      valorMax: '',
+      tipoPlanoFilter: 'todos'
     });
   };
 
