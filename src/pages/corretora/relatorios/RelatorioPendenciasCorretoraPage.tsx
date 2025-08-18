@@ -19,6 +19,7 @@ import { addDays, subDays } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
+import { PendencyVisibilityDebug } from '@/components/debug/PendencyVisibilityDebug';
 
 const RelatorioPendenciasCorretoraPage = () => {
   const location = useLocation();
@@ -33,7 +34,7 @@ const RelatorioPendenciasCorretoraPage = () => {
 
   const { cnpjs } = useAllCnpjs();
 
-  // ��� NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
+  // ✅ NOVO: Aplicar filtro de empresa ao navegar da lista de empresas
   useEffect(() => {
     const state = location.state as { empresaId?: string; empresaNome?: string } | null;
     if (state?.empresaId) {
