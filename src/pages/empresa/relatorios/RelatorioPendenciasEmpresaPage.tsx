@@ -346,16 +346,6 @@ const RelatorioPendenciasEmpresaPage = () => {
           />
         </CardContent>
       </Card>
-
-      {/* Debug Section */}
-      <Card className="border-dashed border-orange-200">
-        <CardHeader>
-          <CardTitle className="text-orange-600">🐛 Debug do Relatório</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RelatorioPendenciasDebug />
-        </CardContent>
-      </Card>
     </div>
   );
 };
