@@ -80,14 +80,27 @@ export default function EmpresasOverview() {
         </div>
 
         {/* Funcionarios summary */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>Total de funcionários:</span>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>Funcionários ativos:</span>
+            </div>
+            <Badge variant="outline">
+              {empresa.funcionarios_ativos}
+            </Badge>
           </div>
-          <Badge variant="outline">
-            {empresa.total_funcionarios || 'N/A'}
-          </Badge>
+          {empresa.funcionarios_pendentes > 0 && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-orange-600">
+                <Clock className="h-4 w-4" />
+                <span>Pendentes:</span>
+              </div>
+              <Badge variant="destructive">
+                {empresa.funcionarios_pendentes}
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Action buttons */}
