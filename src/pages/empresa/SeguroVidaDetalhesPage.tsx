@@ -275,7 +275,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="funcionarios">
                     <Users className="h-4 w-4 mr-2" />
                     Funcionários
