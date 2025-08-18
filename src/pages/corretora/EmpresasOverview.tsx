@@ -6,18 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useEmpresasComPlanos } from '@/hooks/useEmpresasComPlanos';
+import { useEmpresasUnificadas, EmpresaUnificada } from '@/hooks/useEmpresasUnificadas';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
-
-interface EmpresaUnificada {
-  id: string;
-  nome: string;
-  planos_saude: number;
-  planos_vida: number;
-  total_planos: number;
-  total_funcionarios: number;
-  funcionarios_pendentes: number;
-}
 
 export default function EmpresasOverview() {
   const [search, setSearch] = useState('');
