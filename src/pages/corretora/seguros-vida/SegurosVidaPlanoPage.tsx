@@ -364,6 +364,10 @@ const SegurosVidaPlanoPage = () => {
         <TabsContent value="historico">
           <PlanoHistoricoTab />
         </TabsContent>
+
+        <TabsContent value="debug">
+          <PendenciasDebugMaster />
+        </TabsContent>
       </Tabs>
     </div>
   );
