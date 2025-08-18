@@ -22,6 +22,7 @@ import CorretoraspPage from "./pages/admin/CorretoraspPage";
 // Corretora pages
 import CorretoraDashboard from "./pages/corretora/Dashboard";
 import Empresas from "./pages/corretora/Empresas";
+import EmpresasOverview from "./pages/corretora/EmpresasOverview";
 import EmpresaDetalhes from "./pages/corretora/EmpresaDetalhes";
 import AuditoriaPage from "./pages/corretora/AuditoriaPage";
 import AtivarFuncionario from "./pages/corretora/AtivarFuncionario";
