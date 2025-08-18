@@ -187,7 +187,7 @@ const RelatorioCustosEmpresaPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{cnpjsComPlano}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              Planos de seguro ativos
+              Planos de vida e saúde ativos
             </div>
           </CardContent>
         </Card>
