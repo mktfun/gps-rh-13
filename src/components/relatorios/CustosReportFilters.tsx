@@ -137,6 +137,8 @@ export const CustosReportFilters = ({
                 <SelectItem value="todos">Todos os tipos</SelectItem>
                 <SelectItem value="vida">Seguro de Vida</SelectItem>
                 <SelectItem value="saude">Plano de Saúde</SelectItem>
+                <SelectItem value="ambos">Ambos os Planos</SelectItem>
+                <SelectItem value="sem_plano">Sem Plano</SelectItem>
               </SelectContent>
             </Select>
           </div>
