@@ -9,6 +9,7 @@ import ActionsNeededSection from '@/components/dashboard/ActionsNeededSection';
 import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
+import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
 const CorretoraDashboard = () => {
   const { user } = useAuth();
   const [showDebug, setShowDebug] = useState(false);
