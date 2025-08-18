@@ -90,7 +90,6 @@ function AppContent() {
             <Route path="dashboard" element={<CorretoraDashboard />} />
             <Route index element={<CorretoraDashboard />} />
             <Route path="empresas" element={<Empresas />} />
-            <Route path="empresas-overview" element={<EmpresasOverview />} />
             <Route path="empresas/:empresaId" element={<EmpresaDetalhes />} />
             <Route path="auditoria" element={<AuditoriaPage />} />
             <Route path="ativar-funcionario/:id" element={<AtivarFuncionario />} />
