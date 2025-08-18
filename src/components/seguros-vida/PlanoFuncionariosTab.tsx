@@ -39,6 +39,9 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isBulkActivationOpen, setIsBulkActivationOpen] = useState(false);
 
+  const { role } = useAuth();
+  const isCorretora = role === 'corretora';
+
   // Handle shouldOpenAddModal prop to trigger modal opening
   useEffect(() => {
     if (shouldOpenAddModal) {
