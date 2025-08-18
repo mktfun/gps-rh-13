@@ -32,10 +32,10 @@ export const RelatorioPendenciasDebug = () => {
     try {
       console.log('🔍 DEBUG RELATÓRIO DE PENDÊNCIAS');
       
-      // Simular o range de data padrão do relatório
+      // Simular o range de data padrão do relatório (corrigido)
       const dateRange = {
         from: subDays(new Date(), 30),
-        to: new Date()
+        to: addDays(new Date(), 30) // Incluir próximos 30 dias para pendências futuras
       };
 
       console.log('📅 Range de datas padrão:', {
