@@ -20,6 +20,7 @@ interface UseRelatorioCustosEmpresaComSaudeParams {
     statusFilter?: string;
     valorMin?: string;
     valorMax?: string;
+    tipoPlanoFilter?: string;
   };
 }
 
