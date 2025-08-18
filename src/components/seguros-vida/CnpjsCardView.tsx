@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,9 +71,32 @@ export const CnpjsCardView: React.FC<CnpjsCardViewProps> = ({
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span>{cnpj.totalFuncionarios || 0} funcionários</span>
+            {/* Detailed employee counts */}
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-green-600" />
+                  <span>Funcionários ativos:</span>
+                </div>
+                <span className="font-medium">{cnpj.funcionariosAtivos || 0}</span>
+              </div>
+
+              {cnpj.funcionariosPendentes > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    <span>Pendentes:</span>
+                  </div>
+                  <span className="font-medium text-orange-600">{cnpj.funcionariosPendentes}</span>
+                </div>
+              )}
+
+              <div className="pt-1 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Total:</span>
+                  <span className="font-medium">{cnpj.totalFuncionarios || 0}</span>
+                </div>
+              </div>
             </div>
 
             <CnpjStatusBadges 
