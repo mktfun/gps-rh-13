@@ -51,6 +51,7 @@ export const RelatorioPendenciasDebug = () => {
 
       let filteredByDate = [];
       let statusAnalysis = {};
+      let cnpjAnalysis = {};
 
       if (pendenciasRaw.length > 0) {
         // Aplicar filtro de data (igual ao relatório)
