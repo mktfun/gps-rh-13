@@ -204,7 +204,8 @@ const RelatorioCustosEmpresaPage = () => {
             {(filters.cnpjSearch !== '' ||
               (filters.statusFilter !== '' && filters.statusFilter !== 'todos') ||
               filters.valorMin !== '' ||
-              filters.valorMax !== '') && (
+              filters.valorMax !== '' ||
+              (filters.tipoPlanoFilter !== '' && filters.tipoPlanoFilter !== 'todos')) && (
               <span className="ml-2 text-blue-600">
                 • Filtros aplicados
               </span>
