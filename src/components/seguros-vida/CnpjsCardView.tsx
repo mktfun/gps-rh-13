@@ -99,9 +99,9 @@ export const CnpjsCardView: React.FC<CnpjsCardViewProps> = ({
               </div>
             </div>
 
-            <CnpjStatusBadges 
+            <CnpjStatusBadges
               temPlano={cnpj.temPlano}
-              funcionariosAtivos={cnpj.totalFuncionarios || 0}
+              funcionariosAtivos={cnpj.funcionariosAtivos || 0}
               totalFuncionarios={cnpj.totalFuncionarios || 0}
               totalPendencias={cnpj.totalPendencias}
               funcionariosPendentes={cnpj.funcionariosPendentes}
