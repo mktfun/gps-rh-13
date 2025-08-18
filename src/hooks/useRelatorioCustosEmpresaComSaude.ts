@@ -46,7 +46,6 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
           id,
           cnpj_id,
           valor_mensal,
-          valor_mensal_calculado,
           tipo_seguro,
           cnpjs!inner (
             id,
