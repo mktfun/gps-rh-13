@@ -33,7 +33,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Buscando relatório de custos completo (vida + sa��de):', {
+      console.log('🔍 Buscando relatório de custos completo (vida + saúde):', {
         empresaId,
         pageSize,
         pageOffset: pageIndex * pageSize,
@@ -149,21 +149,25 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         // Calcular valor total do CNPJ (soma de todos os planos)
         const valorTotalCnpj = dadosCnpj.planos.reduce((sum, plano) => sum + plano.valor, 0);
 
-        // Criar registro para cada tipo de plano
-        dadosCnpj.planos.forEach(plano => {
-          const valorIndividual = funcionariosAtivosCnpj > 0 && funcionario.status === 'ativo'
-            ? plano.valor / funcionariosAtivosCnpj
-            : 0;
+        // Criar apenas um registro por funcionário, somando todos os valores dos planos
+        const valorIndividualTotal = funcionariosAtivosCnpj > 0 && funcionario.status === 'ativo'
+          ? valorTotalCnpj / funcionariosAtivosCnpj
+          : 0;
 
-          relatorioCompleto.push({
-            cnpj_razao_social: dadosCnpj.cnpj_razao_social,
-            funcionario_nome: funcionario.nome,
-            funcionario_cpf: funcionario.cpf,
-            valor_individual: Number(valorIndividual.toFixed(2)),
-            status: funcionario.status,
-            total_cnpj: valorTotalCnpj,
-            tipo_plano: plano.tipo
-          });
+        // Identificar quais tipos de planos o funcionário tem
+        const tiposPlanos = dadosCnpj.planos.map(p => p.tipo);
+        const tipoPlanoDisplay = tiposPlanos.length > 1
+          ? 'ambos'
+          : tiposPlanos[0] || 'sem_plano';
+
+        relatorioCompleto.push({
+          cnpj_razao_social: dadosCnpj.cnpj_razao_social,
+          funcionario_nome: funcionario.nome,
+          funcionario_cpf: funcionario.cpf,
+          valor_individual: Number(valorIndividualTotal.toFixed(2)),
+          status: funcionario.status,
+          total_cnpj: valorTotalCnpj,
+          tipo_plano: tipoPlanoDisplay
         });
       });
 
