@@ -76,7 +76,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
   // Early return if no planoId
   if (!planoId) {
-    console.log('❌ Nenhum planoId fornecido na URL');
+    console.log('�� Nenhum planoId fornecido na URL');
     return (
       <div className="container mx-auto py-6">
         <Link to="/empresa/seguros-de-vida">
@@ -308,10 +308,6 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
                 <TabsContent value="documentos" className="mt-6">
                   {plano && <DemonstrativosTab planoId={plano.id} isCorretora={false} />}
-                </TabsContent>
-
-                <TabsContent value="debug" className="mt-6">
-                  <PendenciasDebugMaster />
                 </TabsContent>
               </Tabs>
             </CardContent>
