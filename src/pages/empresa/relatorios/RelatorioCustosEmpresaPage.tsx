@@ -161,7 +161,7 @@ const RelatorioCustosEmpresaPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{funcionariosAtivos}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              Funcionários com plano ativo
+              Funcionários com planos de vida ou saúde ativos
             </div>
           </CardContent>
         </Card>
