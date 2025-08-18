@@ -65,11 +65,6 @@ export const EmpresasCardView: React.FC<EmpresasCardViewProps> = ({
               </Badge>
             </div>
 
-            {/* Additional info placeholder - can be enhanced with real data */}
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>• Funcionários: calculando...</div>
-              <div>• Pendências: verificando...</div>
-            </div>
 
             <Button
               onClick={() => onEmpresaClick(empresa)}
