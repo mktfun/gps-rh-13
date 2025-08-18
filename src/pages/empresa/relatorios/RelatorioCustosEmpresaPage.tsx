@@ -32,7 +32,7 @@ const RelatorioCustosEmpresaPage = () => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   };
 
-  const { data: result, isLoading, error } = useRelatorioCustosEmpresaPaginado({
+  const { data: result, isLoading, error } = useRelatorioCustosEmpresaComSaude({
     pageSize: pagination.pageSize,
     pageIndex: pagination.pageIndex,
     filters,
