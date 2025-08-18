@@ -10,6 +10,7 @@ interface CustoEmpresa {
   valor_individual: number;
   status: string;
   total_cnpj: number;
+  tipo_plano?: string;
 }
 
 export const createCustoEmpresaTableColumns = (): ColumnDef<CustoEmpresa>[] => [
