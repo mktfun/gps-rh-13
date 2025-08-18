@@ -23,7 +23,8 @@ const RelatorioCustosEmpresaPage = () => {
     cnpjSearch: '',
     statusFilter: 'todos',
     valorMin: '',
-    valorMax: ''
+    valorMax: '',
+    tipoPlanoFilter: 'todos'
   });
 
   const handleFiltersChange = (newFilters: CustosReportFiltersData) => {
