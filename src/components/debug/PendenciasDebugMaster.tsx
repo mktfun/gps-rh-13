@@ -64,7 +64,7 @@ export const PendenciasDebugMaster = () => {
     setIsLoading(true);
 
     try {
-      console.log('���� INICIANDO DEBUG COMPLETO DE PENDÊNCIAS');
+      console.log('🔍 INICIANDO DEBUG COMPLETO DE PENDÊNCIAS');
       console.log('📋 Dados do usuário:', {
         userId: user.id,
         userEmail: user.email,
@@ -81,7 +81,7 @@ export const PendenciasDebugMaster = () => {
         .eq('status', 'pendente');
 
       if (rawError) {
-        console.error('❌ Erro ao buscar pendências raw:', rawError);
+        console.error('�� Erro ao buscar pendências raw:', rawError);
         throw rawError;
       }
 
@@ -210,10 +210,10 @@ export const PendenciasDebugMaster = () => {
 
         <Separator />
 
-        {/* Botão de Debug */}
-        <div className="text-center">
-          <Button 
-            onClick={debugPendencias} 
+        {/* Botões de Debug */}
+        <div className="text-center space-y-4">
+          <Button
+            onClick={debugPendencias}
             disabled={isLoading}
             className="gap-2"
           >
@@ -224,6 +224,22 @@ export const PendenciasDebugMaster = () => {
             )}
             {isLoading ? 'Executando Debug...' : 'Executar Debug Completo'}
           </Button>
+
+          {role === 'empresa' && (
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => window.open('/empresa/relatorios/pendencias', '_blank')}
+                className="gap-2"
+              >
+                <Database className="h-4 w-4" />
+                Abrir Relatório de Pendências
+              </Button>
+              <p className="text-xs text-muted-foreground mt-1">
+                Abre o relatório oficial de pendências da empresa
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Resultados do Debug */}
