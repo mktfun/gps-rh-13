@@ -86,6 +86,17 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         throw funcionariosError;
       }
 
+      console.log('🔍 Debug - Planos encontrados:', planosData?.length);
+      console.log('🔍 Debug - Planos por tipo:', planosData?.reduce((acc, p) => {
+        acc[p.tipo_seguro] = (acc[p.tipo_seguro] || 0) + 1;
+        return acc;
+      }, {}));
+      console.log('🔍 Debug - Valores dos planos:', planosData?.map(p => ({
+        tipo: p.tipo_seguro,
+        valor: p.valor_mensal,
+        cnpj: p.cnpjs.razao_social
+      })));
+
       if (!planosData || !funcionariosData) {
         return {
           data: [],
