@@ -14,57 +14,8 @@ export default function EmpresasOverview() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const navigate = useNavigate();
 
-  // Fetch both health and life plans data
-  const { data: empresasSaude = [], isLoading: isLoadingSaude } = useEmpresasComPlanos({ 
-    tipoSeguro: 'saude',
-    search
-  });
-  
-  const { data: empresasVida = [], isLoading: isLoadingVida } = useEmpresasComPlanos({ 
-    tipoSeguro: 'vida',
-    search
-  });
-
-  const isLoading = isLoadingSaude || isLoadingVida;
-
-  // Combine data from both types of plans
-  const empresasUnificadas: EmpresaUnificada[] = React.useMemo(() => {
-    const empresasMap = new Map<string, EmpresaUnificada>();
-    
-    // Add health plans
-    empresasSaude.forEach(empresa => {
-      empresasMap.set(empresa.id, {
-        id: empresa.id,
-        nome: empresa.nome,
-        planos_saude: empresa.total_planos_ativos,
-        planos_vida: 0,
-        total_planos: empresa.total_planos_ativos,
-        total_funcionarios: 0, // This will be updated with real data
-        funcionarios_pendentes: 0 // This will be updated with real data
-      });
-    });
-
-    // Add life insurance plans
-    empresasVida.forEach(empresa => {
-      const existing = empresasMap.get(empresa.id);
-      if (existing) {
-        existing.planos_vida = empresa.total_planos_ativos;
-        existing.total_planos = existing.planos_saude + empresa.total_planos_ativos;
-      } else {
-        empresasMap.set(empresa.id, {
-          id: empresa.id,
-          nome: empresa.nome,
-          planos_saude: 0,
-          planos_vida: empresa.total_planos_ativos,
-          total_planos: empresa.total_planos_ativos,
-          total_funcionarios: 0,
-          funcionarios_pendentes: 0
-        });
-      }
-    });
-
-    return Array.from(empresasMap.values());
-  }, [empresasSaude, empresasVida]);
+  // Fetch unified empresa data
+  const { data: empresasUnificadas = [], isLoading } = useEmpresasUnificadas(search);
 
   const handleEmpresaClick = (empresa: EmpresaUnificada) => {
     // Navigate to the unified empresa details page
