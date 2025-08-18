@@ -153,7 +153,12 @@ export default function EmpresasOverview() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  {empresa.total_funcionarios || 'N/A'} funcionários
+                  {empresa.funcionarios_ativos} ativos
+                  {empresa.funcionarios_pendentes > 0 && (
+                    <span className="text-orange-600">
+                      , {empresa.funcionarios_pendentes} pendentes
+                    </span>
+                  )}
                 </span>
               </div>
             </div>
@@ -218,7 +223,7 @@ export default function EmpresasOverview() {
                 <div className="text-2xl font-bold text-blue-600">
                   {empresasUnificadas.reduce((sum, e) => sum + e.planos_saude, 0)}
                 </div>
-                <div className="text-sm text-blue-700">Planos de Saúde</div>
+                <div className="text-sm text-blue-700">Planos de Sa��de</div>
               </CardContent>
             </Card>
             
