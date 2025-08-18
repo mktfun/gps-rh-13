@@ -148,7 +148,7 @@ const RelatorioCustosEmpresaPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalGeral)}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              Soma dos valores dos planos ativos
+              Soma dos valores dos planos de vida e saúde ativos
             </div>
           </CardContent>
         </Card>
