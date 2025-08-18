@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { useExportData, ExportField } from '@/hooks/useExportData';
 import { ExportModal } from '@/components/ui/export-modal';
 import { TableLoadingState } from '@/components/ui/loading-state';
 import { useToast } from '@/hooks/use-toast';
+import { FixFinancialReportFunction } from '@/components/debug/FixFinancialReportFunction';
 
 const RelatorioFinanceiroPage = () => {
   const { data: relatorioData, isLoading, error } = useRelatorioFinanceiroCorretora();
