@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building, Users, Upload, ArrowRight } from 'lucide-react';
+import { Building, Users, Upload, ArrowRight, Clock } from 'lucide-react';
 import { CnpjStatusBadges } from './CnpjStatusBadges';
 
 interface CnpjsCardViewProps {
