@@ -66,7 +66,13 @@ export const createCustoEmpresaTableColumns = (): ColumnDef<CustoEmpresa>[] => [
         <div className="text-xs text-muted-foreground">{row.original.funcionario_cpf}</div>
         {row.original.tipo_plano && row.original.tipo_plano !== 'sem_plano' && (
           <Badge variant="outline" className="text-xs">
-            {row.original.tipo_plano === 'vida' ? 'Seguro de Vida' : 'Plano de Saúde'}
+            {row.original.tipo_plano === 'vida'
+              ? 'Seguro de Vida'
+              : row.original.tipo_plano === 'saude'
+              ? 'Plano de Saúde'
+              : row.original.tipo_plano === 'ambos'
+              ? 'Vida + Saúde'
+              : 'Tipo Desconhecido'}
           </Badge>
         )}
       </div>
