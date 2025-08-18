@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Building } from 'lucide-react';
@@ -22,11 +21,15 @@ const PendenciasByCNPJChart: React.FC<PendenciasByCNPJChartProps> = ({ dados }) 
     .slice(0, 8) // Mostrar apenas top 8 CNPJs
     .map(item => ({
       ...item,
-      nome_curto: item.razao_social.length > 20 
-        ? item.razao_social.substring(0, 20) + '...' 
+      nome_curto: item.razao_social.length > 20
+        ? item.razao_social.substring(0, 20) + '...'
         : item.razao_social,
       normais: item.total_pendencias - item.criticas - item.urgentes
     }));
+
+  // Debug dos dados
+  console.log('🔍 [PendenciasByCNPJChart] Dados recebidos:', dados);
+  console.log('📊 [PendenciasByCNPJChart] Chart data processado:', chartData);
 
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
