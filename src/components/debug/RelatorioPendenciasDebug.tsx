@@ -141,6 +141,7 @@ export const RelatorioPendenciasDebug = () => {
           pendencias: filteredByDate.map(p => p.protocolo)
         },
         statusAnalysis,
+        cnpjAnalysis,
         directQuery: {
           total: pendenciasDirectas?.length || 0,
           error: error?.message || null,
