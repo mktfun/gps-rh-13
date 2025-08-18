@@ -262,6 +262,9 @@ const RelatorioPendenciasCorretoraPage = () => {
         </Card>
       </div>
 
+      {/* Debug Component */}
+      <PendencyVisibilityDebug />
+
       {/* Tabela Detalhada */}
       <Card>
         <CardHeader>
