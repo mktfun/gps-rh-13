@@ -166,6 +166,12 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         // Calcular valor total do CNPJ (soma de todos os planos)
         const valorTotalCnpj = dadosCnpj.planos.reduce((sum, plano) => sum + plano.valor, 0);
 
+        console.log(`🔍 Debug - Valor total calculado para CNPJ ${dadosCnpj.cnpj_razao_social}:`, {
+          planos: dadosCnpj.planos,
+          valorTotal: valorTotalCnpj,
+          funcionariosAtivos: funcionariosAtivosCnpj
+        });
+
         // Criar apenas um registro por funcionário, somando todos os valores dos planos
         const valorIndividualTotal = funcionariosAtivosCnpj > 0 && funcionario.status === 'ativo'
           ? valorTotalCnpj / funcionariosAtivosCnpj
