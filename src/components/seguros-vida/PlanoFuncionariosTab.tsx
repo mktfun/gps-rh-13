@@ -142,7 +142,7 @@ export const PlanoFuncionariosTab: React.FC<PlanoFuncionariosTabProps> = ({
               Funcionários do Plano ({totalCount})
             </CardTitle>
             <div className="flex gap-2">
-              {stats?.pendentes > 0 && (
+              {isCorretora && stats?.pendentes > 0 && (
                 <Button
                   variant="default"
                   onClick={() => setIsBulkActivationOpen(true)}
