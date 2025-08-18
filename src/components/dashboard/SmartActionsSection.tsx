@@ -279,7 +279,7 @@ const SmartActionsSection = () => {
               <p className="text-sm text-blue-800 mb-2">
                 Você tem <strong>{totalActions} ações pendentes</strong> que podem gerar{' '}
                 <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                  (actions.ativacoes_pendentes + actions.funcionarios_travados) * 45 + actions.cnpjs_sem_plano * 500
+                  actions.ativacoes_pendentes * 45 + actions.cnpjs_sem_plano * 500
                 )}</strong> de receita adicional mensal.
               </p>
               <p className="text-xs text-blue-700">
