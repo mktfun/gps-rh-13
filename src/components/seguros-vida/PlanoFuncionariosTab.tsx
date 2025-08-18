@@ -11,6 +11,7 @@ import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPla
 import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import { BulkActivationModal } from '@/components/funcionarios/BulkActivationModal';
 import { useFuncionariosParaAtivacao } from '@/hooks/useFuncionariosParaAtivacao';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PlanoFuncionariosTabProps {
   cnpjId: string;
