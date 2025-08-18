@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useSmartActions } from '@/hooks/useSmartActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -114,7 +113,9 @@ const SmartActionsSection = () => {
     }
   ];
 
-  const totalActions = smartActions.reduce((sum, action) => sum + action.count, 0);
+  // Fix double counting: funcionarios_travados is a subset of ativacoes_pendentes
+  // So we count: aprovacoes_rapidas + ativacoes_pendentes + cnpjs_sem_plano (not funcionarios_travados)
+  const totalActions = actions.aprovacoes_rapidas + actions.ativacoes_pendentes + actions.cnpjs_sem_plano;
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
