@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { usePulseFinanceiro } from '@/hooks/usePulseFinanceiro';
 import { useSmartActions } from '@/hooks/useSmartActions';
@@ -92,7 +91,8 @@ const InsightsAutomaticos = () => {
   }
 
   // Insight sobre ações pendentes
-  const totalActions = actions.aprovacoes_rapidas + actions.ativacoes_pendentes + actions.funcionarios_travados;
+  // Fix: funcionarios_travados is a subset of ativacoes_pendentes, so don't double count
+  const totalActions = actions.aprovacoes_rapidas + actions.ativacoes_pendentes;
   if (totalActions > 10) {
     insights.push({
       type: 'warning',
