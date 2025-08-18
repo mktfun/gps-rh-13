@@ -44,15 +44,34 @@ export const EmpresasCardView: React.FC<EmpresasCardViewProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Planos ativos:</span>
+            {/* Plan type indicator based on current page context */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {/* Determine plan type from current URL or props */}
+                {window.location.pathname.includes('planos-de-saude') ? (
+                  <div className="flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700">Planos de Saúde</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-700">Seguros de Vida</span>
+                  </div>
+                )}
+              </div>
               <Badge variant="secondary">
-                {empresa.total_planos_ativos}
+                {empresa.total_planos_ativos} plano(s)
               </Badge>
             </div>
-            
-            <Button 
+
+            {/* Additional info placeholder - can be enhanced with real data */}
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>• Funcionários: calculando...</div>
+              <div>• Pendências: verificando...</div>
+            </div>
+
+            <Button
               onClick={() => onEmpresaClick(empresa)}
               className="w-full"
               variant="outline"
