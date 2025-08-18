@@ -317,6 +317,7 @@ const SegurosVidaPlanoPage = () => {
             Documentos
           </TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="debug">Debug</TabsTrigger>
         </TabsList>
         
         <TabsContent value="visao-geral">
