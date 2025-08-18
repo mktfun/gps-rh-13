@@ -332,6 +332,27 @@ export const RelatorioPendenciasDebug = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Análise por CNPJ */}
+              {Object.keys(debugInfo.cnpjAnalysis || {}).length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Análise por CNPJ</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-xs">
+                      {Object.entries(debugInfo.cnpjAnalysis).map(([cnpj, info]: [string, any]) => (
+                        <div key={cnpj} className="p-3 bg-muted rounded">
+                          <div><strong>{info.razao_social}</strong></div>
+                          <div>CNPJ: {info.cnpj}</div>
+                          <div>Total: {info.total_pendencias}</div>
+                          <div>Críticas: {info.criticas} | Urgentes: {info.urgentes}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </>
         )}
