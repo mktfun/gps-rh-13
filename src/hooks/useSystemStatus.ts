@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,8 +73,10 @@ export const useSystemStatus = () => {
   useEffect(() => {
     if (role === 'corretora' && smartActionsQuery.data) {
       const smartData = smartActionsQuery.data;
-      const totalPendencias = smartData.aprovacoes_rapidas + smartData.ativacoes_pendentes + smartData.funcionarios_travados;
-      
+      // funcionarios_travados is a subset of ativacoes_pendentes (those pending for >5 days)
+      // So we only count: aprovacoes_rapidas + ativacoes_pendentes (without double counting)
+      const totalPendencias = smartData.aprovacoes_rapidas + smartData.ativacoes_pendentes;
+
       setStatus(prev => ({
         ...prev,
         pendingCounts: {
@@ -83,6 +84,7 @@ export const useSystemStatus = () => {
           pendencias_exclusao: smartData.aprovacoes_rapidas,
           funcionarios_pendentes: smartData.ativacoes_pendentes,
           configuracao_pendente: smartData.cnpjs_sem_plano,
+          funcionarios_travados: smartData.funcionarios_travados,
         },
         systemHealth: totalPendencias > 10 ? 'warning' : totalPendencias > 20 ? 'error' : 'good',
       }));
