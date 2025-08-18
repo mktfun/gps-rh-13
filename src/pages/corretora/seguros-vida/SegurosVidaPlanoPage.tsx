@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
+import { PendenciasDebugMaster } from '@/components/debug/PendenciasDebugMaster';
 
 interface PlanoDetalhes {
   id: string;
