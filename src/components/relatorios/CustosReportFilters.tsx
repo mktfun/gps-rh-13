@@ -47,7 +47,8 @@ export const CustosReportFilters = ({
   const hasActiveFilters = filters.cnpjSearch !== '' ||
     (filters.statusFilter !== '' && filters.statusFilter !== 'todos') ||
     filters.valorMin !== '' ||
-    filters.valorMax !== '';
+    filters.valorMax !== '' ||
+    (filters.tipoPlanoFilter !== '' && filters.tipoPlanoFilter !== 'todos');
 
   return (
     <Card>
