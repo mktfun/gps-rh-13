@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,10 +20,10 @@ export const useRelatorioFinanceiroCorretora = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('Chamando RPC get_relatorio_financeiro_corretora com user.id:', user.id);
+      console.log('Chamando RPC get_empresas_com_metricas para relatório financeiro com user.id:', user.id);
 
-      // Using any type for the RPC call since the function isn't in the generated types yet
-      const { data, error } = await (supabase as any).rpc('get_relatorio_financeiro_corretora', {
+      // Usar get_empresas_com_metricas que está funcionando corretamente
+      const { data, error } = await supabase.rpc('get_empresas_com_metricas', {
         p_corretora_id: user.id
       });
 
@@ -33,16 +32,18 @@ export const useRelatorioFinanceiroCorretora = () => {
         throw error;
       }
 
-      console.log('Dados retornados da RPC:', data);
+      console.log('Dados retornados da RPC get_empresas_com_metricas:', data);
 
-      // Validate and sanitize the data to prevent NaN values
+      // Transformar dados de get_empresas_com_metricas para o formato do relatório financeiro
       const sanitizedData = Array.isArray(data) ? data.map((item: any) => ({
-        empresa_id: String(item.empresa_id) || '',
-        empresa_nome: String(item.empresa_nome) || '',
-        total_cnpjs_ativos: isNaN(Number(item.total_cnpjs_ativos)) ? 0 : Number(item.total_cnpjs_ativos),
-        total_funcionarios_segurados: isNaN(Number(item.total_funcionarios_segurados)) ? 0 : Number(item.total_funcionarios_segurados),
-        custo_total_mensal: isNaN(Number(item.custo_total_mensal)) ? 0 : Number(item.custo_total_mensal),
+        empresa_id: String(item.id) || '',
+        empresa_nome: String(item.nome) || '',
+        total_cnpjs_ativos: isNaN(Number(item.total_cnpjs)) ? 0 : Number(item.total_cnpjs),
+        total_funcionarios_segurados: isNaN(Number(item.total_funcionarios)) ? 0 : Number(item.total_funcionarios),
+        custo_total_mensal: isNaN(Number(item.custo_mensal_total)) ? 0 : Number(item.custo_mensal_total),
       })) : [];
+
+      console.log('Dados processados para relatório financeiro:', sanitizedData);
 
       return sanitizedData as RelatorioFinanceiroItem[];
     },
