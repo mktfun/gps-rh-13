@@ -34,6 +34,7 @@ const PermissionTestPage: React.FC = () => {
               <li>❌ Erro ao criar pendências de ativação: [object Object]</li>
               <li>❌ Error: Você não tem permissão para criar pendências</li>
               <li>❌ Erro ao buscar estatísticas de matrículas: [object Object]</li>
+              <li>❌ Dashboard não contabilizava planos de saúde nos custos</li>
             </ul>
           </div>
           
