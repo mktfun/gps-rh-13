@@ -14,8 +14,10 @@ import {
   Bug
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
+import { toast } from 'sonner';
 import CustosPorCnpjChart from '@/components/dashboard/CustosPorCnpjChart';
 import EvolucaoMensalChart from '@/components/dashboard/EvolucaoMensalChart';
 import DistributionChartsCard from '@/components/dashboard/DistributionChartsCard';
