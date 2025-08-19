@@ -36,10 +36,14 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
     isLoading,
     error
   } = useQuery({
-    queryKey: ['empresas-com-metricas', search, page, pageSize, orderBy, orderDirection],
+    queryKey: ['empresas-com-metricas', user?.id, search, page, pageSize, orderBy, orderDirection],
     queryFn: async (): Promise<{ empresas: EmpresaComMetricas[]; totalCount: number; totalPages: number }> => {
-      console.log('🏢 useEmpresas - Buscando empresas com métricas via RPC');
-      
+      if (!user?.id) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      console.log('🏢 useEmpresas - Buscando empresas com métricas via RPC para corretora:', user.id);
+
       try {
         // Usar RPC para buscar empresas da corretora
         const { data, error } = await supabase.rpc('get_empresas_com_metricas', {
