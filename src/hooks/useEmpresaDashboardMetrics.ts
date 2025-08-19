@@ -37,7 +37,7 @@ export const useEmpresaDashboardMetrics = () => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId, 'v2'], // Versão v2 para forçar cache refresh
+    queryKey: ['empresa-dashboard-metrics', empresaId, 'v3'], // Versão v3 - função revertida
     queryFn: async (): Promise<EmpresaDashboardMetrics> => {
       if (!empresaId) {
         throw new Error('Empresa ID não encontrado');
