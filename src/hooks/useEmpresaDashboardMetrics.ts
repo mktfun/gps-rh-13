@@ -81,11 +81,11 @@ export const useEmpresaDashboardMetrics = () => {
       }
 
       const resultado = {
-        custoMensalTotal: Number(typedData?.custoMensalTotal || 0),
-        totalCnpjs: Number(typedData?.totalCnpjs || 0),
-        totalFuncionarios: Number(typedData?.totalFuncionarios || 0),
-        funcionariosAtivos: Number(typedData?.funcionariosAtivos || 0),
-        funcionariosPendentes: Number(typedData?.funcionariosPendentes || 0),
+        custoMensalTotal: Number(typedData?.receita_total || typedData?.custoMensalTotal || 0),
+        totalCnpjs: Number(typedData?.total_cnpjs || typedData?.totalCnpjs || 0),
+        totalFuncionarios: Number(typedData?.total_funcionarios || typedData?.totalFuncionarios || 0),
+        funcionariosAtivos: Number(typedData?.funcionariosAtivos || typedData?.total_funcionarios || 0),
+        funcionariosPendentes: Number(typedData?.funcionariosPendentes || typedData?.total_pendencias || 0),
         custosPorCnpj: Array.isArray(typedData?.custosPorCnpj) 
           ? typedData.custosPorCnpj.map((item: any) => ({
               cnpj: String(item.cnpj || ''),
