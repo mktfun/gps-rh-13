@@ -143,7 +143,7 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
       return transformedData;
     },
     enabled: !!empresaId,
-    staleTime: 1000 * 60 * 2, // 2 minutos
-    gcTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 0, // Desabilitar cache temporariamente
+    gcTime: 1000 * 60 * 1, // 1 minuto
   });
 };
