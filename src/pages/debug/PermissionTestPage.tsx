@@ -5,6 +5,7 @@ import { PlanoValueTest } from '@/components/debug/PlanoValueTest';
 import { PendenciasRLSDebug } from '@/components/debug/PendenciasRLSDebug';
 import { PendenciasDebugEmpresa } from '@/components/debug/PendenciasDebugEmpresa';
 import { DashboardHealthPlanTest } from '@/components/debug/DashboardHealthPlanTest';
+import { DashboardDataDebug } from '@/components/debug/DashboardDataDebug';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 
