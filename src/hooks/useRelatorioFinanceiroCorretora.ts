@@ -20,12 +20,10 @@ export const useRelatorioFinanceiroCorretora = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('Chamando RPC get_empresas_com_metricas para relatório financeiro com user.id:', user.id);
+      console.log('Chamando RPC get_empresas_com_metricas para relatório financeiro (sem parâmetro)');
 
-      // Usar get_empresas_com_metricas que está funcionando corretamente
-      const { data, error } = await supabase.rpc('get_empresas_com_metricas', {
-        p_corretora_id: user.id
-      });
+      // Usar get_empresas_com_metricas sem parâmetro (já filtra por RLS)
+      const { data, error } = await supabase.rpc('get_empresas_com_metricas');
 
       if (error) {
         console.error('Erro ao buscar relatório financeiro:', error);
