@@ -45,6 +45,7 @@ const PermissionTestPage: React.FC = () => {
               <li>✅ Improved permission verification before database operations</li>
               <li>✅ Fixed RLS policies for pendencias table</li>
               <li>✅ Enhanced query key invalidation patterns</li>
+              <li>✅ Dashboard agora inclui planos de saúde nos cálculos de custo</li>
             </ul>
           </div>
         </CardContent>
