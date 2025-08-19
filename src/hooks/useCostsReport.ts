@@ -65,7 +65,7 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
   const endDate = params.endDate || defaultEndDate;
 
   return useQuery({
-    queryKey: ['costs-report', empresaId, format(startDate, 'yyyy-MM-dd'), format(endDate, 'yyyy-MM-dd')],
+    queryKey: ['costs-report', empresaId, format(startDate, 'yyyy-MM-dd'), format(endDate, 'yyyy-MM-dd'), 'v2'], // v2 para forçar refresh
     queryFn: async (): Promise<CostsReportData> => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
