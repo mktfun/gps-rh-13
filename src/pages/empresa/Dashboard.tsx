@@ -32,11 +32,42 @@ const EmpresaDashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const queryClient = useQueryClient();
 
-  console.log('🔍 [EmpresaDashboard] Estado atual:', { 
-    metrics, 
+  console.log('🔍 [EmpresaDashboard] Estado atual:', {
+    metrics,
     isLoading,
     error: error?.message
   });
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      // Invalidar todas as queries relacionadas ao dashboard
+      await queryClient.invalidateQueries({ queryKey: ['empresa-dashboard-metrics'] });
+      await queryClient.invalidateQueries({ queryKey: ['empresa-dashboard'] });
+
+      // Forçar refetch
+      await refetch();
+
+      toast.success('Dados atualizados com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar dados:', error);
+      toast.error('Erro ao atualizar dados');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleDebugData = () => {
+    console.group('🐛 [DEBUG] Dados do Dashboard');
+    console.log('Métricas completas:', metrics);
+    console.log('Plano principal:', metrics?.planoPrincipal);
+    console.log('Evolução mensal:', metrics?.evolucaoMensal);
+    console.log('Custos por CNPJ:', metrics?.custosPorCnpj);
+    console.log('Custo mensal total:', metrics?.custoMensalTotal);
+    console.groupEnd();
+
+    toast.info('Dados de debug enviados para console (F12)');
+  };
 
   if (isLoading) {
     return (
