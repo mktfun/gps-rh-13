@@ -3,13 +3,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useQueryClient } from '@tanstack/react-query';
-import { 
-  AlertTriangle, 
-  Users, 
-  Building2, 
+import {
+  AlertTriangle,
+  Users,
+  Building2,
   DollarSign,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  RefreshCw,
+  Bug
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
