@@ -41,8 +41,10 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
       console.log('🏢 useEmpresas - Buscando empresas com métricas via RPC');
       
       try {
-        // Usar RPC para buscar todas as empresas
-        const { data, error } = await supabase.rpc('get_empresas_com_metricas');
+        // Usar RPC para buscar empresas da corretora
+        const { data, error } = await supabase.rpc('get_empresas_com_metricas', {
+          p_corretora_id: user?.id
+        });
 
         if (error) {
           console.error('❌ useEmpresas - Erro ao buscar empresas:', error);
