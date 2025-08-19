@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboard } from '@/hooks/useEmpresaDashboard';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   AlertTriangle, 
   Users, 
