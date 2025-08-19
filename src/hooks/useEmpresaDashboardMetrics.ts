@@ -37,7 +37,7 @@ export const useEmpresaDashboardMetrics = () => {
   const { empresaId } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId, 'v3'], // Versão v3 - função revertida
+    queryKey: ['empresa-dashboard-metrics', empresaId, 'v4'], // Versão v4 - incluir TODOS os planos
     queryFn: async (): Promise<EmpresaDashboardMetrics> => {
       if (!empresaId) {
         throw new Error('Empresa ID não encontrado');
