@@ -51,7 +51,9 @@ const PermissionTestPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      
+
+      <DashboardDataDebug />
+
       <DashboardHealthPlanTest />
 
       <PendenciasDebugEmpresa />
