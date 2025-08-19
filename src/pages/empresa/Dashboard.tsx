@@ -223,7 +223,12 @@ const EmpresaDashboard = () => {
                     <div className="space-y-4">
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Seguradora</h4>
-                        <p className="text-lg font-semibold">{metrics.planoPrincipal.seguradora}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-lg font-semibold">{metrics.planoPrincipal.seguradora}</p>
+                          <Badge variant={metrics.planoPrincipal.tipo_seguro === 'saude' ? 'secondary' : 'default'}>
+                            {metrics.planoPrincipal.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro de Vida'}
+                          </Badge>
+                        </div>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Empresa</h4>
