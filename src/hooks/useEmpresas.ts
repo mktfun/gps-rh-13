@@ -133,6 +133,7 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
         throw error;
       }
     },
+    enabled: !!user?.id, // Só executa se o usuário estiver autenticado
     // Configurações de cache otimizadas para performance
     staleTime: 1000 * 60 * 5, // 5 minutos - dados considerados frescos
     gcTime: 1000 * 60 * 10, // 10 minutos - cache mantido na memória
