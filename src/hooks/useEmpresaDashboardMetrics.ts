@@ -65,8 +65,20 @@ export const useEmpresaDashboardMetrics = () => {
 
       console.log('📊 [useEmpresaDashboardMetrics] Dados brutos da SQL:', dashboardData);
 
-      // Processar dados com segurança
-      const typedData = dashboardData as any;
+      // Verificar se os dados estão em formato de array aninhado
+      let typedData = dashboardData as any;
+
+      // Se for array, extrair o primeiro objeto
+      if (Array.isArray(dashboardData) && dashboardData.length > 0) {
+        typedData = dashboardData[0];
+        console.log('📊 [useEmpresaDashboardMetrics] Dados extraídos do array:', typedData);
+      }
+
+      // Se o objeto tem uma propriedade get_empresa_dashboard_metrics, usar ela
+      if (typedData?.get_empresa_dashboard_metrics) {
+        typedData = typedData.get_empresa_dashboard_metrics;
+        console.log('📊 [useEmpresaDashboardMetrics] Dados extraídos do objeto aninhado:', typedData);
+      }
 
       const resultado = {
         custoMensalTotal: Number(typedData?.custoMensalTotal || 0),
