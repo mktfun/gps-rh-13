@@ -260,6 +260,11 @@ const EmpresaDashboard = () => {
                             currency: 'BRL',
                           }).format(metrics.planoPrincipal.valor_mensal)}
                         </p>
+                        {metrics.planoPrincipal.tipo_seguro === 'saude' && metrics.planoPrincipal.valor_mensal === 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            * Valor calculado automaticamente baseado em {metrics.funcionariosAtivos} funcionários ativos
+                          </p>
+                        )}
                       </div>
                     </div>
                   ) : (
