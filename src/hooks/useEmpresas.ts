@@ -29,6 +29,7 @@ interface UseEmpresasParams {
 export const useEmpresas = (params: UseEmpresasParams = {}) => {
   const { search, page = 1, pageSize = 10, orderBy = 'created_at', orderDirection = 'desc' } = params;
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const {
     data: result,
