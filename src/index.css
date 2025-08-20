@@ -1,124 +1,105 @@
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+}
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --background: 220 14% 96%;
+    --foreground: 220 9% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 220 9% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    /* Corporate HR/Enterprise Color Palette */
-    --primary: 217 91% 40%; /* Azul corporativo profissional */
+    --popover-foreground: 220 9% 9%;
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 142 72% 29%; /* Verde sucesso para ações positivas */
-    --secondary-foreground: 210 40% 98%;
-
-    --tertiary: 25 95% 53%; /* Laranja para alertas e chamadas de atenção */
-    --tertiary-foreground: 210 40% 98%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 210 40% 94%;
+    --secondary-foreground: 215 19% 35%;
+    --tertiary: 210 11% 71%;
+    --tertiary-foreground: 215 25% 27%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 94%;
+    --accent-foreground: 215 19% 35%;
+    --destructive: 0 93% 73%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 40%;
-
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
     --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
 
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 217 91% 40%;
+    --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 91% 40%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
 
-    /* Corporate specific colors */
-    --corporate-blue: 217 91% 40%;
-    --corporate-blue-light: 217 91% 85%;
-    --corporate-green: 142 72% 29%;
-    --corporate-green-light: 142 72% 85%;
+    /* Corporate colors - matching specification */
+    --corporate-blue: 221 83% 53%; /* #2563EB */
+    --corporate-blue-light: 221 83% 65%;
+    --corporate-green: 142 76% 36%;
+    --corporate-green-light: 142 76% 50%;
     --corporate-orange: 25 95% 53%;
-    --corporate-orange-light: 25 95% 85%;
+    --corporate-orange-light: 25 95% 65%;
+    
+    /* Corporate grays - matching specification */
     --corporate-gray-50: 210 20% 98%;
-    --corporate-gray-100: 210 20% 95%;
-    --corporate-gray-200: 210 16% 88%;
-    --corporate-gray-300: 210 14% 83%;
-    --corporate-gray-400: 210 14% 71%;
-    --corporate-gray-500: 210 11% 57%;
-    --corporate-gray-600: 210 12% 45%;
-    --corporate-gray-700: 210 10% 40%;
-    --corporate-gray-800: 210 11% 15%;
-    --corporate-gray-900: 210 12% 8%;
+    --corporate-gray-100: 220 14% 96%;
+    --corporate-gray-200: 220 13% 91%;
+    --corporate-gray-300: 216 12% 84%;
+    --corporate-gray-400: 218 11% 65%; /* #9CA3AF */
+    --corporate-gray-500: 220 9% 46%;
+    --corporate-gray-600: 215 14% 34%;
+    --corporate-gray-700: 217 19% 27%;
+    --corporate-gray-800: 215 28% 17%;
+    --corporate-gray-900: 222 84% 5%; /* Very close to #0B1120 */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
+    --background: 222 84% 5%; /* #0B1120 - matching specification */
+    --foreground: 210 40% 98%; /* #E0E0E0 - matching specification */
+    --card: 222 84% 5%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 84% 5%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 142 72% 45%;
+    --primary: 221 83% 53%; /* #2563EB - matching specification */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 19% 27%;
     --secondary-foreground: 210 40% 98%;
-
-    --tertiary: 25 95% 60%;
+    --tertiary: 215 25% 27%;
     --tertiary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 217 19% 27%;
+    --muted-foreground: 218 11% 65%; /* #9CA3AF - matching specification */
+    --accent: 217 19% 27%;
     --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 93% 73%;
     --destructive-foreground: 210 40% 98%;
+    --border: 217 19% 27%;
+    --input: 217 19% 27%;
+    --ring: 221 83% 53%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217 91% 60%;
-
+    /* Sidebar dark */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 224.3 76.3% 94.1%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217 91% 60%;
-
-    /* Corporate dark theme adjustments */
-    --corporate-blue: 217 91% 60%;
-    --corporate-blue-light: 217 91% 25%;
-    --corporate-green: 142 72% 45%;
-    --corporate-green-light: 142 72% 25%;
-    --corporate-orange: 25 95% 60%;
-    --corporate-orange-light: 25 95% 25%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
   }
 }
 
@@ -128,104 +109,64 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
-  /* Corporate typography styles */
-  .corporate-heading {
-    @apply text-corporate-gray-900 dark:text-corporate-gray-50 font-semibold;
-  }
-
-  .corporate-subheading {
-    @apply text-corporate-gray-700 dark:text-corporate-gray-300 font-medium;
-  }
-
-  .corporate-text {
-    @apply text-corporate-gray-600 dark:text-corporate-gray-400;
-  }
-
-  .corporate-text-muted {
-    @apply text-corporate-gray-500 dark:text-corporate-gray-500;
+  /* Ensure dark theme for landing page */
+  .landing-page {
+    background-color: #0B1120;
+    color: #E0E0E0;
   }
 }
 
-/* Corporate specific utility classes */
+/* Corporate utility classes */
 @layer utilities {
-  .corporate-shadow {
-    box-shadow: 0 1px 3px 0 hsl(210 14% 83% / 0.1), 0 1px 2px -1px hsl(210 14% 83% / 0.1);
+  .corporate-heading {
+    color: hsl(var(--corporate-blue));
+    font-weight: 600;
   }
+  
+  .corporate-text {
+    color: hsl(var(--foreground));
+  }
+  
+  .corporate-text-muted {
+    color: hsl(var(--corporate-gray-400));
+  }
+  
+  .corporate-bg-primary {
+    background-color: hsl(var(--corporate-blue));
+  }
+  
+  .corporate-bg-dark {
+    background-color: #0B1120;
+  }
+}
 
-  .corporate-shadow-lg {
-    box-shadow: 0 10px 15px -3px hsl(210 14% 83% / 0.1), 0 4px 6px -4px hsl(210 14% 83% / 0.1);
-  }
+/* Custom glassmorphism styles */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-  .corporate-gradient {
-    background: linear-gradient(135deg, hsl(var(--corporate-blue)) 0%, hsl(var(--corporate-green)) 100%);
-  }
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
 
-  .corporate-gradient-subtle {
-    background: linear-gradient(135deg, hsl(var(--corporate-blue-light)) 0%, hsl(var(--corporate-green-light)) 100%);
-  }
+::-webkit-scrollbar-track {
+  background: #0B1120;
+}
 
-  /* Modern dashboard animations */
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+::-webkit-scrollbar-thumb {
+  background: #2563EB;
+  border-radius: 4px;
+}
 
-  @keyframes scale-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes slide-up {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out;
-  }
-
-  .animate-scale-in {
-    animation: scale-in 0.3s ease-out;
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.5s ease-out;
-  }
-
-  /* Hover effects */
-  .hover-scale {
-    transition: transform 0.2s ease-in-out;
-  }
-
-  .hover-scale:hover {
-    transform: scale(1.02);
-  }
-
-  /* Glass morphism effect */
-  .glass {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: #1d4ed8;
 }
