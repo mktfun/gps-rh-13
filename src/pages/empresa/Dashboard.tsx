@@ -24,7 +24,8 @@ import DistributionChartsCard from '@/components/dashboard/DistributionChartsCar
 import StatusSolicitacoesSection from '@/components/dashboard/StatusSolicitacoesSection';
 import DashboardCard from '@/components/ui/DashboardCard';
 
-const EmpresaDashboard = () => {
+// BACKUP - Dashboard antigo, substituído pela versão reformulada em /dashboard/index.tsx
+const EmpresaDashboardOld = () => {
   const { user } = useAuth();
   const { data: dashboardData } = useEmpresaDashboard();
   const { data: metrics, isLoading, error, refetch } = useEmpresaDashboardMetrics();
