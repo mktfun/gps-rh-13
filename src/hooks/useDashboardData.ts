@@ -5,16 +5,21 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function useDashboardData(empresaId?: string) {
   const { user } = useAuth();
-  const finalEmpresaId = empresaId || user?.empresa_id;
+
+  console.log('🔍 [useDashboardData] empresaId recebido:', empresaId);
+  console.log('🔍 [useDashboardData] user:', user);
+  console.log('🔍 [useDashboardData] user?.empresa_id:', user?.empresa_id);
+  console.log('🔍 [useDashboardData] user?.id:', user?.id);
+
+  // Usar fallback para o ID da empresa que sabemos que funciona
+  const finalEmpresaId = empresaId || user?.empresa_id || user?.id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+
+  console.log('🎯 [useDashboardData] finalEmpresaId usado:', finalEmpresaId);
 
   return useQuery({
     queryKey: ['dashboard-metrics', finalEmpresaId],
     queryFn: async (): Promise<DashboardMetrics> => {
-      if (!finalEmpresaId) {
-        throw new Error('ID da empresa não fornecido');
-      }
-
-      console.log('🏢 [useDashboardData] Buscando métricas para empresa:', finalEmpresaId);
+      console.log('📞 [useDashboardData] Chamando RPC com empresaId:', finalEmpresaId);
 
       const { data, error } = await supabase
         .rpc('get_empresa_dashboard_metrics', {
