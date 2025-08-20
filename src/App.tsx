@@ -42,8 +42,8 @@ import RelatorioFuncionariosPage from "./pages/corretora/relatorios/RelatorioFun
 import RelatorioMovimentacaoPage from "./pages/corretora/relatorios/RelatorioMovimentacaoPage";
 import RelatorioPendenciasCorretoraPage from "./pages/corretora/relatorios/RelatorioPendenciasCorretoraPage";
 
-// Empresa pages
-import EmpresaDashboard from "./pages/empresa/Dashboard";
+// Empresa pages - Dashboard reformulado
+import EmpresaDashboard from "./pages/empresa/dashboard/index";
 import EmpresaFuncionarios from "./pages/empresa/Funcionarios";
 import EmpresaPlanosPage from "./pages/empresa/EmpresaPlanosPage";
 import EmpresaPlanosSaudePage from "./pages/empresa/EmpresaPlanosSaudePage";
