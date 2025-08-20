@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "./Header";
@@ -23,26 +22,29 @@ const RootLayout = ({ children }: RootLayoutProps) => {
 
   return (
     <>
-      {/* A ESTRUTURA PRINCIPAL DA PÁGINA FICA AQUI DENTRO */}
+      {/* Main Layout Container with new design system */}
       <div className="flex h-screen overflow-hidden bg-background">
-        {/* Container do Sidebar: Tem largura fixa (w-64), borda, e só aparece em telas médias ou maiores (md:block) */}
-        <div className="hidden border-r bg-card md:block w-64">
-          <div className="flex h-full max-h-screen flex-col gap-2">
+        {/* Sidebar Container: Fixed width, modern design */}
+        <div className="hidden border-r border-border bg-sidebar-background md:flex w-64">
+          <div className="flex h-full max-h-screen flex-col">
             <Sidebar />
           </div>
         </div>
 
-        {/* Container do Conteúdo Principal: Ocupa o espaço restante e é o ÚNICO com rolagem. */}
-        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        {/* Main Content Container: Flexible, contains header and content */}
+        <div className="relative flex flex-1 flex-col overflow-hidden">
           <Header />
 
-          <main className="flex-1 p-6 lg:p-8">
-            {children || <Outlet />}
+          {/* Main Content Area: Scrollable content with modern spacing */}
+          <main className="flex-1 overflow-y-auto bg-background">
+            <div className="container mx-auto p-6 lg:p-8 space-y-8">
+              {children || <Outlet />}
+            </div>
           </main>
         </div>
       </div>
 
-      {/* O CHAT WIDGET FICA AQUI FORA, SOLTO E FLUTUANDO SOBRE TUDO */}
+      {/* Chat Widget: Floating overlay */}
       <ChatWidget />
     </>
   );
