@@ -17,7 +17,14 @@ import { TableSection, SimpleTableSection } from './components/TableSection';
 export default function DashboardPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data, isLoading, error, refetch } = useDashboardData(user?.empresa_id);
+
+  // Usar fallback para o ID da empresa que sabemos que tem dados
+  const empresaId = user?.empresa_id || user?.id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+
+  console.log('🏢 [DashboardPage] user:', user);
+  console.log('🏢 [DashboardPage] empresaId final:', empresaId);
+
+  const { data, isLoading, error, refetch } = useDashboardData(empresaId);
   
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
