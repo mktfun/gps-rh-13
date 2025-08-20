@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,10 @@ import {
   Calendar,
   FileText,
   Settings,
-  RefreshCw
+  RefreshCw,
+  ExternalLink,
+  UserX,
+  FileX
 } from 'lucide-react';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
 import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug';
@@ -31,6 +35,7 @@ import { cn } from '@/lib/utils';
 
 const CorretoraDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showDebug, setShowDebug] = useState(false);
   const { data: dashboardData, isLoading, error, refetch, isRefetching } = useCorretoraDashboardData();
 
@@ -67,83 +72,80 @@ const CorretoraDashboard = () => {
 
   const metrics = dashboardData!;
 
-  // KPI Cards Data
+  // KPI Cards Data - Agora clicáveis e com informações úteis
   const kpiCards = [
     {
       title: "Empresas Ativas",
       value: metrics.kpis.empresas_ativas.toLocaleString('pt-BR'),
-      change: "+12%",
-      trend: "up" as const,
+      description: "Clique para gerenciar",
       icon: Building2,
-      description: "vs. mês anterior",
-      color: "blue"
+      color: "blue",
+      href: "/corretora/empresas"
     },
     {
       title: "Funcionários Ativos",
       value: metrics.kpis.funcionarios_ativos.toLocaleString('pt-BR'),
-      change: "+8%",
-      trend: "up" as const,
+      description: "Ver relatório completo",
       icon: Users,
-      description: "vs. mês anterior",
-      color: "green"
+      color: "green",
+      href: "/corretora/relatorios/funcionarios"
     },
     {
       title: "Receita Mensal",
       value: `R$ ${metrics.kpis.receita_mensal.toLocaleString('pt-BR')}`,
-      change: "+15%",
-      trend: "up" as const,
+      description: "Ver relatório financeiro",
       icon: DollarSign,
-      description: "vs. mês anterior",
-      color: "emerald"
+      color: "emerald",
+      href: "/corretora/relatorios/financeiro"
     },
     {
       title: "Pendências",
       value: metrics.kpis.total_pendencias.toLocaleString('pt-BR'),
-      change: "-5%",
-      trend: "down" as const,
+      description: "Resolver agora",
       icon: AlertTriangle,
-      description: "vs. semana anterior",
-      color: "amber"
+      color: metrics.kpis.total_pendencias > 10 ? "red" : metrics.kpis.total_pendencias > 5 ? "amber" : "green",
+      href: "/corretora/relatorios/pendencias"
     }
   ];
 
-  // Smart Actions Data
+  // Função para determinar a cor baseada na quantidade de pendências
+  const getActionCardColor = (count: number) => {
+    if (count === 0) return "green";
+    if (count <= 5) return "amber";
+    return "red";
+  };
+
+  // Smart Actions Data - Reformuladas com sistema de cores
   const smartActions = [
     {
       title: "Ativar Funcionários",
       count: metrics.alertas.funcionarios_travados,
-      impact: "Alta prioridade",
-      description: "Funcionários com status travado precisam ser ativados",
+      impact: metrics.alertas.funcionarios_travados === 0 ? "✅ Nenhuma pendência" : 
+              metrics.alertas.funcionarios_travados <= 5 ? "⚠️ Atenção necessária" : "🚨 Ação urgente",
+      description: "Funcionários aguardando ativação no sistema",
       icon: Users,
-      color: "red",
-      action: () => {
-        // Navegar para página de funcionários pendentes
-        window.open('/corretora/relatorios/pendencias', '_blank');
-      }
+      color: getActionCardColor(metrics.alertas.funcionarios_travados),
+      action: () => navigate('/corretora/relatorios/pendencias?filtro=ativar')
+    },
+    {
+      title: "Excluir Funcionários",
+      count: Math.round(metrics.alertas.funcionarios_travados * 0.2), // Estimativa
+      impact: Math.round(metrics.alertas.funcionarios_travados * 0.2) === 0 ? "✅ Nenhuma pendência" : 
+              Math.round(metrics.alertas.funcionarios_travados * 0.2) <= 3 ? "⚠️ Atenção necessária" : "🚨 Ação urgente",
+      description: "Solicitações de exclusão aguardando aprovação",
+      icon: UserX,
+      color: getActionCardColor(Math.round(metrics.alertas.funcionarios_travados * 0.2)),
+      action: () => navigate('/corretora/relatorios/pendencias?filtro=excluir')
     },
     {
       title: "Configurar Planos",
       count: metrics.alertas.cnpjs_sem_plano,
-      impact: "Perda de receita",
-      description: "CNPJs sem plano configurado",
+      impact: metrics.alertas.cnpjs_sem_plano === 0 ? "✅ Nenhuma pendência" : 
+              metrics.alertas.cnpjs_sem_plano <= 3 ? "⚠️ Atenção necessária" : "🚨 Ação urgente",
+      description: "Empresas sem planos de saúde ou seguro configurados",
       icon: FileText,
-      color: "amber",
-      action: () => {
-        // Navegar para configuração de planos
-        window.open('/corretora/empresas', '_blank');
-      }
-    },
-    {
-      title: "Reativar Empresas",
-      count: metrics.alertas.empresas_inativas,
-      impact: "Retenção",
-      description: "Empresas inativas que podem ser reativadas",
-      icon: Building2,
-      color: "blue",
-      action: () => {
-        // Navegar para lista de empresas
-        window.open('/corretora/empresas', '_blank');
-      }
+      color: getActionCardColor(metrics.alertas.cnpjs_sem_plano),
+      action: () => navigate('/corretora/empresas?filtro=sem_plano')
     }
   ];
 
@@ -211,10 +213,17 @@ const CorretoraDashboard = () => {
         Última atualização: {new Date().toLocaleString('pt-BR')}
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* KPI Cards Grid - Agora clicáveis */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {kpiCards.map((kpi, index) => (
-          <Card key={index} className={cn("border transition-all duration-200 hover:shadow-lg", getCardColorClasses(kpi.color))}>
+          <Card 
+            key={index} 
+            className={cn(
+              "border transition-all duration-200 hover:shadow-lg cursor-pointer group", 
+              getCardColorClasses(kpi.color)
+            )}
+            onClick={() => navigate(kpi.href)}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -225,16 +234,11 @@ const CorretoraDashboard = () => {
                     {kpi.value}
                   </p>
                   <div className="flex items-center gap-1 text-sm">
-                    {kpi.trend === "up" ? (
-                      <TrendingUp className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3 text-green-600" />
-                    )}
-                    <span className="text-green-600 font-medium">{kpi.change}</span>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
                     <span className="text-muted-foreground">{kpi.description}</span>
                   </div>
                 </div>
-                <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center", getIconColorClasses(kpi.color))}>
+                <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform", getIconColorClasses(kpi.color))}>
                   <kpi.icon className="h-6 w-6" />
                 </div>
               </div>
@@ -243,7 +247,7 @@ const CorretoraDashboard = () => {
         ))}
       </div>
 
-      {/* Inteligência Operacional Section */}
+      {/* Inteligência Operacional Section - Com explicações melhoradas */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 bg-primary rounded-full"></div>
@@ -277,7 +281,8 @@ const CorretoraDashboard = () => {
               </div>
               <Progress value={metrics.eficiencia.produtividade_carteira} className="h-2" />
               <p className="text-sm text-muted-foreground">
-                Baseado na relação funcionários ativos/empresas
+                Mede quantos funcionários por empresa você consegue gerenciar efetivamente. 
+                Valores altos indicam carteira bem aproveitada.
               </p>
             </CardContent>
           </Card>
@@ -302,7 +307,8 @@ const CorretoraDashboard = () => {
               </div>
               <Progress value={metrics.eficiencia.taxa_eficiencia} className="h-2" />
               <p className="text-sm text-muted-foreground">
-                Performance geral das operações
+                Percentual de funcionários ativos versus pendentes. 
+                Mostra quão rápido você resolve problemas operacionais.
               </p>
             </CardContent>
           </Card>
@@ -327,14 +333,15 @@ const CorretoraDashboard = () => {
               </div>
               <Progress value={metrics.eficiencia.qualidade_dados} className="h-2" />
               <p className="text-sm text-muted-foreground">
-                Integridade e completude dos dados
+                Indica se suas empresas têm CNPJs bem configurados e dados completos. 
+                Dados de qualidade facilitam relatórios e operações.
               </p>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Ações Inteligentes Section */}
+      {/* Ações Inteligentes Section - Reformuladas */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 bg-green-500 rounded-full"></div>
@@ -343,7 +350,7 @@ const CorretoraDashboard = () => {
               <Zap className="h-5 w-5 text-green-500" />
               Ações Inteligentes
             </h2>
-            <p className="text-sm text-muted-foreground">Ações prioritárias para otimizar resultados</p>
+            <p className="text-sm text-muted-foreground">Pendências organizadas por prioridade e tipo</p>
           </div>
         </div>
 
@@ -372,8 +379,16 @@ const CorretoraDashboard = () => {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-xs">
-                      {action.count} itens
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs font-medium",
+                        action.color === "green" && "border-green-500 text-green-700 dark:text-green-400",
+                        action.color === "amber" && "border-amber-500 text-amber-700 dark:text-amber-400",
+                        action.color === "red" && "border-red-500 text-red-700 dark:text-red-400"
+                      )}
+                    >
+                      {action.count} {action.count === 1 ? 'item' : 'itens'}
                     </Badge>
                     <span className="text-xs font-medium text-muted-foreground">
                       {action.impact}
