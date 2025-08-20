@@ -1,79 +1,12 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { 
-  Users, 
-  Shield, 
-  BarChart3, 
-  MessageSquare, 
-  FileText, 
-  TrendingUp,
-  Building2,
-  Clock,
-  CheckCircle
-} from 'lucide-react';
+import { Users, FileSpreadsheet, MessageSquare } from 'lucide-react';
 
 const FeaturesSection = () => {
-  const features = [
-    {
-      icon: Users,
-      title: "Gestão de Funcionários",
-      description: "Cadastro, edição e controle de vínculos de funcionários com upload em lote via Excel e validações automáticas.",
-      color: "text-corporate-blue"
-    },
-    {
-      icon: Shield,
-      title: "Controle de Apólices",
-      description: "Centralização e gestão completa de seguros corporativos com acompanhamento de vigências e renovações.",
-      color: "text-corporate-green"
-    },
-    {
-      icon: BarChart3,
-      title: "Relatórios Inteligentes",
-      description: "Analytics avançado com insights automatizados, exportação em múltiplos formatos e dashboards personalizáveis.",
-      color: "text-corporate-orange"
-    },
-    {
-      icon: MessageSquare,
-      title: "Comunicação Integrada",
-      description: "Canal direto entre Corretora e Empresas com notificações em tempo real e histórico de interações.",
-      color: "text-corporate-blue"
-    },
-    {
-      icon: FileText,
-      title: "Auditoria Completa",
-      description: "Logs detalhados de todas as ações, rastreabilidade total e conformidade com regulamentações.",
-      color: "text-corporate-green"
-    },
-    {
-      icon: TrendingUp,
-      title: "Dashboard Executivo",
-      description: "Visão estratégica com KPIs em tempo real, métricas de performance e indicadores de crescimento.",
-      color: "text-corporate-orange"
-    },
-    {
-      icon: Building2,
-      title: "Multi-empresa",
-      description: "Gestão simultânea de múltiplas empresas com controles de acesso diferenciados e dados segregados.",
-      color: "text-corporate-blue"
-    },
-    {
-      icon: Clock,
-      title: "Automação Inteligente",
-      description: "Workflows automatizados para inclusões, exclusões e alterações com aprovações customizáveis.",
-      color: "text-corporate-green"
-    },
-    {
-      icon: CheckCircle,
-      title: "Conformidade Total",
-      description: "Atendimento às normas do mercado segurador com validações automáticas e controles rigorosos.",
-      color: "text-corporate-orange"
-    }
-  ];
-
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {
+      opacity: 0
+    },
     visible: {
       opacity: 1,
       transition: {
@@ -83,8 +16,11 @@ const FeaturesSection = () => {
     }
   };
 
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
+  const cardVariants = {
+    hidden: {
+      y: 20,
+      opacity: 0
+    },
     visible: {
       y: 0,
       opacity: 1,
@@ -94,58 +30,93 @@ const FeaturesSection = () => {
     }
   };
 
+  const features = [
+    {
+      icon: Users,
+      title: "Gestão de Funcionários",
+      description: "Controle completo de funcionários, dependentes e beneficiários em uma única plataforma integrada."
+    },
+    {
+      icon: FileSpreadsheet,
+      title: "Relatórios Inteligentes",
+      description: "Dashboards em tempo real com insights financeiros e operacionais para tomada de decisão estratégica."
+    },
+    {
+      icon: MessageSquare,
+      title: "Comunicação Centralizada",
+      description: "Canal direto entre corretoras e empresas com histórico completo de atendimentos e protocolos."
+    }
+  ];
+
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0B1120' }}>
+      <div className="container mx-auto">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={containerVariants}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <motion.h2 
-            variants={itemVariants}
-            className="text-3xl md:text-4xl font-bold mb-6 corporate-heading"
+          <h2 
+            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Tudo que você precisa, em um só lugar
-          </motion.h2>
-          <motion.p 
-            variants={itemVariants}
-            className="text-lg text-muted-foreground max-w-2xl mx-auto"
+            Tudo que você precisa, em um só lugar.
+          </h2>
+          <p 
+            className="text-lg text-[#9CA3AF] max-w-2xl mx-auto"
+            style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Uma plataforma completa que revoluciona a gestão de seguros corporativos
-            com tecnologia de ponta e experiência do usuário excepcional.
-          </motion.p>
+            Funcionalidades pensadas para simplificar e otimizar a gestão de planos de saúde corporativos.
+          </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
         >
-          {features.map((feature, index) => {
-            const IconComponent = feature.icon;
-            return (
-              <motion.div key={index} variants={itemVariants}>
-                <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                  <CardHeader>
-                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br from-corporate-gray-100 to-corporate-gray-200 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className={`h-6 w-6 ${feature.color}`} />
-                    </div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              variants={cardVariants}
+              className="group relative p-8 rounded-2xl border border-white/10 hover:border-[#2563EB]/50 transition-all duration-300"
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+              }}
+              whileHover={{ y: -5 }}
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-[#2563EB]/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-[#2563EB]/30 transition-colors duration-300">
+                  <feature.icon className="h-8 w-8 text-[#2563EB]" />
+                </div>
+                
+                <h3 
+                  className="text-xl font-semibold text-white mb-4"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  {feature.title}
+                </h3>
+                
+                <p 
+                  className="text-[#9CA3AF] leading-relaxed"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  {feature.description}
+                </p>
+              </div>
+
+              {/* Efeito de brilho ao hover */}
+              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <div className="absolute inset-0 rounded-2xl border border-[#2563EB]/30 shadow-[0_0_20px_rgba(37,99,235,0.3)]"></div>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
