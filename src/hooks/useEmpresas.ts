@@ -51,12 +51,28 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
         });
 
         if (error) {
-          console.error('❌ useEmpresas - Erro ao buscar empresas:', error);
+          console.error('❌ [useEmpresas] Erro ao executar RPC:', error);
           throw error;
         }
 
+        console.log('✅ [useEmpresas] RPC retornou:', data);
+
+        // LÓGICA FINAL E À PROVA DE BALAS PARA NORMALIZAR O RETORNO:
+        let normalizedData: any[] = [];
+
+        if (Array.isArray(data)) {
+          // Se já for um array (0 ou múltiplos resultados), retorne como está.
+          normalizedData = data;
+        } else if (data && typeof data === 'object') {
+          // Se for um objeto único (e não nulo), embrulhe-o em um array.
+          normalizedData = [data];
+        } else {
+          // Como último recurso, se for qualquer outra coisa (null, etc.), retorne um array vazio.
+          normalizedData = [];
+        }
+
         // Filtrar registros nulos e validar estrutura de dados
-        let empresas = (data || [])
+        let empresas = normalizedData
           .filter((empresa: any) => {
             // Verificar se o objeto empresa não é null e tem propriedades essenciais
             if (!empresa || typeof empresa !== 'object') {
