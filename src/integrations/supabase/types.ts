@@ -884,6 +884,14 @@ export type Database = {
         }
         Returns: Json
       }
+      debug_dashboard_data: {
+        Args: { p_empresa_id?: string }
+        Returns: Json
+      }
+      debug_receita_corretora: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       deletar_conversa: {
         Args: { p_conversa_id: string }
         Returns: undefined
@@ -953,7 +961,7 @@ export type Database = {
         }[]
       }
       get_corretora_dashboard_metrics: {
-        Args: Record<PropertyKey, never> | { p_corretora_id: string }
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_dashboard_details_corretora: {
@@ -972,10 +980,11 @@ export type Database = {
         }[]
       }
       get_empresa_dashboard_metrics: {
-        Args:
-          | Record<PropertyKey, never>
-          | { p_empresa_id: string }
-          | { p_empresa_id: string; p_end_date: string; p_start_date: string }
+        Args: Record<PropertyKey, never> | { p_empresa_id: string }
+        Returns: Json
+      }
+      get_empresa_dashboard_metrics_v3: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_empresa_distribuicao_cargos: {
@@ -1013,17 +1022,7 @@ export type Database = {
       }
       get_empresas_com_metricas: {
         Args: Record<PropertyKey, never> | { p_corretora_id: string }
-        Returns: {
-          custo_mensal_total: number
-          email: string
-          id: string
-          nome: string
-          responsavel: string
-          telefone: string
-          total_cnpjs: number
-          total_funcionarios: number
-          total_funcionarios_ativos: number
-        }[]
+        Returns: Json
       }
       get_empresas_com_planos_por_tipo: {
         Args: { p_corretora_id: string; p_tipo_seguro: string }
@@ -1031,6 +1030,19 @@ export type Database = {
           id: string
           nome: string
           total_planos_ativos: number
+        }[]
+      }
+      get_empresas_unificadas: {
+        Args: { p_corretora_id: string }
+        Returns: {
+          funcionarios_ativos: number
+          funcionarios_pendentes: number
+          id: string
+          nome: string
+          pendencias_criticas: number
+          planos_saude: number
+          planos_vida: number
+          total_funcionarios: number
         }[]
       }
       get_funcionarios_arquivados: {
@@ -1200,33 +1212,29 @@ export type Database = {
         }
         Returns: {
           cnpj_razao_social: string
+          custo_medio_por_cnpj: number
           funcionario_cpf: string
           funcionario_nome: string
           status: string
           total_cnpj: number
+          total_cnpjs_com_plano: number
           total_count: number
+          total_funcionarios_ativos: number
+          total_geral: number
           valor_individual: number
         }[]
       }
       get_relatorio_financeiro_corretora: {
         Args: { p_corretora_id: string }
-        Returns: {
-          custo_total_mensal: number
-          empresa_id: string
-          empresa_nome: string
-          total_cnpjs_ativos: number
-          total_funcionarios_segurados: number
-        }[]
+        Returns: Json
       }
       get_relatorio_funcionarios_empresa: {
-        Args:
-          | { p_cnpj_id?: string; p_empresa_id: string }
-          | {
-              p_cnpj_id?: string
-              p_empresa_id: string
-              p_page_offset?: number
-              p_page_size?: number
-            }
+        Args: {
+          p_cnpj_id?: string
+          p_empresa_id: string
+          p_page_offset?: number
+          p_page_size?: number
+        }
         Returns: {
           cargo: string
           cnpj_razao_social: string
@@ -1329,10 +1337,8 @@ export type Database = {
         }[]
       }
       resolver_exclusao_funcionario: {
-        Args:
-          | { p_acao: string; p_executor_id: string; p_funcionario_id: string }
-          | { p_aprovado: boolean; p_funcionario_id: string }
-        Returns: undefined
+        Args: { p_aprovado: boolean; p_funcionario_id: string }
+        Returns: Json
       }
       solicitar_exclusao_funcionario: {
         Args: { p_funcionario_id: string; p_motivo?: string }
