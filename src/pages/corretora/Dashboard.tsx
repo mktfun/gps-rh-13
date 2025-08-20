@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   TrendingUp, 
   TrendingDown,
@@ -20,27 +21,57 @@ import {
   ArrowUpRight,
   Calendar,
   FileText,
-  Settings
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
 import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug';
-import { useOperationalMetrics } from '@/hooks/useOperationalMetrics';
+import { useCorretoraDashboardData } from '@/hooks/useCorretoraDashboardData';
 import { cn } from '@/lib/utils';
 
 const CorretoraDashboard = () => {
   const { user } = useAuth();
   const [showDebug, setShowDebug] = useState(false);
-  const { data: metrics, isLoading } = useOperationalMetrics();
+  const { data: dashboardData, isLoading, error, refetch, isRefetching } = useCorretoraDashboardData();
 
   if (!user) {
     return <DashboardLoadingState />;
   }
 
+  if (isLoading) {
+    return <DashboardLoadingState />;
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Erro ao carregar dados do dashboard: {error instanceof Error ? error.message : 'Erro desconhecido'}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetch()} 
+              className="ml-2"
+              disabled={isRefetching}
+            >
+              <RefreshCw className={cn("h-4 w-4 mr-1", isRefetching && "animate-spin")} />
+              Tentar novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const metrics = dashboardData!;
+
   // KPI Cards Data
   const kpiCards = [
     {
       title: "Empresas Ativas",
-      value: metrics?.kpis?.empresas_ativas || "0",
+      value: metrics.kpis.empresas_ativas.toLocaleString('pt-BR'),
       change: "+12%",
       trend: "up" as const,
       icon: Building2,
@@ -49,7 +80,7 @@ const CorretoraDashboard = () => {
     },
     {
       title: "Funcionários Ativos",
-      value: metrics?.kpis?.funcionarios_ativos || "0",
+      value: metrics.kpis.funcionarios_ativos.toLocaleString('pt-BR'),
       change: "+8%",
       trend: "up" as const,
       icon: Users,
@@ -58,7 +89,7 @@ const CorretoraDashboard = () => {
     },
     {
       title: "Receita Mensal",
-      value: `R$ ${(metrics?.kpis?.receita_mensal || 0).toLocaleString('pt-BR')}`,
+      value: `R$ ${metrics.kpis.receita_mensal.toLocaleString('pt-BR')}`,
       change: "+15%",
       trend: "up" as const,
       icon: DollarSign,
@@ -67,9 +98,7 @@ const CorretoraDashboard = () => {
     },
     {
       title: "Pendências",
-      value: metrics?.alertas ? 
-        (metrics.alertas.funcionarios_travados + metrics.alertas.cnpjs_sem_plano + metrics.alertas.empresas_inativas).toString() : 
-        "0",
+      value: metrics.kpis.total_pendencias.toLocaleString('pt-BR'),
       change: "-5%",
       trend: "down" as const,
       icon: AlertTriangle,
@@ -82,30 +111,39 @@ const CorretoraDashboard = () => {
   const smartActions = [
     {
       title: "Ativar Funcionários",
-      count: metrics?.alertas?.funcionarios_travados || 0,
+      count: metrics.alertas.funcionarios_travados,
       impact: "Alta prioridade",
       description: "Funcionários com status travado precisam ser ativados",
       icon: Users,
       color: "red",
-      action: () => {}
+      action: () => {
+        // Navegar para página de funcionários pendentes
+        window.open('/corretora/relatorios/pendencias', '_blank');
+      }
     },
     {
       title: "Configurar Planos",
-      count: metrics?.alertas?.cnpjs_sem_plano || 0,
+      count: metrics.alertas.cnpjs_sem_plano,
       impact: "Perda de receita",
       description: "CNPJs sem plano configurado",
       icon: FileText,
       color: "amber",
-      action: () => {}
+      action: () => {
+        // Navegar para configuração de planos
+        window.open('/corretora/empresas', '_blank');
+      }
     },
     {
       title: "Reativar Empresas",
-      count: metrics?.alertas?.empresas_inativas || 0,
+      count: metrics.alertas.empresas_inativas,
       impact: "Retenção",
       description: "Empresas inativas que podem ser reativadas",
       icon: Building2,
       color: "blue",
-      action: () => {}
+      action: () => {
+        // Navegar para lista de empresas
+        window.open('/corretora/empresas', '_blank');
+      }
     }
   ];
 
@@ -131,10 +169,6 @@ const CorretoraDashboard = () => {
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
-  if (isLoading) {
-    return <DashboardLoadingState />;
-  }
-
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -149,6 +183,16 @@ const CorretoraDashboard = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
+            Atualizar
+          </Button>
           <CorrigirPendenciasButton />
           <Button
             variant="outline"
@@ -160,6 +204,11 @@ const CorretoraDashboard = () => {
             {showDebug ? 'Ocultar Debug' : 'Debug Financeiro'}
           </Button>
         </div>
+      </div>
+
+      {/* Status de última atualização */}
+      <div className="text-sm text-muted-foreground">
+        Última atualização: {new Date().toLocaleString('pt-BR')}
       </div>
 
       {/* KPI Cards Grid */}
@@ -219,13 +268,14 @@ const CorretoraDashboard = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold">
-                  {metrics?.eficiencia?.produtividade_carteira || 0}%
+                  {metrics.eficiencia.produtividade_carteira}%
                 </span>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                  Excelente
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                  {metrics.eficiencia.produtividade_carteira >= 80 ? 'Excelente' : 
+                   metrics.eficiencia.produtividade_carteira >= 60 ? 'Bom' : 'Precisa Melhorar'}
                 </Badge>
               </div>
-              <Progress value={metrics?.eficiencia?.produtividade_carteira || 0} className="h-2" />
+              <Progress value={metrics.eficiencia.produtividade_carteira} className="h-2" />
               <p className="text-sm text-muted-foreground">
                 Baseado na relação funcionários ativos/empresas
               </p>
@@ -243,13 +293,14 @@ const CorretoraDashboard = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold">
-                  {metrics?.eficiencia?.taxa_eficiencia || 0}%
+                  {metrics.eficiencia.taxa_eficiencia}%
                 </span>
-                <Badge variant="secondary" className="bg-green-100 text-green-700">
-                  Ótimo
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                  {metrics.eficiencia.taxa_eficiencia >= 80 ? 'Ótimo' : 
+                   metrics.eficiencia.taxa_eficiencia >= 60 ? 'Bom' : 'Precisa Melhorar'}
                 </Badge>
               </div>
-              <Progress value={metrics?.eficiencia?.taxa_eficiencia || 0} className="h-2" />
+              <Progress value={metrics.eficiencia.taxa_eficiencia} className="h-2" />
               <p className="text-sm text-muted-foreground">
                 Performance geral das operações
               </p>
@@ -267,13 +318,14 @@ const CorretoraDashboard = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold">
-                  {metrics?.eficiencia?.qualidade_dados || 0}%
+                  {metrics.eficiencia.qualidade_dados}%
                 </span>
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                  Alto
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  {metrics.eficiencia.qualidade_dados >= 80 ? 'Alto' : 
+                   metrics.eficiencia.qualidade_dados >= 60 ? 'Médio' : 'Baixo'}
                 </Badge>
               </div>
-              <Progress value={metrics?.eficiencia?.qualidade_dados || 0} className="h-2" />
+              <Progress value={metrics.eficiencia.qualidade_dados} className="h-2" />
               <p className="text-sm text-muted-foreground">
                 Integridade e completude dos dados
               </p>
@@ -297,7 +349,14 @@ const CorretoraDashboard = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {smartActions.map((action, index) => (
-            <Card key={index} className={cn("border transition-all duration-200 hover:shadow-lg cursor-pointer group", getCardColorClasses(action.color))}>
+            <Card 
+              key={index} 
+              className={cn(
+                "border transition-all duration-200 hover:shadow-lg cursor-pointer group", 
+                getCardColorClasses(action.color)
+              )}
+              onClick={action.action}
+            >
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
