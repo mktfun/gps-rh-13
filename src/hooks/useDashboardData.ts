@@ -53,7 +53,7 @@ export function useDashboardData(empresaId?: string) {
 
       return normalizedData;
     },
-    enabled: !!finalEmpresaId,
+    enabled: true, // Sempre habilitado pois temos fallback
     staleTime: 1000 * 60 * 5, // 5 minutos - dados considerados frescos
     gcTime: 1000 * 60 * 10, // 10 minutos - cache mantido na memória
     refetchOnWindowFocus: false, // Não revalidar ao focar na janela
