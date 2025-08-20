@@ -33,7 +33,8 @@ export default function DashboardPage() {
     data,
     isLoading,
     error: error?.message,
-    empresaId: user?.empresa_id
+    empresaId,
+    user
   });
 
   const handleRefreshData = async () => {
