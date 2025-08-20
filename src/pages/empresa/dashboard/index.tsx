@@ -207,10 +207,10 @@ export default function DashboardPage() {
           <TabsContent value="overview" className="space-y-8">
             {/* Métricas Principais */}
             <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-              <MetricsGrid 
-                data={data} 
-                loading={isLoading} 
-                empresaId={user?.empresa_id}
+              <MetricsGrid
+                data={data}
+                loading={isLoading}
+                empresaId={empresaId}
               />
             </div>
 
