@@ -822,6 +822,44 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          last_attempt: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          last_attempt?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          last_attempt?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_limits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       users_view: {
@@ -851,6 +889,13 @@ export type Database = {
       }
     }
     Functions: {
+      admin_update_user_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["user_role"]
+          target_user_id: string
+        }
+        Returns: Json
+      }
       calcular_valor_mensal_plano_saude: {
         Args: { plano_uuid: string }
         Returns: number
@@ -1311,6 +1356,10 @@ export type Database = {
         Args: { p_empresa_id: string; p_protocolo: string }
         Returns: string
       }
+      log_security_event: {
+        Args: { event_details?: Json; event_type: string }
+        Returns: undefined
+      }
       marcar_mensagens_como_lidas: {
         Args: { p_conversa_id: string }
         Returns: undefined
@@ -1372,6 +1421,10 @@ export type Database = {
           p_valor_mensal: number
         }
         Returns: Json
+      }
+      validate_cpf: {
+        Args: { cpf_input: string }
+        Returns: boolean
       }
     }
     Enums: {
