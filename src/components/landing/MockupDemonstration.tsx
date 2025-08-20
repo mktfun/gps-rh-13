@@ -1,167 +1,128 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const MockupDemonstration = () => {
-  const mockupVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5 }
-    }
-  };
-
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-corporate-gray-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0B1120' }}>
+      <div className="container mx-auto">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={mockupVariants}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 corporate-heading">
+          <h2 
+            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
             Veja o GPS em Ação
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Interface intuitiva e poderosa que simplifica a gestão de seguros corporativos
+          <p 
+            className="text-lg text-[#9CA3AF] max-w-2xl mx-auto"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Interface moderna e intuitiva, desenvolvida para maximizar sua produtividade.
           </p>
         </motion.div>
 
-        {/* Mockup Cards Grid */}
-        <motion.div 
-          variants={mockupVariants}
-          initial="hidden"
-          whileInView="visible"
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="flex justify-center"
         >
-          {/* Dashboard Card */}
-          <motion.div variants={cardVariants}>
-            <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="bg-gradient-to-br from-corporate-blue to-corporate-blue-light h-48 flex items-center justify-center relative">
-                  <div className="text-white text-center">
-                    <div className="w-16 h-16 bg-white/20 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                      <div className="w-8 h-8 bg-white rounded"></div>
-                    </div>
-                    <h3 className="font-semibold">Dashboard Executivo</h3>
-                  </div>
-                  <Badge className="absolute top-3 right-3 bg-white/20 text-white border-white/30">
-                    Novo
-                  </Badge>
+          {/* iMac Mockup */}
+          <div className="relative">
+            {/* iMac Stand */}
+            <div className="relative mx-auto" style={{ width: '900px', maxWidth: '90vw' }}>
+              {/* Monitor */}
+              <div 
+                className="relative mx-auto rounded-lg"
+                style={{
+                  width: '100%',
+                  height: '0',
+                  paddingBottom: '62.5%', // 16:10 aspect ratio
+                  background: 'linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%)',
+                  border: '8px solid #2a2a2a',
+                  borderRadius: '20px',
+                  boxShadow: '0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                {/* Screen */}
+                <div 
+                  className="absolute inset-4 rounded-lg overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(145deg, #000 0%, #111 100%)',
+                    boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.8)'
+                  }}
+                >
+                  {/* Dashboard Image */}
+                  <img 
+                    src="https://i.imgur.com/8a1y3DR.png"
+                    alt="GPS Dashboard"
+                    className="w-full h-full object-cover"
+                    style={{
+                      borderRadius: '8px'
+                    }}
+                  />
+                  
+                  {/* Screen reflection effect */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 20%, transparent 80%, rgba(255, 255, 255, 0.05) 100%)',
+                      borderRadius: '8px'
+                    }}
+                  ></div>
                 </div>
-                <div className="p-6">
-                  <h4 className="font-semibold mb-2">Visão Estratégica</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Métricas em tempo real, KPIs importantes e insights para tomada de decisão.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
 
-          {/* Funcionários Card */}
-          <motion.div variants={cardVariants}>
-            <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="bg-gradient-to-br from-corporate-green to-corporate-green-light h-48 flex items-center justify-center relative">
-                  <div className="text-white text-center">
-                    <div className="w-16 h-16 bg-white/20 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                      <div className="grid grid-cols-2 gap-1">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    <h3 className="font-semibold">Gestão de Funcionários</h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h4 className="font-semibold mb-2">Controle Total</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Cadastre, edite e gerencie funcionários com facilidade. Upload em lote via Excel.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Relatórios Card */}
-          <motion.div variants={cardVariants}>
-            <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="bg-gradient-to-br from-corporate-orange to-corporate-orange-light h-48 flex items-center justify-center relative">
-                  <div className="text-white text-center">
-                    <div className="w-16 h-16 bg-white/20 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                      <div className="space-y-1">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-6 bg-white rounded"></div>
-                          <div className="w-2 h-8 bg-white rounded"></div>
-                          <div className="w-2 h-4 bg-white rounded"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <h3 className="font-semibold">Relatórios Inteligentes</h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h4 className="font-semibold mb-2">Analytics Avançado</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Relatórios detalhados, exportação automática e insights para otimização.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
-
-        {/* Interactive Demo Section */}
-        <motion.div 
-          variants={cardVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="mt-16 text-center"
-        >
-          <Card className="max-w-4xl mx-auto overflow-hidden">
-            <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-corporate-blue via-corporate-green to-corporate-orange h-2"></div>
-              <div className="p-8 bg-corporate-gray-50">
-                <div className="grid md:grid-cols-3 gap-6 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-corporate-blue mb-2">250+</div>
-                    <div className="text-sm text-muted-foreground">Empresas Atendidas</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-corporate-green mb-2">15k+</div>
-                    <div className="text-sm text-muted-foreground">Funcionários Gerenciados</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-corporate-orange mb-2">99.9%</div>
-                    <div className="text-sm text-muted-foreground">Uptime Garantido</div>
-                  </div>
+                {/* Apple Logo */}
+                <div 
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(145deg, #333 0%, #222 100%)',
+                    border: '1px solid #444'
+                  }}
+                >
+                  <div className="w-3 h-3 bg-[#2563EB] rounded-full opacity-60"></div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Stand */}
+              <div className="relative mx-auto mt-4" style={{ width: '200px' }}>
+                {/* Stand Neck */}
+                <div 
+                  className="mx-auto"
+                  style={{
+                    width: '40px',
+                    height: '60px',
+                    background: 'linear-gradient(145deg, #ddd 0%, #bbb 100%)',
+                    borderRadius: '0 0 20px 20px',
+                    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+                  }}
+                ></div>
+                
+                {/* Stand Base */}
+                <div 
+                  className="mx-auto"
+                  style={{
+                    width: '200px',
+                    height: '20px',
+                    background: 'linear-gradient(145deg, #ddd 0%, #bbb 100%)',
+                    borderRadius: '100px',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
+                    transform: 'perspective(100px) rotateX(45deg)'
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Decorative elements */}
+            <div className="absolute -top-10 -left-10 w-20 h-20 bg-[#2563EB]/10 rounded-full blur-xl"></div>
+            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#2563EB]/5 rounded-full blur-2xl"></div>
+          </div>
         </motion.div>
       </div>
     </section>
