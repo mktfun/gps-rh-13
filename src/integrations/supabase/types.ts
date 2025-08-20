@@ -127,13 +127,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "conversas_corretora_id_fkey"
-            columns: ["corretora_id"]
-            isOneToOne: false
-            referencedRelation: "users_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "conversas_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
@@ -481,13 +474,6 @@ export type Database = {
             referencedRelation: "conversas"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "mensagens_remetente_id_fkey"
-            columns: ["remetente_id"]
-            isOneToOne: false
-            referencedRelation: "users_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       notifications: {
@@ -813,13 +799,6 @@ export type Database = {
             referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       rate_limits: {
@@ -862,31 +841,7 @@ export type Database = {
       }
     }
     Views: {
-      users_view: {
-        Row: {
-          email: string | null
-          empresa_id: string | null
-          id: string | null
-          nome: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_profiles_empresa"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_update_user_role: {
@@ -1334,6 +1289,18 @@ export type Database = {
           funcionario_nome: string
           motivo: string
           status: string
+        }[]
+      }
+      get_security_events: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_type: string
+          created_at: string
+          details: Json
+          id: string
+          user_email: string
+          user_name: string
+          user_role: Database["public"]["Enums"]["user_role"]
         }[]
       }
       get_smart_actions_corretor: {
