@@ -28,11 +28,17 @@ const CNPJsPage = () => {
   // Buscar empresa do usuário logado
   const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId);
 
-  // Buscar CNPJs da empresa
+  // Buscar CNPJs da empresa (para listagem)
   const { data: cnpjs, isLoading: isLoadingCnpjs, refetch } = useCnpjsComPlanos({
     empresaId: empresaId,
     search,
     filtroPlano: planoFilter === 'todos' ? 'todos' : planoFilter as 'com-plano' | 'sem-plano'
+  });
+
+  // Hook para operações CRUD de CNPJs
+  const { addCnpj, updateCnpj, deleteCnpj } = useCnpjs({
+    empresaId: empresaId || '',
+    search
   });
 
   const handleClearFilters = () => {
@@ -49,6 +55,30 @@ const CNPJsPage = () => {
     setShowAddModal(false);
     setEditingCnpj(null);
     refetch();
+  };
+
+  const handleCnpjSubmit = async (data: any) => {
+    try {
+      if (editingCnpj) {
+        await updateCnpj.mutateAsync(data);
+      } else {
+        await addCnpj.mutateAsync(data);
+      }
+      handleModalClose();
+    } catch (error) {
+      console.error('Erro ao salvar CNPJ:', error);
+    }
+  };
+
+  const handleDeleteCnpj = async (cnpjId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este CNPJ?')) {
+      try {
+        await deleteCnpj.mutateAsync(cnpjId);
+        refetch();
+      } catch (error) {
+        console.error('Erro ao excluir CNPJ:', error);
+      }
+    }
   };
 
   const handleExport = () => {
