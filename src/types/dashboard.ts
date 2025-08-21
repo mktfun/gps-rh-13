@@ -34,16 +34,6 @@ export interface MainPlan {
   tipo_seguro: string;
 }
 
-export interface MetricCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  trend?: 'up' | 'down' | 'neutral';
-  icon?: React.ReactNode;
-  loading?: boolean;
-  className?: string;
-  onClick?: () => void;
-}
 
 export interface ChartProps {
   data?: any[];
