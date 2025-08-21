@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart } from 'lucide-react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,12 @@ interface KPICardProps {
   trendValue?: string;
   bgColor?: string;
   textColor?: string;
+  onClick?: () => void;
+  actionText?: string;
+  isClickable?: boolean;
 }
 
-function KPICard({ title, value, description, icon, trend, trendValue, bgColor = 'bg-white', textColor = 'text-gray-900' }: KPICardProps) {
+function KPICard({ title, value, description, icon, trend, trendValue, bgColor = 'bg-white', textColor = 'text-gray-900', onClick, actionText, isClickable = false }: KPICardProps) {
   const getTrendIcon = () => {
     switch (trend) {
       case 'up':
@@ -44,18 +48,27 @@ function KPICard({ title, value, description, icon, trend, trendValue, bgColor =
   };
 
   return (
-    <Card className={`${bgColor} border shadow-sm hover:shadow-md transition-shadow duration-200`}>
+    <Card className={`${bgColor} border transition-all duration-200 ${
+      isClickable
+        ? 'hover:shadow-lg hover:scale-[1.02] cursor-pointer hover:border-blue-300 group'
+        : 'hover:shadow-md'
+    }`} onClick={onClick}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className={`text-sm font-medium ${textColor}`}>
           {title}
         </CardTitle>
-        <div className="text-blue-600">
+        <div className={`${isClickable ? 'text-blue-600 group-hover:text-blue-700' : 'text-blue-600'} relative`}>
           {icon}
+          {isClickable && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-100 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <ArrowRight className="h-2 w-2 text-blue-600" />
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
         <div className={`text-3xl font-bold ${textColor} mb-1`}>
-          {typeof value === 'number' && title.includes('Custo') 
+          {typeof value === 'number' && title.includes('Custo')
             ? new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
@@ -72,6 +85,12 @@ function KPICard({ title, value, description, icon, trend, trendValue, bgColor =
             <span>{trendValue}</span>
           </div>
         )}
+        {isClickable && actionText && (
+          <div className="flex items-center gap-1 text-xs text-blue-600 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <ExternalLink className="h-3 w-3" />
+            <span>{actionText}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -79,6 +98,7 @@ function KPICard({ title, value, description, icon, trend, trendValue, bgColor =
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data, isLoading, error, refetch } = useEmpresaDashboardMetrics();
   
@@ -186,29 +206,44 @@ export default function DashboardPage() {
             value={data.totalFuncionarios || 0}
             description="Funcionários cadastrados"
             icon={<Users className="h-5 w-5" />}
+            isClickable={true}
+            actionText="Ver funcionários"
+            onClick={() => navigate('/empresa/funcionarios')}
+            bgColor="bg-gradient-to-br from-blue-50 to-indigo-50"
+            textColor="text-blue-900"
           />
-          
+
           <KPICard
             title="CNPJs Ativos"
             value={data.totalCnpjs || 0}
             description="Empresas vinculadas"
             icon={<Building2 className="h-5 w-5" />}
+            bgColor="bg-gradient-to-br from-gray-50 to-slate-50"
+            textColor="text-gray-700"
           />
-          
+
           <KPICard
             title="Custo Total Estimado"
             value={data.custoMensalTotal || 0}
             description="Valor mensal dos planos"
             icon={<DollarSign className="h-5 w-5" />}
+            isClickable={true}
+            actionText="Ver relatório de custos"
+            onClick={() => navigate('/empresa/relatorios/custos-detalhado')}
+            bgColor="bg-gradient-to-br from-green-50 to-emerald-50"
+            textColor="text-green-900"
           />
-          
+
           <KPICard
-            title="Funcionários Pendentes"
+            title="Pendências"
             value={data.funcionariosPendentes || 0}
-            description="Aguardando processamento"
+            description="Itens aguardando processamento"
             icon={<AlertTriangle className="h-5 w-5" />}
-            bgColor={data.funcionariosPendentes > 0 ? "bg-yellow-50" : "bg-white"}
-            textColor={data.funcionariosPendentes > 0 ? "text-yellow-900" : "text-gray-900"}
+            isClickable={true}
+            actionText="Ver relatório de pendências"
+            onClick={() => navigate('/empresa/relatorios/pendencias')}
+            bgColor={data.funcionariosPendentes > 0 ? "bg-gradient-to-br from-yellow-50 to-orange-50" : "bg-gradient-to-br from-gray-50 to-slate-50"}
+            textColor={data.funcionariosPendentes > 0 ? "text-yellow-900" : "text-gray-700"}
           />
         </div>
 
