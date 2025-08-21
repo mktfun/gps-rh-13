@@ -1,39 +1,96 @@
 import React, { useState } from 'react';
-import { RefreshCw, Download, Settings, Bug } from 'lucide-react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { PageLoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Badge } from '@/components/ui/badge';
 
-import { MetricsGrid } from './components/MetricsGrid';
-import { ChartsSection, ExtendedChartsSection } from './components/ChartsSection';
-import { TableSection, SimpleTableSection } from './components/TableSection';
+interface KPICardProps {
+  title: string;
+  value: string | number;
+  description: string;
+  icon: React.ReactNode;
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string;
+  bgColor?: string;
+  textColor?: string;
+}
+
+function KPICard({ title, value, description, icon, trend, trendValue, bgColor = 'bg-white', textColor = 'text-gray-900' }: KPICardProps) {
+  const getTrendIcon = () => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case 'down':
+        return <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />;
+      default:
+        return null;
+    }
+  };
+
+  const getTrendColor = () => {
+    switch (trend) {
+      case 'up': return 'text-green-600';
+      case 'down': return 'text-red-600';
+      default: return 'text-gray-500';
+    }
+  };
+
+  return (
+    <Card className={`${bgColor} border shadow-sm hover:shadow-md transition-shadow duration-200`}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className={`text-sm font-medium ${textColor}`}>
+          {title}
+        </CardTitle>
+        <div className="text-blue-600">
+          {icon}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className={`text-3xl font-bold ${textColor} mb-1`}>
+          {typeof value === 'number' && title.includes('Custo') 
+            ? new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(value)
+            : value
+          }
+        </div>
+        <p className="text-xs text-gray-600 mb-2">
+          {description}
+        </p>
+        {trend && trendValue && (
+          <div className={`flex items-center space-x-1 text-xs ${getTrendColor()}`}>
+            {getTrendIcon()}
+            <span>{trendValue}</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  // Usar o ID da empresa que sabemos que tem dados
-  const empresaId = 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
-
-  const { data, isLoading, error, refetch } = useDashboardData(empresaId);
-
-  console.log('🏢 [DashboardPage] Estado atual:', { data, isLoading, error, empresaId });
+  const { data, isLoading, error, refetch } = useEmpresaDashboardMetrics();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  console.log('🏢 [DashboardPage] Dados recebidos:', { data, isLoading, error });
 
   const handleRefreshData = async () => {
     setIsRefreshing(true);
     try {
-      // Invalidar cache e recarregar
-      await queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      await queryClient.invalidateQueries({ queryKey: ['empresa-dashboard-metrics'] });
       await refetch();
       toast.success('Dados atualizados com sucesso!');
     } catch (error) {
@@ -43,39 +100,6 @@ export default function DashboardPage() {
       setIsRefreshing(false);
     }
   };
-
-  const handleExportReport = () => {
-    // TODO: Implementar exportação de relatório
-    toast.info('Funcionalidade de exportação em desenvolvimento');
-  };
-
-  const handleDebugData = () => {
-    console.group('🐛 [DEBUG] Dados do Dashboard Reformulado');
-    console.log('Dados completos:', data);
-    console.log('Métricas principais:', {
-      totalFuncionarios: data?.totalFuncionarios,
-      funcionariosAtivos: data?.funcionariosAtivos,
-      funcionariosPendentes: data?.funcionariosPendentes,
-      totalCnpjs: data?.totalCnpjs,
-      custoMensalTotal: data?.custoMensalTotal
-    });
-    console.log('Evolução mensal:', data?.evolucaoMensal);
-    console.log('Distribuição de cargos:', data?.distribuicaoCargos);
-    console.log('Custos por CNPJ:', data?.custosPorCnpj);
-    console.log('Plano principal:', data?.planoPrincipal);
-    console.groupEnd();
-    toast.info('Dados de debug enviados para console (F12)');
-  };
-
-  // Listener para navegação entre tabs via eventos customizados
-  React.useEffect(() => {
-    const handleNavigateToCnpjs = () => {
-      setActiveTab('cnpjs');
-    };
-
-    window.addEventListener('navigate-to-cnpjs', handleNavigateToCnpjs);
-    return () => window.removeEventListener('navigate-to-cnpjs', handleNavigateToCnpjs);
-  }, []);
 
   if (isLoading) {
     return (
@@ -88,7 +112,9 @@ export default function DashboardPage() {
               <p className="text-gray-600">Carregando dados...</p>
             </div>
           </div>
-          <PageLoadingSpinner />
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner />
+          </div>
         </div>
       </div>
     );
@@ -100,7 +126,7 @@ export default function DashboardPage() {
         <ErrorState
           title="Erro ao carregar dashboard"
           message={typeof error === 'string' ? error : 'Erro desconhecido'}
-          onRetry={() => window.location.reload()}
+          onRetry={handleRefreshData}
         />
       </div>
     );
@@ -113,7 +139,7 @@ export default function DashboardPage() {
           <ErrorState 
             title="Nenhum dado encontrado"
             description="Não há dados disponíveis para esta empresa no momento."
-            retry={handleRefreshData}
+            onRetry={handleRefreshData}
           />
         </div>
       </div>
@@ -124,113 +150,143 @@ export default function DashboardPage() {
     <div className="flex flex-1 flex-col gap-8">
       <div className="max-w-7xl mx-auto space-y-8 w-full px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="animate-fade-in opacity-0" style={{ animationFillMode: 'forwards' }}>
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  Dashboard da Empresa
-                </h1>
-                <p className="text-lg text-gray-600 mt-2">
-                  Bem-vindo, <span className="font-medium text-blue-600">{user?.email}</span>!
-                  Acompanhe suas métricas e indicadores em tempo real.
-                </p>
-              </div>
-            </div>
-
-            {/* Ações do Header */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportReport}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefreshData}
-                disabled={isRefreshing}
-                className="flex items-center gap-2"
-              >
-                {isRefreshing ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                Atualizar
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDebugData}
-                className="flex items-center gap-2"
-              >
-                <Bug className="h-4 w-4" />
-                Debug
-              </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                Dashboard da Empresa
+              </h1>
+              <p className="text-lg text-gray-600 mt-2">
+                Visão geral dos indicadores principais
+              </p>
             </div>
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Atualizar
+          </Button>
         </div>
 
-        {/* Navegação por Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+        {/* KPIs Principais */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KPICard
+            title="Total de Funcionários"
+            value={data.totalFuncionarios || 0}
+            description="Funcionários cadastrados"
+            icon={<Users className="h-5 w-5" />}
+          />
+          
+          <KPICard
+            title="CNPJs Ativos"
+            value={data.totalCnpjs || 0}
+            description="Empresas vinculadas"
+            icon={<Building2 className="h-5 w-5" />}
+          />
+          
+          <KPICard
+            title="Custo Total Estimado"
+            value={data.custoMensalTotal || 0}
+            description="Valor mensal dos planos"
+            icon={<DollarSign className="h-5 w-5" />}
+          />
+          
+          <KPICard
+            title="Funcionários Pendentes"
+            value={data.funcionariosPendentes || 0}
+            description="Aguardando processamento"
+            icon={<AlertTriangle className="h-5 w-5" />}
+            bgColor={data.funcionariosPendentes > 0 ? "bg-yellow-50" : "bg-white"}
+            textColor={data.funcionariosPendentes > 0 ? "text-yellow-900" : "text-gray-900"}
+          />
+        </div>
+
+        {/* Seções Detalhadas */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="cnpjs">CNPJs e Custos</TabsTrigger>
+            <TabsTrigger value="cnpjs">CNPJs</TabsTrigger>
+            <TabsTrigger value="analytics">Análises</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-8">
-            {/* Métricas Principais */}
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-              <MetricsGrid
-                data={data}
-                loading={isLoading}
-                empresaId={empresaId}
-              />
-            </div>
-
-            {/* Gráficos */}
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
-              <ExtendedChartsSection 
-                data={data} 
-                loading={isLoading} 
-              />
-            </div>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Status dos Funcionários */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  Status dos Funcionários
+                </CardTitle>
+                <CardDescription>
+                  Distribuição atual dos funcionários por status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Funcionários Ativos</p>
+                      <p className="text-2xl font-bold text-green-700">{data.funcionariosAtivos || 0}</p>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {data.totalFuncionarios > 0 
+                        ? `${Math.round((data.funcionariosAtivos / data.totalFuncionarios) * 100)}%`
+                        : '0%'
+                      }
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-yellow-900">Funcionários Pendentes</p>
+                      <p className="text-2xl font-bold text-yellow-700">{data.funcionariosPendentes || 0}</p>
+                    </div>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      {data.totalFuncionarios > 0 
+                        ? `${Math.round((data.funcionariosPendentes / data.totalFuncionarios) * 100)}%`
+                        : '0%'
+                      }
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Plano Principal */}
             {data.planoPrincipal && (
-              <div className="animate-fade-in opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                <div className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Settings className="h-5 w-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Plano Principal</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5 text-blue-600" />
+                    Plano Principal
+                  </CardTitle>
+                  <CardDescription>
+                    Informações do plano com maior valor
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Seguradora</h4>
+                      <p className="text-sm font-medium text-gray-600">Seguradora</p>
                       <p className="text-lg font-semibold text-gray-900">{data.planoPrincipal.seguradora}</p>
                     </div>
-                    
                     <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Empresa</h4>
+                      <p className="text-sm font-medium text-gray-600">Empresa</p>
                       <p className="text-base text-gray-900">{data.planoPrincipal.razao_social}</p>
                     </div>
-                    
                     <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Tipo de Seguro</h4>
-                      <p className="text-base text-gray-900 capitalize">{data.planoPrincipal.tipo_seguro}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Valor Mensal</h4>
+                      <p className="text-sm font-medium text-gray-600">Valor Mensal</p>
                       <p className="text-xl font-bold text-green-600">
                         {new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
@@ -238,49 +294,131 @@ export default function DashboardPage() {
                         }).format(data.planoPrincipal.valor_mensal)}
                       </p>
                     </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Cobertura Morte</p>
+                      <p className="text-base font-medium text-gray-900">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(data.planoPrincipal.cobertura_morte || 0)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
-          <TabsContent value="cnpjs" className="space-y-8">
-            {/* Métricas específicas de CNPJs */}
-            <div className="animate-fade-in opacity-0" style={{ animationFillMode: 'forwards' }}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
-                    {data.totalCnpjs}
+          <TabsContent value="cnpjs" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                  Custos por CNPJ
+                </CardTitle>
+                <CardDescription>
+                  Detalhamento dos custos e funcionários por empresa
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {data.custosPorCnpj && data.custosPorCnpj.length > 0 ? (
+                  <div className="space-y-4">
+                    {data.custosPorCnpj.map((cnpj, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{cnpj.razao_social}</p>
+                          <p className="text-sm text-gray-600">CNPJ: {cnpj.cnpj}</p>
+                          <p className="text-sm text-blue-600">{cnpj.funcionarios_count} funcionários</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-green-600">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(cnpj.valor_mensal)}
+                          </p>
+                          <p className="text-sm text-gray-500">por mês</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-sm text-gray-600">CNPJs Cadastrados</div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">
-                    {data.totalFuncionarios}
-                  </div>
-                  <div className="text-sm text-gray-600">Total de Funcionários</div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-2">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    }).format(data.custoMensalTotal)}
-                  </div>
-                  <div className="text-sm text-gray-600">Custo Total Mensal</div>
-                </div>
-              </div>
-            </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-8">
+                    Nenhum CNPJ com dados encontrado
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Tabela de CNPJs */}
-            <div className="animate-fade-in opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-              <TableSection 
-                data={data} 
-                loading={isLoading} 
-              />
-            </div>
+          <TabsContent value="analytics" className="space-y-6">
+            {/* Distribuição por Cargos */}
+            {data.distribuicaoCargos && data.distribuicaoCargos.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5 text-blue-600" />
+                    Distribuição por Cargos
+                  </CardTitle>
+                  <CardDescription>
+                    Top 5 cargos mais comuns
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {data.distribuicaoCargos.map((cargo, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">{cargo.cargo}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full" 
+                              style={{ 
+                                width: `${Math.min((cargo.count / data.totalFuncionarios) * 100, 100)}%` 
+                              }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-bold text-gray-900 w-8 text-right">{cargo.count}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Evolução Mensal */}
+            {data.evolucaoMensal && data.evolucaoMensal.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    Evolução Mensal
+                  </CardTitle>
+                  <CardDescription>
+                    Histórico dos últimos 6 meses
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {data.evolucaoMensal.map((mes, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium text-gray-700">{mes.mes}</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm text-blue-600">{mes.funcionarios} funcionários</span>
+                          <span className="text-sm font-bold text-green-600">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(mes.custo)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
