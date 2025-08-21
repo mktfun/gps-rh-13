@@ -5,7 +5,7 @@ import { DashboardErrorBoundary } from '@/components/ui/DashboardErrorBoundary';
 
 const Dashboard: React.FC = () => {
   const { user, empresaId } = useAuth();
-  const { metrics, loading, error } = useEmpresaDashboardMetrics(empresaId || '');
+  const { data: metrics, isLoading: loading, error } = useEmpresaDashboardMetrics();
 
   if (loading) {
     return (
@@ -27,13 +27,13 @@ const Dashboard: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          
+
           <h2 className="text-xl font-semibold text-foreground mb-2">
             Erro ao carregar dashboard
           </h2>
-          
+
           <p className="text-muted-foreground mb-6">
-            {error}
+            {error instanceof Error ? error.message : String(error)}
           </p>
 
           <button
@@ -51,28 +51,55 @@ const Dashboard: React.FC = () => {
     <DashboardErrorBoundary>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Dashboard da Empresa</h1>
-        
+
         {metrics && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-card p-6 rounded-lg shadow border">
               <h3 className="text-lg font-medium text-muted-foreground">Total Funcionários</h3>
               <p className="text-3xl font-bold text-primary">
-                {metrics.total_funcionarios}
+                {metrics.totalFuncionarios}
               </p>
             </div>
-            
+
             <div className="bg-card p-6 rounded-lg shadow border">
               <h3 className="text-lg font-medium text-muted-foreground">Funcionários Ativos</h3>
               <p className="text-3xl font-bold text-green-600">
-                {metrics.funcionarios_ativos}
+                {metrics.funcionariosAtivos}
               </p>
             </div>
-            
+
+            <div className="bg-card p-6 rounded-lg shadow border">
+              <h3 className="text-lg font-medium text-muted-foreground">Funcion��rios Pendentes</h3>
+              <p className="text-3xl font-bold text-yellow-600">
+                {metrics.funcionariosPendentes}
+              </p>
+            </div>
+
             <div className="bg-card p-6 rounded-lg shadow border">
               <h3 className="text-lg font-medium text-muted-foreground">Custo Mensal</h3>
               <p className="text-3xl font-bold text-purple-600">
-                R$ {metrics.custo_mensal_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {metrics.custoMensalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
+            </div>
+          </div>
+        )}
+
+        {metrics && metrics.custosPorCnpj.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Custos por CNPJ</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {metrics.custosPorCnpj.map((cnpj, index) => (
+                <div key={index} className="bg-card p-4 rounded-lg shadow border">
+                  <h4 className="font-medium text-sm text-muted-foreground">{cnpj.cnpj}</h4>
+                  <p className="font-semibold">{cnpj.razao_social}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm text-muted-foreground">{cnpj.funcionarios_count} funcionários</span>
+                    <span className="font-bold text-green-600">
+                      R$ {cnpj.valor_mensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
