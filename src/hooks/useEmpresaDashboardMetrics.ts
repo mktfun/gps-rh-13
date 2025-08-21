@@ -39,7 +39,13 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     throw new Error('ID da empresa é obrigatório');
   }
 
-  console.log('🔍 [fetchEmpresaDashboardMetrics] Buscando dados para empresa:', empresaId);
+  console.log('🔍 [DEBUG] Verificando chamadas do dashboard:', {
+    empresaId,
+    functionCalled: 'get_empresa_dashboard_metrics',
+    params: { p_empresa_id: empresaId }
+  });
+
+  console.log('📞 [DASHBOARD] Chamando função com empresaId:', empresaId);
 
   const { data, error } = await supabase
     .rpc('get_empresa_dashboard_metrics', {
@@ -47,22 +53,23 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     });
 
   if (error) {
-    console.error('❌ [fetchEmpresaDashboardMetrics] RPC Error:', error);
+    console.error('❌ [DASHBOARD] Erro na função:', error);
     throw new Error(`Erro ao carregar métricas: ${error.message}`);
   }
 
   if (!data) {
-    console.warn('⚠️ [fetchEmpresaDashboardMetrics] Nenhum dado retornado');
+    console.warn('💥 [DASHBOARD] Nenhum dado retornado para empresaId:', empresaId);
     throw new Error('Nenhum dado encontrado para esta empresa');
   }
 
   // Check if the response contains an error
   if (data?.error) {
-    console.error('❌ [fetchEmpresaDashboardMetrics] Function Error:', data);
+    console.error('❌ [DASHBOARD] Function Error:', data);
     throw new Error(`Erro na função: ${data.message || 'Erro desconhecido'}`);
   }
 
-  console.log('✅ [fetchEmpresaDashboardMetrics] Dados recebidos:', data);
+  console.log('✅ [DASHBOARD] Dados recebidos:', data);
+  console.log('🧪 [TESTE DIRETO] Estrutura completa dos dados:', JSON.stringify(data, null, 2));
 
   // Transform data to match expected structure
   return {
