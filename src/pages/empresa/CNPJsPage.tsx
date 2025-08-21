@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useCnpjsComPlanos } from '@/hooks/useCnpjsComPlanos';
+import { useCnpjs } from '@/hooks/useCnpjs';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
