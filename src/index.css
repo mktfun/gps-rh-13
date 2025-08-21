@@ -156,6 +156,24 @@ html {
     --design-dark-text-primary: 210 20% 98%;   /* #F9FAFB */
     --design-dark-text-secondary: 218 11% 65%; /* #9CA3AF */
     --design-dark-primary: 214 95% 62%;        /* #3B82F6 */
+
+    /* Corporate HR/Enterprise Color System - Dark Mode Adjustments */
+    --corporate-blue: 214 95% 62%;         /* #3B82F6 - Brighter in dark */
+    --corporate-blue-light: 213 93% 68%;   /* #60A5FA */
+    --corporate-green: 158 64% 52%;        /* #34D399 - Brighter in dark */
+    --corporate-green-light: 156 73% 59%;  /* #6EE7B7 */
+    --corporate-orange: 43 96% 56%;        /* #FCD34D - Brighter in dark */
+    --corporate-orange-light: 48 100% 67%; /* #FEF08A */
+    --corporate-gray-50: 222 84% 5%;       /* #111827 - Inverted for dark */
+    --corporate-gray-100: 215 28% 17%;     /* #1F2937 */
+    --corporate-gray-200: 217 19% 27%;     /* #374151 */
+    --corporate-gray-300: 215 14% 34%;     /* #4B5563 */
+    --corporate-gray-400: 220 9% 46%;      /* #6B7280 */
+    --corporate-gray-500: 218 11% 65%;     /* #9CA3AF */
+    --corporate-gray-600: 216 12% 84%;     /* #D1D5DB */
+    --corporate-gray-700: 220 13% 91%;     /* #E5E7EB */
+    --corporate-gray-800: 220 14% 96%;     /* #F3F4F6 */
+    --corporate-gray-900: 210 20% 98%;     /* #F9FAFB */
   }
 }
 
