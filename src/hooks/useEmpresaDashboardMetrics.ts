@@ -88,17 +88,17 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     totalCnpjs: data.totalCnpjs
   });
 
-  // Transform data to match expected structure
+  // Transform data to match expected structure (snake_case to camelCase)
   return {
-    totalCnpjs: Number(data.totalCnpjs) || 0,
-    totalFuncionarios: Number(data.totalFuncionarios) || 0,
-    funcionariosAtivos: Number(data.funcionariosAtivos) || 0,
-    funcionariosPendentes: Number(data.funcionariosPendentes) || 0,
-    custoMensalTotal: Number(data.custoMensalTotal) || 0,
-    custosPorCnpj: Array.isArray(data.custosPorCnpj) ? data.custosPorCnpj : [],
-    evolucaoMensal: Array.isArray(data.evolucaoMensal) ? data.evolucaoMensal : [],
-    distribuicaoCargos: Array.isArray(data.distribuicaoCargos) ? data.distribuicaoCargos : [],
-    planoPrincipal: data.planoPrincipal || undefined,
+    totalCnpjs: Number(data.total_cnpjs) || 0,
+    totalFuncionarios: Number(data.total_funcionarios) || 0,
+    funcionariosAtivos: Number(data.funcionarios_ativos) || 0,
+    funcionariosPendentes: Number(data.funcionarios_pendentes) || 0,
+    custoMensalTotal: Number(data.custo_mensal_total) || 0,
+    custosPorCnpj: Array.isArray(data.custos_por_cnpj) ? data.custos_por_cnpj : [],
+    evolucaoMensal: Array.isArray(data.evolucao_mensal) ? data.evolucao_mensal : [],
+    distribuicaoCargos: Array.isArray(data.distribuicao_cargos) ? data.distribuicao_cargos : [],
+    planoPrincipal: data.plano_principal || undefined,
   };
 };
 
