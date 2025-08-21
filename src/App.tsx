@@ -118,6 +118,7 @@ function AppContent() {
 
           {/* Empresa routes */}
           <Route path="empresa/dashboard" element={<EmpresaDashboard />} />
+          <Route path="empresa/cnpjs" element={<CNPJsPage />} />
           <Route path="empresa/funcionarios" element={<EmpresaFuncionarios />} />
           <Route path="empresa/seguros-de-vida" element={<EmpresaPlanosPage />} />
           <Route path="empresa/planos-de-saude" element={<EmpresaPlanosSaudePage />} />
