@@ -47,6 +47,8 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
 
   console.log('📞 [DASHBOARD] Chamando RPC com:', { p_empresa_id: empresaId });
 
+  // 🚨 CORREÇÃO: Especificar explicitamente a função com 1 parâmetro UUID
+  // Evita ambiguidade com versões sem parâmetros ou com 2 parâmetros
   const { data, error } = await supabase
     .rpc('get_empresa_dashboard_metrics', {
       p_empresa_id: empresaId
