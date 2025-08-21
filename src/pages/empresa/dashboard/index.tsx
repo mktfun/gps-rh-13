@@ -427,15 +427,24 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   
   // SEGURANÇA CRÍTICA: Usar o ID real da empresa do usuário logado
-  const realEmpresaId = empresaId || user?.id;
+  const realEmpresaId = empresaId || user?.empresa_id || user?.id;
   const { data, isLoading, error, refetch } = useEmpresaDashboardMetrics();
-  
+
   // Log de segurança para verificar o ID usado
-  console.log('🔐 [DashboardPage] IDs de segurança:', { 
-    empresaId, 
-    userId: user?.id, 
+  console.log('🔐 [DashboardPage] IDs de segurança:', {
+    empresaId,
+    userId: user?.id,
+    userEmpresaId: user?.empresa_id,
     realEmpresaId,
-    userRole: user?.role 
+    userRole: user?.role
+  });
+
+  // Log detalhado dos dados recebidos
+  console.log('🏢 [DashboardPage] Hook resultado:', {
+    data: data,
+    isLoading,
+    error,
+    empresaId: realEmpresaId
   });
   
   const [activeTab, setActiveTab] = useState('overview');
