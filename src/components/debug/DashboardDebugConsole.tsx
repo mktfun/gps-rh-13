@@ -100,11 +100,20 @@ export function DashboardDebugConsole() {
       }
     };
 
+    // Disponibilizar supabase no window para testes manuais
+    (window as any).supabase = supabase;
+
     // Logs de informação
     console.log('🛠️ [DEBUG CONSOLE] Funções de teste adicionadas ao window:');
     console.log('- window.testDashboardFunction(empresaId?)');
     console.log('- window.testAllDashboardVersions(empresaId?)');
+    console.log('- window.testWithWindowSupabase(empresaId?)');
+    console.log('- window.supabase (para testes manuais)');
     console.log('📋 [DEBUG INFO] User info:', { user, empresaId });
+
+    // Instrução para teste manual
+    console.log('🧪 [TESTE MANUAL] Cole no console:');
+    console.log(`const result = await window.supabase.rpc('get_empresa_dashboard_metrics', { p_empresa_id: '${empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a'}' }); console.log('Teste direto:', result);`);
 
   }, [user, empresaId]);
 
