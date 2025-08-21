@@ -1,36 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { DashboardMetrics } from '@/types/dashboard';
-import { useAuth } from '@/hooks/useAuth';
+// ❌ DEPRECATED - Use useEmpresaDashboardMetrics instead
+// Este arquivo foi mantido por compatibilidade, mas será removido
+// Todas as funções redirecionam para o hook correto
 
+import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
+
+/**
+ * @deprecated Use useEmpresaDashboardMetrics instead
+ */
 export function useDashboardData(empresaId?: string) {
-  console.log('🔍 [useDashboardData] empresaId recebido:', empresaId);
-
-  return useQuery({
-    queryKey: ['dashboard-metrics', empresaId],
-    queryFn: async (): Promise<DashboardMetrics> => {
-      console.log('📞 [useDashboardData] Fazendo chamada RPC...');
-
-      const { data, error } = await supabase
-        .rpc('get_empresa_dashboard_metrics', {
-          p_empresa_id: empresaId
-        });
-
-      console.log('📊 [useDashboardData] Resposta da RPC:', { data, error });
-      
-      if (error) throw error;
-
-      return data;
-    },
-    enabled: true, // Sempre habilitar se empresaId for fornecido
-    refetchInterval: 30000,
-    staleTime: 10000,
-  });
+  console.warn('⚠️ [useDashboardData] DEPRECATED - Use useEmpresaDashboardMetrics instead');
+  return useEmpresaDashboardMetrics();
 }
 
-// Hook simplificado que retorna apenas os dados essenciais
+/**
+ * @deprecated Use useEmpresaDashboardMetrics instead
+ */
 export function useDashboardSummary(empresaId?: string) {
-  const { data, isLoading, error } = useDashboardData(empresaId);
+  console.warn('⚠️ [useDashboardSummary] DEPRECATED - Use useEmpresaDashboardMetrics instead');
+  const { data, isLoading, error } = useEmpresaDashboardMetrics();
   
   return {
     totalFuncionarios: data?.totalFuncionarios || 0,
@@ -43,9 +30,12 @@ export function useDashboardSummary(empresaId?: string) {
   };
 }
 
-// Hook para métricas de crescimento/tendências
+/**
+ * @deprecated Use local calculation instead
+ */
 export function useDashboardTrends(empresaId?: string) {
-  const { data, isLoading, error } = useDashboardData(empresaId);
+  console.warn('⚠️ [useDashboardTrends] DEPRECATED - Calculate trends locally');
+  const { data, isLoading, error } = useEmpresaDashboardMetrics();
   
   const calculateTrend = (evolutionData: any[]) => {
     if (!evolutionData || evolutionData.length < 2) return 'neutral';
