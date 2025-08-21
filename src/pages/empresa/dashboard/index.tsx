@@ -27,6 +27,127 @@ interface KPICardProps {
   isClickable?: boolean;
 }
 
+function AnalyticsCard({ data }: { data: any }) {
+  const [activeChart, setActiveChart] = useState<'cargos' | 'evolucao'>('cargos');
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {activeChart === 'cargos' ? (
+              <PieChart className="h-5 w-5 text-blue-600" />
+            ) : (
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+            )}
+            <CardTitle>
+              {activeChart === 'cargos' ? 'Distribuição por Cargos' : 'Evolução Mensal'}
+            </CardTitle>
+          </div>
+
+          <div className="inline-flex rounded-lg bg-gray-100 p-1">
+            <button
+              onClick={() => setActiveChart('cargos')}
+              className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                activeChart === 'cargos'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <BarChart3 className="mr-1.5 h-3 w-3" />
+              Cargos
+            </button>
+            <button
+              onClick={() => setActiveChart('evolucao')}
+              className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                activeChart === 'evolucao'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Calendar className="mr-1.5 h-3 w-3" />
+              Evolução
+            </button>
+          </div>
+        </div>
+
+        <CardDescription>
+          {activeChart === 'cargos'
+            ? 'Top 5 cargos mais comuns'
+            : 'Histórico dos últimos 6 meses'
+          }
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        {activeChart === 'cargos' ? (
+          <div className="space-y-4">
+            {data.distribuicaoCargos && data.distribuicaoCargos.length > 0 ? (
+              data.distribuicaoCargos.map((cargo: any, index: number) => (
+                <div key={index} className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700 flex-1 mr-4">
+                    {cargo.cargo}
+                  </span>
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex-1 bg-gray-200 rounded-full h-3 max-w-32">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min((cargo.count / data.totalFuncionarios) * 100, 100)}%`
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900 w-8 text-right">
+                      {cargo.count}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">
+                Nenhum dado de cargos disponível
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {data.evolucaoMensal && data.evolucaoMensal.length > 0 ? (
+              data.evolucaoMensal.map((mes: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
+                  <span className="text-sm font-medium text-gray-700 min-w-20">
+                    {mes.mes}
+                  </span>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm text-blue-600 font-medium">
+                        {mes.funcionarios} funcionários
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-bold text-green-600">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(mes.custo)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">
+                Nenhum dado de evolução mensal disponível
+              </p>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function KPICard({ title, value, description, icon, trend, trendValue, bgColor = 'bg-white', textColor = 'text-gray-900', onClick, actionText, isClickable = false }: KPICardProps) {
   const getTrendIcon = () => {
     switch (trend) {
