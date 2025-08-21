@@ -249,7 +249,7 @@ const CNPJsPage = () => {
           isOpen={true}
           onClose={handleModalClose}
           cnpj={editingCnpj}
-          empresaId={user?.user_metadata?.empresa_id}
+          empresaId={empresaId}
         />
       )}
     </div>
