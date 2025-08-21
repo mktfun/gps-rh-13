@@ -664,6 +664,9 @@ export default function DashboardPage() {
             value={data.totalCnpjs || 0}
             description="Empresas vinculadas"
             icon={<Building2 className="h-5 w-5" />}
+            isClickable={true}
+            actionText="Ver CNPJs"
+            onClick={() => navigate('/empresa/cnpjs')}
             variant="default"
           />
 
