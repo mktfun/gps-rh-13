@@ -9,30 +9,57 @@ export function DashboardDebugConsole() {
     // Adicionar função de teste global no window
     (window as any).testDashboardFunction = async (testEmpresaId?: string) => {
       const empresaIdToTest = testEmpresaId || empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
-      
+
       console.log('🧪 [TESTE DIRETO] Iniciando teste da função do dashboard');
       console.log('🧪 [TESTE DIRETO] EmpresaId:', empresaIdToTest);
-      
+
       try {
-        const result = await supabase.rpc('get_empresa_dashboard_metrics', { 
-          p_empresa_id: empresaIdToTest 
+        const result = await supabase.rpc('get_empresa_dashboard_metrics', {
+          p_empresa_id: empresaIdToTest
         });
-        
+
         console.log('🧪 [TESTE DIRETO] Resultado completo:', result);
         console.log('🧪 [TESTE DIRETO] Data:', result.data);
         console.log('🧪 [TESTE DIRETO] Error:', result.error);
-        
+
         if (result.data) {
           console.log('🧪 [TESTE DIRETO] Estrutura dos dados:');
           console.log('- totalFuncionarios:', result.data.totalFuncionarios);
           console.log('- funcionariosAtivos:', result.data.funcionariosAtivos);
           console.log('- custoMensalTotal:', result.data.custoMensalTotal);
           console.log('- custosPorCnpj:', result.data.custosPorCnpj);
+          console.log('🧪 [TESTE DIRETO] Todos os campos:', JSON.stringify(result.data, null, 2));
         }
-        
+
         return result;
       } catch (error) {
         console.error('🧪 [TESTE DIRETO] Erro no teste:', error);
+        return { error };
+      }
+    };
+
+    // Função para teste usando window.supabase (se disponível)
+    (window as any).testWithWindowSupabase = async (testEmpresaId?: string) => {
+      const empresaIdToTest = testEmpresaId || empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+
+      console.log('🌐 [TESTE WINDOW] Testando com window.supabase');
+      console.log('🌐 [TESTE WINDOW] EmpresaId:', empresaIdToTest);
+
+      if (!(window as any).supabase) {
+        console.error('❌ [TESTE WINDOW] window.supabase não está disponível');
+        return { error: 'window.supabase não disponível' };
+      }
+
+      try {
+        const result = await (window as any).supabase
+          .rpc('get_empresa_dashboard_metrics', {
+            p_empresa_id: empresaIdToTest
+          });
+
+        console.log('🌐 [TESTE WINDOW] Resultado:', result);
+        return result;
+      } catch (error) {
+        console.error('🌐 [TESTE WINDOW] Erro:', error);
         return { error };
       }
     };
