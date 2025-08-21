@@ -86,12 +86,23 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
 };
 
 export const useEmpresaDashboardMetrics = () => {
-  const { empresaId } = useAuth();
+  const { empresaId, user } = useAuth();
+  const realEmpresaId = empresaId || user?.empresa_id;
+
+  console.log('🏢 [useEmpresaDashboardMetrics] Hook chamado com:', {
+    empresaId,
+    userEmpresaId: user?.empresa_id,
+    realEmpresaId,
+    userRole: user?.role
+  });
 
   return useQuery({
-    queryKey: ['empresa-dashboard-metrics', empresaId],
-    queryFn: () => fetchEmpresaDashboardMetrics(empresaId || ''),
-    enabled: !!empresaId,
+    queryKey: ['empresa-dashboard-metrics', realEmpresaId],
+    queryFn: () => {
+      console.log('🚀 [useEmpresaDashboardMetrics] Executando query com empresaId:', realEmpresaId);
+      return fetchEmpresaDashboardMetrics(realEmpresaId || '');
+    },
+    enabled: !!realEmpresaId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: (failureCount, error) => {
