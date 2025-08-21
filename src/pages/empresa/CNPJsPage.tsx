@@ -260,14 +260,16 @@ const CNPJsPage = () => {
           </CardHeader>
           <CardContent>
             {viewMode === 'cards' ? (
-              <CNPJsCardView 
+              <CNPJsCardView
                 cnpjs={filteredCnpjs}
                 onEdit={handleEditCnpj}
+                onDelete={handleDeleteCnpj}
               />
             ) : (
-              <CNPJsListView 
+              <CNPJsListView
                 cnpjs={filteredCnpjs}
                 onEdit={handleEditCnpj}
+                onDelete={handleDeleteCnpj}
               />
             )}
           </CardContent>
