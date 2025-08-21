@@ -682,12 +682,6 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Debug section - temporarily added */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">🐛 Debug - Teste de Dados</h2>
-          <DashboardDataTest />
-        </div>
-
         {/* Seções Detalhadas */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground">
