@@ -4,19 +4,43 @@ import { Button } from '@/components/ui/button';
 import { DashboardError } from '@/types/dashboard';
 
 interface ErrorStateProps {
-  error: Error | DashboardError;
+  error?: Error | DashboardError | string | null;
   retry?: () => void;
   title?: string;
   description?: string;
+  message?: string;
+  onRetry?: () => void;
 }
 
 export function ErrorState({ 
   error, 
   retry, 
   title = "Erro ao carregar dados",
-  description 
+  description,
+  message,
+  onRetry
 }: ErrorStateProps) {
-  const errorMessage = description || error.message || 'Não foi possível carregar os dados. Tente recarregar a página.';
+  // Handle undefined/null errors and different error structures
+  const getErrorMessage = () => {
+    if (description) return description;
+    if (message) return message;
+    
+    if (!error) return 'Não foi possível carregar os dados. Tente recarregar a página.';
+    
+    if (typeof error === 'string') return error;
+    
+    if (typeof error === 'object' && error && 'message' in error) {
+      return error.message;
+    }
+    
+    return 'Erro desconhecido ocorreu';
+  };
+  
+  const errorMessage = getErrorMessage();
+  const retryHandler = retry || onRetry;
+  
+  console.log('🔍 [ErrorState] Error object:', error);
+  console.log('🔍 [ErrorState] Final message:', errorMessage);
   
   return (
     <div className="bg-white p-8 rounded-lg shadow-sm border">
@@ -31,8 +55,8 @@ export function ErrorState({
           {errorMessage}
         </p>
         
-        {retry && (
-          <Button onClick={retry} className="inline-flex items-center gap-2">
+        {retryHandler && (
+          <Button onClick={retryHandler} className="inline-flex items-center gap-2">
             <RefreshCw className="h-4 w-4" />
             Tentar novamente
           </Button>
