@@ -581,11 +581,17 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-1 flex-col gap-6 md:gap-8">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <ErrorState 
+          <ErrorState
             title="Nenhum dado encontrado"
             description="Não há dados disponíveis para esta empresa no momento."
             onRetry={handleRefreshData}
           />
+
+          {/* Debug section - temporarily added */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">🐛 Debug - Teste de Dados</h2>
+            <DashboardDataTest />
+          </div>
         </div>
       </div>
     );
