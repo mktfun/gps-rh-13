@@ -98,6 +98,27 @@ export function DashboardDebugConsole() {
       } catch (error) {
         console.log('⚠️ [TESTE 3] V3 erro:', error);
       }
+
+      // 🚨 TESTE CRÍTICO: Versão sem parâmetros (pode estar sendo usada por engano)
+      console.log('🔍 [TESTE CRÍTICO] get_empresa_dashboard_metrics SEM parâmetros');
+      try {
+        const resultBad = await supabase.rpc('get_empresa_dashboard_metrics');
+        console.log('🚨 [TESTE CRÍTICO] Sem parâmetros resultado (pode ser o problema):', resultBad);
+      } catch (error) {
+        console.log('✅ [TESTE CRÍTICO] Sem parâmetros erro (isso é bom):', error);
+      }
+
+      // Teste com 2 parâmetros
+      console.log('🔍 [TESTE 4] get_empresa_dashboard_metrics com 2 parâmetros');
+      try {
+        const result4 = await supabase.rpc('get_empresa_dashboard_metrics', {
+          p_empresa_id: empresaIdToTest,
+          p_months: 6
+        });
+        console.log('📊 [TESTE 4] Com 2 parâmetros resultado:', result4);
+      } catch (error) {
+        console.log('⚠️ [TESTE 4] Com 2 parâmetros erro:', error);
+      }
     };
 
     // Disponibilizar supabase no window para testes manuais
