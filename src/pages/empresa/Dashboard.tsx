@@ -3,8 +3,7 @@ import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardErrorBoundary } from '@/components/ui/DashboardErrorBoundary';
 import { DashboardDataFallback } from '@/components/debug/DashboardDataFallback';
-import { DashboardDebugConsole } from '@/components/debug/DashboardDebugConsole';
-import { TestFunctionAmbiguity } from '@/components/debug/TestFunctionAmbiguity';
+import { DashboardDebugPanel } from '@/components/debug/DashboardDebugPanel';
 
 const Dashboard: React.FC = () => {
   const { user, empresaId } = useAuth();
