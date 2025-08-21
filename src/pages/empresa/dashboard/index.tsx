@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink } from 'lucide-react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink, BarChart3, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useQueryClient } from '@tanstack/react-query';
@@ -249,10 +249,28 @@ export default function DashboardPage() {
 
         {/* Seções Detalhadas */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="cnpjs">CNPJs</TabsTrigger>
-            <TabsTrigger value="analytics">Análises</TabsTrigger>
+          <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-gray-100 p-1 text-gray-500 shadow-sm">
+            <TabsTrigger
+              value="overview"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-950 data-[state=active]:shadow-sm"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Visão Geral
+            </TabsTrigger>
+            <TabsTrigger
+              value="cnpjs"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-950 data-[state=active]:shadow-sm"
+            >
+              <Building2 className="mr-2 h-4 w-4" />
+              CNPJs
+            </TabsTrigger>
+            <TabsTrigger
+              value="analytics"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-950 data-[state=active]:shadow-sm"
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Análises
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -387,73 +405,7 @@ export default function DashboardPage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            {/* Distribuição por Cargos */}
-            {data.distribuicaoCargos && data.distribuicaoCargos.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5 text-blue-600" />
-                    Distribuição por Cargos
-                  </CardTitle>
-                  <CardDescription>
-                    Top 5 cargos mais comuns
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {data.distribuicaoCargos.map((cargo, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">{cargo.cargo}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
-                              style={{ 
-                                width: `${Math.min((cargo.count / data.totalFuncionarios) * 100, 100)}%` 
-                              }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-bold text-gray-900 w-8 text-right">{cargo.count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Evolução Mensal */}
-            {data.evolucaoMensal && data.evolucaoMensal.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                    Evolução Mensal
-                  </CardTitle>
-                  <CardDescription>
-                    Histórico dos últimos 6 meses
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {data.evolucaoMensal.map((mes, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium text-gray-700">{mes.mes}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm text-blue-600">{mes.funcionarios} funcionários</span>
-                          <span className="text-sm font-bold text-green-600">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                            }).format(mes.custo)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <AnalyticsCard data={data} />
           </TabsContent>
         </Tabs>
       </div>
