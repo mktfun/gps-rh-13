@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, BarChart3, Calendar, Filter, CheckCircle, Clock, Activity, Shield, Star, ExternalLink } from 'lucide-react';
-import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar, LineChart, Line } from 'recharts';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar, LineChart, Line } from 'recharts';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
