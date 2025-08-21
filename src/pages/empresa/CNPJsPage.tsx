@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { CNPJsCardView } from '@/components/empresa/CNPJsCardView';
 import { CNPJsListView } from '@/components/empresa/CNPJsListView';
 import { CNPJsDashboard } from '@/components/empresa/CNPJsDashboard';
-import { CnpjModal } from '@/components/cnpjs/CnpjModal';
+import CnpjModal from '@/components/cnpjs/CnpjModal';
 
 const CNPJsPage = () => {
   const { user, empresaId } = useAuth();
