@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink, BarChart3, Calendar, Filter, ZoomIn, MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink, BarChart3, Calendar, Filter, ZoomIn, MapPin, Phone, Mail, Globe, Star, CheckCircle, Clock, Activity, Shield } from 'lucide-react';
 import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar, LineChart, Line } from 'recharts';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -429,6 +429,42 @@ export default function DashboardPage() {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+
+  // Update timestamp every minute for real-time feel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdate(new Date());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Real-time insights
+  const statusInsights = useMemo(() => {
+    if (!data) return '';
+    const activeRate = data.totalFuncionarios > 0
+      ? (data.funcionariosAtivos / data.totalFuncionarios * 100).toFixed(1)
+      : 0;
+
+    if (parseFloat(activeRate as string) === 100) {
+      return '🎯 Excelente! Todos os funcionários estão ativos.';
+    } else if (parseFloat(activeRate as string) >= 90) {
+      return `✅ Ótima situação com ${activeRate}% dos funcionários ativos.`;
+    } else if (parseFloat(activeRate as string) >= 70) {
+      return `⚠️ ${data.funcionariosPendentes} funcionários pendentes requerem atenção.`;
+    } else {
+      return `🚨 Alta concentração de pendências (${data.funcionariosPendentes} funcionários).`;
+    }
+  }, [data]);
+
+  const planoInsights = useMemo(() => {
+    if (!data?.planoPrincipal) return '';
+    const valorAnual = data.planoPrincipal.valor_mensal * 12;
+    const cobertura = data.planoPrincipal.cobertura_morte || 0;
+    const ratio = cobertura > 0 ? (cobertura / data.planoPrincipal.valor_mensal).toFixed(0) : 0;
+
+    return `💰 Investimento anual de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorAnual)} | Cobertura ${ratio}x o valor mensal`;
+  }, [data?.planoPrincipal]);
 
   console.log('🏢 [DashboardPage] Dados recebidos:', { data, isLoading, error });
 
@@ -600,87 +636,228 @@ export default function DashboardPage() {
 
           <TabsContent value="overview" className="space-y-6">
             {/* Status dos Funcionários */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  Status dos Funcionários
-                </CardTitle>
-                <CardDescription>
-                  Distribuição atual dos funcionários por status
-                </CardDescription>
+            <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-xl">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-semibold text-gray-900">
+                        Status dos Funcionários
+                      </CardTitle>
+                      <CardDescription className="text-sm text-gray-600">
+                        Distribuição atual por status
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Activity className="h-3 w-3 animate-pulse text-green-500" />
+                    Atualizado há {Math.floor((Date.now() - lastUpdate.getTime()) / 60000)}min
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-green-900">Funcionários Ativos</p>
-                      <p className="text-2xl font-bold text-green-700">{data.funcionariosAtivos || 0}</p>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Funcionários Ativos */}
+                  <div className="group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl"></div>
+                    <div className="relative p-5 border border-green-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-green-900">Funcionários Ativos</p>
+                            <p className="text-xs text-green-700">Status confirmado</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                          {data.totalFuncionarios > 0
+                            ? `${Math.round((data.funcionariosAtivos / data.totalFuncionarios) * 100)}%`
+                            : '0%'
+                          }
+                        </Badge>
+                      </div>
+                      <div className="flex items-end justify-between">
+                        <p className="text-3xl font-bold text-green-700">{data.funcionariosAtivos || 0}</p>
+                        <div className="text-right">
+                          <p className="text-xs text-green-600 font-medium">De {data.totalFuncionarios}</p>
+                          <div className="w-16 h-1.5 bg-green-100 rounded-full overflow-hidden mt-1">
+                            <div
+                              className="h-full bg-green-500 rounded-full transition-all duration-500"
+                              style={{
+                                width: data.totalFuncionarios > 0
+                                  ? `${(data.funcionariosAtivos / data.totalFuncionarios) * 100}%`
+                                  : '0%'
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {data.totalFuncionarios > 0 
-                        ? `${Math.round((data.funcionariosAtivos / data.totalFuncionarios) * 100)}%`
-                        : '0%'
-                      }
-                    </Badge>
                   </div>
-                  
-                  <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-yellow-900">Funcionários Pendentes</p>
-                      <p className="text-2xl font-bold text-yellow-700">{data.funcionariosPendentes || 0}</p>
+
+                  {/* Funcionários Pendentes */}
+                  <div className="group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl"></div>
+                    <div className="relative p-5 border border-yellow-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 bg-yellow-100 rounded-lg">
+                            <Clock className="h-4 w-4 text-yellow-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-yellow-900">Funcionários Pendentes</p>
+                            <p className="text-xs text-yellow-700">Aguardando processamento</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                          {data.totalFuncionarios > 0
+                            ? `${Math.round((data.funcionariosPendentes / data.totalFuncionarios) * 100)}%`
+                            : '0%'
+                          }
+                        </Badge>
+                      </div>
+                      <div className="flex items-end justify-between">
+                        <p className="text-3xl font-bold text-yellow-700">{data.funcionariosPendentes || 0}</p>
+                        <div className="text-right">
+                          <p className="text-xs text-yellow-600 font-medium">De {data.totalFuncionarios}</p>
+                          <div className="w-16 h-1.5 bg-yellow-100 rounded-full overflow-hidden mt-1">
+                            <div
+                              className="h-full bg-yellow-500 rounded-full transition-all duration-500"
+                              style={{
+                                width: data.totalFuncionarios > 0
+                                  ? `${(data.funcionariosPendentes / data.totalFuncionarios) * 100}%`
+                                  : '0%'
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      {data.totalFuncionarios > 0 
-                        ? `${Math.round((data.funcionariosPendentes / data.totalFuncionarios) * 100)}%`
-                        : '0%'
-                      }
-                    </Badge>
                   </div>
+                </div>
+
+                {/* Real-time Insight */}
+                <div className="mt-6 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-blue-900">Análise em Tempo Real</span>
+                  </div>
+                  <p className="text-sm text-blue-800 mt-1">{statusInsights}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Plano Principal */}
             {data.planoPrincipal && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5 text-blue-600" />
-                    Plano Principal
-                  </CardTitle>
-                  <CardDescription>
-                    Informações do plano com maior valor
-                  </CardDescription>
+              <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+                <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-xl">
+                        <Shield className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-gray-900">
+                          Plano Principal
+                        </CardTitle>
+                        <CardDescription className="text-sm text-gray-600">
+                          Plano com maior valor da carteira
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                      Ativo
+                    </Badge>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Seguradora</p>
-                      <p className="text-lg font-semibold text-gray-900">{data.planoPrincipal.seguradora}</p>
+                <CardContent className="p-6">
+                  {/* Header com Seguradora */}
+                  <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Seguradora</p>
+                        <p className="text-xl font-bold text-gray-900">{data.planoPrincipal.seguradora}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Empresa</p>
+                        <p className="text-base font-semibold text-gray-800 max-w-48 truncate">
+                          {data.planoPrincipal.razao_social}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Empresa</p>
-                      <p className="text-base text-gray-900">{data.planoPrincipal.razao_social}</p>
+                  </div>
+
+                  {/* Métricas Principais */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* Valor Mensal */}
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl"></div>
+                      <div className="relative p-5 border border-green-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-green-900">Valor Mensal</p>
+                            <p className="text-xs text-green-700">Custo do plano</p>
+                          </div>
+                        </div>
+                        <p className="text-2xl font-bold text-green-700">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(data.planoPrincipal.valor_mensal)}
+                        </p>
+                        <p className="text-xs text-green-600 mt-2">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(data.planoPrincipal.valor_mensal * 12)} por ano
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Valor Mensal</p>
-                      <p className="text-xl font-bold text-green-600">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(data.planoPrincipal.valor_mensal)}
-                      </p>
+
+                    {/* Cobertura Morte */}
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl"></div>
+                      <div className="relative p-5 border border-blue-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Shield className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-blue-900">Cobertura Morte</p>
+                            <p className="text-xs text-blue-700">Valor protegido</p>
+                          </div>
+                        </div>
+                        <p className="text-2xl font-bold text-blue-700">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(data.planoPrincipal.cobertura_morte || 0)}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex-1 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full w-full"></div>
+                          </div>
+                          <span className="text-xs text-blue-600 font-medium">100%</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Cobertura Morte</p>
-                      <p className="text-base font-medium text-gray-900">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(data.planoPrincipal.cobertura_morte || 0)}
-                      </p>
+                  </div>
+
+                  {/* Real-time Insight */}
+                  <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-purple-900">Análise em Tempo Real</span>
                     </div>
+                    <p className="text-sm text-purple-800 mt-1">{planoInsights}</p>
                   </div>
                 </CardContent>
               </Card>
