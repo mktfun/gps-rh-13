@@ -108,6 +108,11 @@ const Sidebar = () => {
       icon: LayoutDashboard,
     },
     {
+      name: 'CNPJs',
+      href: '/empresa/cnpjs',
+      icon: Building2,
+    },
+    {
       name: 'Funcionários',
       href: '/empresa/funcionarios',
       icon: Users,
