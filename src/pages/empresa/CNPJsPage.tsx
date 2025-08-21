@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuthUser } from '@/hooks/useAuthUser';
+import { useAuth } from '@/hooks/useAuth';
 import { useCnpjsComPlanos } from '@/hooks/useCnpjsComPlanos';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
