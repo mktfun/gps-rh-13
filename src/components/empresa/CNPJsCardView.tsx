@@ -58,8 +58,7 @@ export const CNPJsCardView: React.FC<CNPJsCardViewProps> = ({ cnpjs, onEdit, onD
   };
 
   const handleDelete = (cnpj: CnpjComPlano) => {
-    // TODO: Implementar confirmação e exclusão
-    console.log('Excluir CNPJ:', cnpj.id);
+    onDelete(cnpj.id);
   };
 
   if (cnpjs.length === 0) {
