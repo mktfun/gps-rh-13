@@ -11,6 +11,7 @@ import { CnpjComPlano } from '@/hooks/useCnpjsComPlanos';
 interface CNPJsListViewProps {
   cnpjs: CnpjComPlano[];
   onEdit: (cnpj: CnpjComPlano) => void;
+  onDelete: (cnpjId: string) => void;
 }
 
 export const CNPJsListView: React.FC<CNPJsListViewProps> = ({ cnpjs, onEdit }) => {
