@@ -53,8 +53,7 @@ const Dashboard: React.FC = () => {
   if (!metrics || (metrics.totalFuncionarios === 0 && metrics.totalCnpjs === 0)) {
     return (
       <DashboardErrorBoundary>
-        <DashboardDebugConsole />
-        <TestFunctionAmbiguity />
+        <DashboardDebugPanel />
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">Dashboard da Empresa</h1>
           <DashboardDataFallback
