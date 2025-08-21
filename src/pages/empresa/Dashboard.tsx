@@ -2,6 +2,7 @@ import React from 'react';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardErrorBoundary } from '@/components/ui/DashboardErrorBoundary';
+import { DashboardDataFallback } from '@/components/debug/DashboardDataFallback';
 
 const Dashboard: React.FC = () => {
   const { user, empresaId } = useAuth();
@@ -69,7 +70,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="bg-card p-6 rounded-lg shadow border">
-              <h3 className="text-lg font-medium text-muted-foreground">Funcion��rios Pendentes</h3>
+              <h3 className="text-lg font-medium text-muted-foreground">Funcionários Pendentes</h3>
               <p className="text-3xl font-bold text-yellow-600">
                 {metrics.funcionariosPendentes}
               </p>
