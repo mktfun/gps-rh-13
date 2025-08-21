@@ -18,24 +18,16 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Usar fallback para o ID da empresa que sabemos que tem dados
-  const empresaId = user?.empresa_id || user?.id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
-
-  console.log('🏢 [DashboardPage] user:', user);
-  console.log('🏢 [DashboardPage] empresaId final:', empresaId);
+  // Usar o ID da empresa que sabemos que tem dados
+  const empresaId = 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
 
   const { data, isLoading, error, refetch } = useDashboardData(empresaId);
+
+  console.log('🏢 [DashboardPage] Estado atual:', { data, isLoading, error, empresaId });
   
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  console.log('🏢 [DashboardPage] Estado atual:', {
-    data,
-    isLoading,
-    error: error?.message,
-    empresaId,
-    user
-  });
 
   const handleRefreshData = async () => {
     setIsRefreshing(true);
@@ -104,22 +96,12 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex flex-1 flex-col gap-6 md:gap-8">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-12 w-1 bg-gradient-to-b from-red-600 to-orange-600 rounded-full"></div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard da Empresa</h1>
-              <p className="text-gray-600">Erro ao carregar dados</p>
-            </div>
-          </div>
-          <ErrorState 
-            error={error} 
-            retry={handleRefreshData}
-            title="Erro ao carregar dashboard"
-            description="Não foi possível carregar os dados do dashboard. Verifique sua conexão e tente novamente."
-          />
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <ErrorState
+          title="Erro ao carregar dashboard"
+          message={typeof error === 'string' ? error : 'Erro desconhecido'}
+          onRetry={() => window.location.reload()}
+        />
       </div>
     );
   }
