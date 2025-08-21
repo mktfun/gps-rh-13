@@ -1,13 +1,9 @@
 export interface DashboardMetrics {
-  custoMensalTotal: number;
-  totalCnpjs: number;
-  totalFuncionarios: number;
-  funcionariosAtivos: number;
-  funcionariosPendentes: number;
-  evolucaoMensal: EvolutionData[];
-  distribuicaoCargos: CargoDistribution[];
-  custosPorCnpj: CnpjCost[];
-  planoPrincipal: MainPlan | null;
+  total_funcionarios: number;
+  funcionarios_ativos: number;
+  funcionarios_pendentes: number;
+  total_planos: number;
+  custo_mensal_total: number;
 }
 
 export interface EvolutionData {
