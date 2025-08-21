@@ -39,78 +39,101 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     throw new Error('ID da empresa é obrigatório');
   }
 
-  console.log('🔍 [DEBUG] Verificando chamadas do dashboard:', {
-    empresaId,
-    functionCalled: 'get_empresa_dashboard_metrics',
-    params: { p_empresa_id: empresaId }
-  });
+  console.log('🔍 [DEBUG] Buscando dados completos do dashboard para:', empresaId);
 
-  console.log('📞 [DASHBOARD] Chamando RPC com:', { p_empresa_id: empresaId });
+  try {
+    // 1. Buscar métricas principais
+    const { data: mainData, error: mainError } = await supabase
+      .rpc('get_empresa_dashboard_metrics', {
+        p_empresa_id: empresaId
+      });
 
-  // 🚨 CORREÇÃO: Especificar explicitamente a função com 1 parâmetro UUID
-  // Evita ambiguidade com versões sem parâmetros ou com 2 parâmetros
-  const { data, error } = await supabase
-    .rpc('get_empresa_dashboard_metrics', {
-      p_empresa_id: empresaId
-    });
+    if (mainError) throw mainError;
+    if (!mainData) throw new Error('Nenhum dado principal encontrado');
 
-  console.log('📊 [DASHBOARD] Resposta RPC completa:', { data, error });
+    console.log('✅ [DASHBOARD] Dados principais:', mainData);
 
-  if (error) {
-    console.error('❌ [DASHBOARD] Erro na função:', error);
-    console.error('❌ [DASHBOARD] Detalhes do erro:', {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code
-    });
-    throw new Error(`Erro ao carregar métricas: ${error.message}`);
+    // 2. Buscar dados dos CNPJs/Planos
+    const { data: planosData, error: planosError } = await supabase
+      .rpc('get_empresa_planos_unificados', {
+        p_empresa_id: empresaId
+      });
+
+    if (planosError) {
+      console.warn('⚠️ [DASHBOARD] Erro ao buscar planos:', planosError);
+    }
+
+    console.log('✅ [DASHBOARD] Dados dos planos:', planosData);
+
+    // 3. Buscar distribuição de cargos
+    const { data: cargosData, error: cargosError } = await supabase
+      .rpc('get_empresa_distribuicao_cargos');
+
+    if (cargosError) {
+      console.warn('⚠️ [DASHBOARD] Erro ao buscar cargos:', cargosError);
+    }
+
+    console.log('✅ [DASHBOARD] Dados dos cargos:', cargosData);
+
+    // 4. Buscar evolução mensal
+    const { data: evolucaoData, error: evolucaoError } = await supabase
+      .rpc('get_empresa_evolucao_mensal');
+
+    if (evolucaoError) {
+      console.warn('⚠️ [DASHBOARD] Erro ao buscar evolução:', evolucaoError);
+    }
+
+    console.log('✅ [DASHBOARD] Dados da evolução:', evolucaoData);
+
+    // 5. Processar dados dos CNPJs/custos
+    const custosPorCnpj = planosData ? planosData.map((plano: any) => ({
+      cnpj: plano.cnpj_numero,
+      razao_social: plano.cnpj_razao_social,
+      valor_mensal: plano.custo_mensal_real || 0,
+      funcionarios_count: plano.total_funcionarios || 0
+    })) : [];
+
+    // 6. Processar evolução mensal (converter formato se necessário)
+    const evolucaoMensal = evolucaoData ? evolucaoData.map((item: any) => ({
+      mes: item.mes,
+      funcionarios: item.novos_funcionarios || 0,
+      custo: 0 // Pode ser calculado ou vir de outra fonte
+    })) : [];
+
+    // 7. Buscar plano principal (maior valor)
+    const planoPrincipal = planosData && planosData.length > 0
+      ? planosData.reduce((max: any, current: any) =>
+          (current.custo_mensal_real || 0) > (max.custo_mensal_real || 0) ? current : max
+        )
+      : null;
+
+    const planoPrincipalFormatted = planoPrincipal ? {
+      seguradora: planoPrincipal.seguradora,
+      valor_mensal: planoPrincipal.valor_unitario || 0,
+      cobertura_morte: planoPrincipal.cobertura_morte || 0,
+      cobertura_morte_acidental: planoPrincipal.cobertura_morte_acidental || 0,
+      cobertura_invalidez_acidente: planoPrincipal.cobertura_invalidez_acidente || 0,
+      razao_social: planoPrincipal.cnpj_razao_social,
+      tipo_seguro: 'Seguro de Vida'
+    } : undefined;
+
+    // Transform data to match expected structure
+    return {
+      totalCnpjs: Number(mainData.total_cnpjs) || 0,
+      totalFuncionarios: Number(mainData.total_funcionarios) || 0,
+      funcionariosAtivos: Number(mainData.funcionarios_ativos) || 0,
+      funcionariosPendentes: Number(mainData.funcionarios_pendentes) || 0,
+      custoMensalTotal: Number(mainData.custo_mensal_total) || 0,
+      custosPorCnpj: custosPorCnpj,
+      evolucaoMensal: evolucaoMensal,
+      distribuicaoCargos: Array.isArray(cargosData) ? cargosData : [],
+      planoPrincipal: planoPrincipalFormatted,
+    };
+
+  } catch (error: any) {
+    console.error('❌ [DASHBOARD] Erro ao buscar dados:', error);
+    throw new Error(`Erro ao carregar dados do dashboard: ${error.message}`);
   }
-
-  if (!data) {
-    console.warn('💥 [DASHBOARD] Nenhum dado retornado para empresaId:', empresaId);
-    throw new Error('Nenhum dado encontrado para esta empresa');
-  }
-
-  // Check if the response contains an error
-  if (data?.error) {
-    console.error('❌ [DASHBOARD] Function Error:', data);
-    throw new Error(`Erro na função: ${data.message || 'Erro desconhecido'}`);
-  }
-
-  console.log('✅ [DASHBOARD] Dados recebidos (raw):', data);
-  console.log('🧪 [TESTE DIRETO] Tipo dos dados:', typeof data);
-  console.log('🧪 [TESTE DIRETO] Keys dos dados:', Object.keys(data || {}));
-  console.log('🧪 [TESTE DIRETO] Valores específicos (raw):', {
-    total_funcionarios: data.total_funcionarios,
-    funcionarios_ativos: data.funcionarios_ativos,
-    custo_mensal_total: data.custo_mensal_total,
-    total_cnpjs: data.total_cnpjs
-  });
-
-  console.log('🧪 [TESTE DIRETO] Arrays detalhados:', {
-    custos_por_cnpj: data.custos_por_cnpj,
-    custos_por_cnpj_type: typeof data.custos_por_cnpj,
-    custos_por_cnpj_length: Array.isArray(data.custos_por_cnpj) ? data.custos_por_cnpj.length : 'not array',
-    distribuicao_cargos: data.distribuicao_cargos,
-    distribuicao_cargos_type: typeof data.distribuicao_cargos,
-    evolucao_mensal: data.evolucao_mensal,
-    evolucao_mensal_type: typeof data.evolucao_mensal,
-    plano_principal: data.plano_principal
-  });
-
-  // Transform data to match expected structure (snake_case to camelCase)
-  return {
-    totalCnpjs: Number(data.total_cnpjs) || 0,
-    totalFuncionarios: Number(data.total_funcionarios) || 0,
-    funcionariosAtivos: Number(data.funcionarios_ativos) || 0,
-    funcionariosPendentes: Number(data.funcionarios_pendentes) || 0,
-    custoMensalTotal: Number(data.custo_mensal_total) || 0,
-    custosPorCnpj: Array.isArray(data.custos_por_cnpj) ? data.custos_por_cnpj : [],
-    evolucaoMensal: Array.isArray(data.evolucao_mensal) ? data.evolucao_mensal : [],
-    distribuicaoCargos: Array.isArray(data.distribuicao_cargos) ? data.distribuicao_cargos : [],
-    planoPrincipal: data.plano_principal || undefined,
-  };
 };
 
 export const useEmpresaDashboardMetrics = () => {
