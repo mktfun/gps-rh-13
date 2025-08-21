@@ -594,12 +594,6 @@ export default function DashboardPage() {
             description="Não há dados disponíveis para esta empresa no momento."
             onRetry={handleRefreshData}
           />
-
-          {/* Debug section - temporarily added */}
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">🐛 Debug - Teste de Dados</h2>
-            <DashboardDataTest />
-          </div>
         </div>
       </div>
     );
@@ -1016,7 +1010,7 @@ export default function DashboardPage() {
                                             <Star className="h-4 w-4 text-corporate-green" />
                                           </div>
                                           <div>
-                                            <p className="text-sm font-medium text-muted-foreground">Participação</p>
+                                            <p className="text-sm font-medium text-muted-foreground">Participaç��o</p>
                                             <p className="text-lg font-bold text-corporate-green">
                                               {custoRelativo}%
                                             </p>
