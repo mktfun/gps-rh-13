@@ -57,6 +57,7 @@ import RelatorioFuncionariosPageEmpresa from "./pages/empresa/relatorios/Relator
 import RelatorioCustosEmpresaPage from "./pages/empresa/relatorios/RelatorioCustosEmpresaPage";
 import RelatorioCustosDetalhadoPage from "./pages/empresa/relatorios/RelatorioCustosDetalhadoPage";
 import RelatorioPendenciasEmpresaPage from "./pages/empresa/relatorios/RelatorioPendenciasEmpresaPage";
+import CNPJsPage from "./pages/empresa/CNPJsPage";
 
 // Shared pages
 import PerfilPage from "./pages/PerfilPage";
