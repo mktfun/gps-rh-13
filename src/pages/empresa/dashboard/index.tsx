@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink, BarChart3, Calendar } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink, BarChart3, Calendar, Filter, ZoomIn } from 'lucide-react';
+import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar, LineChart, Line } from 'recharts';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
+import { Pie } from 'recharts';
 
 interface KPICardProps {
   title: string;
@@ -29,6 +33,48 @@ interface KPICardProps {
 
 function AnalyticsCard({ data }: { data: any }) {
   const [activeChart, setActiveChart] = useState<'cargos' | 'evolucao'>('cargos');
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
+  const [dateRange, setDateRange] = useState(30); // days
+
+  // Pie chart colors
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16'];
+
+  // Generate real-time analysis for cargos
+  const cargosAnalysis = useMemo(() => {
+    if (!data.distribuicaoCargos || data.distribuicaoCargos.length === 0) return '';
+
+    const topCargo = data.distribuicaoCargos[0];
+    const totalCargos = data.distribuicaoCargos.length;
+    const percentage = ((topCargo.count / data.totalFuncionarios) * 100).toFixed(1);
+
+    return `${topCargo.cargo} representa ${percentage}% dos funcionários (${topCargo.count} de ${data.totalFuncionarios}). Total de ${totalCargos} cargos diferentes identificados.`;
+  }, [data.distribuicaoCargos, data.totalFuncionarios]);
+
+  // Generate real-time analysis for evolution
+  const evolucaoAnalysis = useMemo(() => {
+    if (!data.evolucaoMensal || data.evolucaoMensal.length < 2) return '';
+
+    const recent = data.evolucaoMensal[data.evolucaoMensal.length - 1];
+    const previous = data.evolucaoMensal[data.evolucaoMensal.length - 2];
+    const funcionarioChange = recent.funcionarios - previous.funcionarios;
+    const custoChange = recent.custo - previous.custo;
+    const trend = funcionarioChange > 0 ? 'crescimento' : funcionarioChange < 0 ? 'redução' : 'estabilidade';
+
+    return `${trend === 'crescimento' ? '📈' : trend === 'redução' ? '📉' : '➡️'} ${trend} de ${Math.abs(funcionarioChange)} funcionários e ${custoChange >= 0 ? 'aumento' : 'redução'} de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.abs(custoChange))} no último mês.`;
+  }, [data.evolucaoMensal]);
+
+  // Prepare pie chart data
+  const pieChartData = data.distribuicaoCargos?.map((cargo: any, index: number) => ({
+    name: cargo.cargo,
+    value: cargo.count,
+    percentage: ((cargo.count / data.totalFuncionarios) * 100).toFixed(1)
+  })) || [];
+
+  // Filter evolution data based on date range
+  const filteredEvolutionData = useMemo(() => {
+    if (!data.evolucaoMensal) return [];
+    return data.evolucaoMensal.slice(-Math.ceil(dateRange / 30)); // Approximate months based on days
+  }, [data.evolucaoMensal, dateRange]);
 
   return (
     <Card>
@@ -73,74 +119,232 @@ function AnalyticsCard({ data }: { data: any }) {
 
         <CardDescription>
           {activeChart === 'cargos'
-            ? 'Top 5 cargos mais comuns'
-            : 'Histórico dos últimos 6 meses'
+            ? 'Distribuição visual dos cargos da empresa'
+            : 'Evolução temporal com filtros personalizáveis'
           }
         </CardDescription>
+
+        {activeChart === 'evolucao' && (
+          <div className="flex items-center gap-4 mt-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(Number(e.target.value))}
+                className="text-sm border rounded px-2 py-1 bg-white"
+              >
+                <option value={30}>Últimos 30 dias</option>
+                <option value={60}>Últimos 60 dias</option>
+                <option value={90}>Últimos 90 dias</option>
+                <option value={180}>Últimos 6 meses</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1 bg-gray-100 rounded p-1">
+              <button
+                onClick={() => setChartType('bar')}
+                className={`px-2 py-1 text-xs rounded transition-all ${
+                  chartType === 'bar' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                }`}
+              >
+                <BarChart3 className="h-3 w-3" />
+              </button>
+              <button
+                onClick={() => setChartType('line')}
+                className={`px-2 py-1 text-xs rounded transition-all ${
+                  chartType === 'line' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                }`}
+              >
+                <TrendingUp className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent>
         {activeChart === 'cargos' ? (
-          <div className="space-y-4">
-            {data.distribuicaoCargos && data.distribuicaoCargos.length > 0 ? (
-              data.distribuicaoCargos.map((cargo: any, index: number) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700 flex-1 mr-4">
-                    {cargo.cargo}
-                  </span>
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="flex-1 bg-gray-200 rounded-full h-3 max-w-32">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min((cargo.count / data.totalFuncionarios) * 100, 100)}%`
-                        }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-bold text-gray-900 w-8 text-right">
-                      {cargo.count}
-                    </span>
-                  </div>
+          <div className="space-y-6">
+            {/* Pie Chart */}
+            <div className="h-80">
+              {pieChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      innerRadius={40}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: any, name: any, props: any) => [
+                        `${value} funcionários (${props.payload.percentage}%)`,
+                        props.payload.name
+                      ]}
+                    />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={36}
+                      formatter={(value, entry) => (
+                        <span style={{ color: entry.color, fontSize: '12px' }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <ZoomIn className="h-8 w-8 mr-2" />
+                  Nenhum dado disponível para visualização
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-8">
-                Nenhum dado de cargos disponível
-              </p>
-            )}
+              )}
+            </div>
+
+            {/* Real-time Analysis */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 animate-pulse"></div>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-900 mb-1">Análise em Tempo Real</h4>
+                  <p className="text-sm text-blue-800">
+                    {cargosAnalysis || 'Aguardando dados para análise...'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {data.evolucaoMensal && data.evolucaoMensal.length > 0 ? (
-              data.evolucaoMensal.map((mes: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
-                  <span className="text-sm font-medium text-gray-700 min-w-20">
-                    {mes.mes}
-                  </span>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm text-blue-600 font-medium">
-                        {mes.funcionarios} funcionários
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-bold text-green-600">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(mes.custo)}
-                      </span>
-                    </div>
-                  </div>
+          <div className="space-y-6">
+            {/* Chart */}
+            <div className="h-80">
+              {filteredEvolutionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  {chartType === 'bar' ? (
+                    <BarChart data={filteredEvolutionData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis
+                        dataKey="mes"
+                        stroke="#6b7280"
+                        fontSize={12}
+                      />
+                      <YAxis
+                        yAxisId="funcionarios"
+                        orientation="left"
+                        stroke="#3b82f6"
+                        fontSize={12}
+                      />
+                      <YAxis
+                        yAxisId="custo"
+                        orientation="right"
+                        stroke="#10b981"
+                        fontSize={12}
+                        tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        formatter={(value: any, name: string) => {
+                          if (name === 'funcionarios') return [value, 'Funcionários'];
+                          return [new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), 'Custo'];
+                        }}
+                        labelStyle={{ color: '#374151' }}
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      />
+                      <Legend />
+                      <Bar
+                        yAxisId="funcionarios"
+                        dataKey="funcionarios"
+                        fill="#3b82f6"
+                        name="Funcionários"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        yAxisId="custo"
+                        dataKey="custo"
+                        fill="#10b981"
+                        name="Custo (R$)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  ) : (
+                    <LineChart data={filteredEvolutionData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis
+                        dataKey="mes"
+                        stroke="#6b7280"
+                        fontSize={12}
+                      />
+                      <YAxis
+                        yAxisId="funcionarios"
+                        orientation="left"
+                        stroke="#3b82f6"
+                        fontSize={12}
+                      />
+                      <YAxis
+                        yAxisId="custo"
+                        orientation="right"
+                        stroke="#10b981"
+                        fontSize={12}
+                        tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        formatter={(value: any, name: string) => {
+                          if (name === 'funcionarios') return [value, 'Funcionários'];
+                          return [new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), 'Custo'];
+                        }}
+                        labelStyle={{ color: '#374151' }}
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      />
+                      <Legend />
+                      <Line
+                        yAxisId="funcionarios"
+                        type="monotone"
+                        dataKey="funcionarios"
+                        stroke="#3b82f6"
+                        strokeWidth={3}
+                        name="Funcionários"
+                        dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+                      />
+                      <Line
+                        yAxisId="custo"
+                        type="monotone"
+                        dataKey="custo"
+                        stroke="#10b981"
+                        strokeWidth={3}
+                        name="Custo (R$)"
+                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  )}
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <TrendingUp className="h-8 w-8 mr-2" />
+                  Nenhum dado disponível para o período selecionado
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-8">
-                Nenhum dado de evolução mensal disponível
-              </p>
-            )}
+              )}
+            </div>
+
+            {/* Real-time Analysis */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 animate-pulse"></div>
+                <div>
+                  <h4 className="text-sm font-medium text-green-900 mb-1">Análise em Tempo Real</h4>
+                  <p className="text-sm text-green-800">
+                    {evolucaoAnalysis || 'Aguardando dados para análise...'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
