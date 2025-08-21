@@ -45,15 +45,23 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     params: { p_empresa_id: empresaId }
   });
 
-  console.log('📞 [DASHBOARD] Chamando função com empresaId:', empresaId);
+  console.log('📞 [DASHBOARD] Chamando RPC com:', { p_empresa_id: empresaId });
 
   const { data, error } = await supabase
     .rpc('get_empresa_dashboard_metrics', {
       p_empresa_id: empresaId
     });
 
+  console.log('📊 [DASHBOARD] Resposta RPC completa:', { data, error });
+
   if (error) {
     console.error('❌ [DASHBOARD] Erro na função:', error);
+    console.error('❌ [DASHBOARD] Detalhes do erro:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     throw new Error(`Erro ao carregar métricas: ${error.message}`);
   }
 
@@ -68,8 +76,15 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     throw new Error(`Erro na função: ${data.message || 'Erro desconhecido'}`);
   }
 
-  console.log('✅ [DASHBOARD] Dados recebidos:', data);
-  console.log('🧪 [TESTE DIRETO] Estrutura completa dos dados:', JSON.stringify(data, null, 2));
+  console.log('✅ [DASHBOARD] Dados recebidos (raw):', data);
+  console.log('🧪 [TESTE DIRETO] Tipo dos dados:', typeof data);
+  console.log('🧪 [TESTE DIRETO] Keys dos dados:', Object.keys(data || {}));
+  console.log('🧪 [TESTE DIRETO] Valores específicos:', {
+    totalFuncionarios: data.totalFuncionarios,
+    funcionariosAtivos: data.funcionariosAtivos,
+    custoMensalTotal: data.custoMensalTotal,
+    totalCnpjs: data.totalCnpjs
+  });
 
   // Transform data to match expected structure
   return {
