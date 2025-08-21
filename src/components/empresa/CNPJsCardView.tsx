@@ -13,7 +13,7 @@ interface CNPJsCardViewProps {
   onDelete: (cnpjId: string) => void;
 }
 
-export const CNPJsCardView: React.FC<CNPJsCardViewProps> = ({ cnpjs, onEdit }) => {
+export const CNPJsCardView: React.FC<CNPJsCardViewProps> = ({ cnpjs, onEdit, onDelete }) => {
   const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
