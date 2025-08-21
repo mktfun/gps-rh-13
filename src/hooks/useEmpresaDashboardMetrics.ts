@@ -88,6 +88,17 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
     total_cnpjs: data.total_cnpjs
   });
 
+  console.log('🧪 [TESTE DIRETO] Arrays detalhados:', {
+    custos_por_cnpj: data.custos_por_cnpj,
+    custos_por_cnpj_type: typeof data.custos_por_cnpj,
+    custos_por_cnpj_length: Array.isArray(data.custos_por_cnpj) ? data.custos_por_cnpj.length : 'not array',
+    distribuicao_cargos: data.distribuicao_cargos,
+    distribuicao_cargos_type: typeof data.distribuicao_cargos,
+    evolucao_mensal: data.evolucao_mensal,
+    evolucao_mensal_type: typeof data.evolucao_mensal,
+    plano_principal: data.plano_principal
+  });
+
   // Transform data to match expected structure (snake_case to camelCase)
   return {
     totalCnpjs: Number(data.total_cnpjs) || 0,
