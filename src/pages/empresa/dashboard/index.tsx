@@ -1075,9 +1075,13 @@ export default function DashboardPage() {
                               </Card>
 
                               {/* Action Button */}
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate('/empresa/cnpjs');
+                                }}
                                 className="mt-4 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all"
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" />
