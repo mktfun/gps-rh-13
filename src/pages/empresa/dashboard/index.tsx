@@ -531,6 +531,15 @@ export default function DashboardPage() {
   }, [data?.planoPrincipal]);
 
   console.log('🏢 [DashboardPage] Dados recebidos:', { data, isLoading, error });
+  console.log('🏢 [DashboardPage] Dados detalhados:', {
+    hasData: !!data,
+    totalFuncionarios: data?.totalFuncionarios,
+    funcionariosAtivos: data?.funcionariosAtivos,
+    custoMensalTotal: data?.custoMensalTotal,
+    totalCnpjs: data?.totalCnpjs,
+    custosPorCnpjLength: data?.custosPorCnpj?.length,
+    dataKeys: data ? Object.keys(data) : 'no data'
+  });
 
   const handleRefreshData = async () => {
     setIsRefreshing(true);
