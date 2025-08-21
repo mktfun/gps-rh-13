@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, ArrowRight, ExternalLink, BarChart3, Calendar, Filter, ZoomIn, MapPin, Phone, Mail, Globe, Star, CheckCircle, Clock, Activity, Shield } from 'lucide-react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, BarChart3, Calendar, Filter, CheckCircle, Clock, Activity, Shield, Star, ExternalLink } from 'lucide-react';
 import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar, LineChart, Line } from 'recharts';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
-import { Pie } from 'recharts';
 
 interface KPICardProps {
   title: string;
@@ -24,11 +23,10 @@ interface KPICardProps {
   icon: React.ReactNode;
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
-  bgColor?: string;
-  textColor?: string;
   onClick?: () => void;
   actionText?: string;
   isClickable?: boolean;
+  variant?: 'default' | 'success' | 'warning' | 'destructive';
 }
 
 function AnalyticsCard({ data }: { data: any }) {
@@ -36,8 +34,16 @@ function AnalyticsCard({ data }: { data: any }) {
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [dateRange, setDateRange] = useState(30); // days
 
-  // Pie chart colors
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16'];
+  // Pie chart colors using design system colors
+  const COLORS = [
+    'hsl(var(--primary))', 
+    'hsl(var(--corporate-green))', 
+    'hsl(var(--corporate-orange))', 
+    'hsl(var(--destructive))', 
+    'hsl(var(--corporate-blue))', 
+    'hsl(var(--accent))', 
+    'hsl(var(--secondary))'
+  ];
 
   // Generate real-time analysis for cargos
   const cargosAnalysis = useMemo(() => {
@@ -82,22 +88,22 @@ function AnalyticsCard({ data }: { data: any }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {activeChart === 'cargos' ? (
-              <PieChart className="h-5 w-5 text-blue-600" />
+              <PieChart className="h-5 w-5 text-primary" />
             ) : (
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+              <TrendingUp className="h-5 w-5 text-primary" />
             )}
             <CardTitle>
               {activeChart === 'cargos' ? 'Distribuição por Cargos' : 'Evolução Mensal'}
             </CardTitle>
           </div>
 
-          <div className="inline-flex rounded-lg bg-gray-100 p-1">
+          <div className="inline-flex rounded-lg bg-muted p-1">
             <button
               onClick={() => setActiveChart('cargos')}
               className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 activeChart === 'cargos'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <BarChart3 className="mr-1.5 h-3 w-3" />
@@ -107,8 +113,8 @@ function AnalyticsCard({ data }: { data: any }) {
               onClick={() => setActiveChart('evolucao')}
               className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 activeChart === 'evolucao'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Calendar className="mr-1.5 h-3 w-3" />
@@ -127,11 +133,11 @@ function AnalyticsCard({ data }: { data: any }) {
         {activeChart === 'evolucao' && (
           <div className="flex items-center gap-4 mt-4">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-500" />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(Number(e.target.value))}
-                className="text-sm border rounded px-2 py-1 bg-white"
+                className="text-sm border rounded px-2 py-1 bg-background text-foreground"
               >
                 <option value={30}>Últimos 30 dias</option>
                 <option value={60}>Últimos 60 dias</option>
@@ -140,11 +146,11 @@ function AnalyticsCard({ data }: { data: any }) {
               </select>
             </div>
 
-            <div className="flex items-center gap-1 bg-gray-100 rounded p-1">
+            <div className="flex items-center gap-1 bg-muted rounded p-1">
               <button
                 onClick={() => setChartType('bar')}
                 className={`px-2 py-1 text-xs rounded transition-all ${
-                  chartType === 'bar' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                  chartType === 'bar' ? 'bg-background shadow-sm' : 'hover:bg-muted-foreground/10'
                 }`}
               >
                 <BarChart3 className="h-3 w-3" />
@@ -152,7 +158,7 @@ function AnalyticsCard({ data }: { data: any }) {
               <button
                 onClick={() => setChartType('line')}
                 className={`px-2 py-1 text-xs rounded transition-all ${
-                  chartType === 'line' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                  chartType === 'line' ? 'bg-background shadow-sm' : 'hover:bg-muted-foreground/10'
                 }`}
               >
                 <TrendingUp className="h-3 w-3" />
@@ -201,20 +207,20 @@ function AnalyticsCard({ data }: { data: any }) {
                   </RechartsPieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500">
-                  <ZoomIn className="h-8 w-8 mr-2" />
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <PieChart className="h-8 w-8 mr-2" />
                   Nenhum dado disponível para visualização
                 </div>
               )}
             </div>
 
             {/* Real-time Analysis */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
               <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary rounded-full mt-2 animate-pulse"></div>
                 <div>
-                  <h4 className="text-sm font-medium text-blue-900 mb-1">Análise em Tempo Real</h4>
-                  <p className="text-sm text-blue-800">
+                  <h4 className="text-sm font-medium text-primary mb-1">Análise em Tempo Real</h4>
+                  <p className="text-sm text-primary/80">
                     {cargosAnalysis || 'Aguardando dados para análise...'}
                   </p>
                 </div>
@@ -229,22 +235,22 @@ function AnalyticsCard({ data }: { data: any }) {
                 <ResponsiveContainer width="100%" height="100%">
                   {chartType === 'bar' ? (
                     <BarChart data={filteredEvolutionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="mes"
-                        stroke="#6b7280"
+                        stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                       />
                       <YAxis
                         yAxisId="funcionarios"
                         orientation="left"
-                        stroke="#3b82f6"
+                        stroke="hsl(var(--primary))"
                         fontSize={12}
                       />
                       <YAxis
                         yAxisId="custo"
                         orientation="right"
-                        stroke="#10b981"
+                        stroke="hsl(var(--corporate-green))"
                         fontSize={12}
                         tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
                       />
@@ -253,43 +259,48 @@ function AnalyticsCard({ data }: { data: any }) {
                           if (name === 'funcionarios') return [value, 'Funcionários'];
                           return [new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), 'Custo'];
                         }}
-                        labelStyle={{ color: '#374151' }}
-                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                        labelStyle={{ color: 'hsl(var(--foreground))' }}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          border: '1px solid hsl(var(--border))', 
+                          borderRadius: '8px',
+                          color: 'hsl(var(--foreground))'
+                        }}
                       />
                       <Legend />
                       <Bar
                         yAxisId="funcionarios"
                         dataKey="funcionarios"
-                        fill="#3b82f6"
+                        fill="hsl(var(--primary))"
                         name="Funcionários"
                         radius={[4, 4, 0, 0]}
                       />
                       <Bar
                         yAxisId="custo"
                         dataKey="custo"
-                        fill="#10b981"
+                        fill="hsl(var(--corporate-green))"
                         name="Custo (R$)"
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
                   ) : (
                     <LineChart data={filteredEvolutionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="mes"
-                        stroke="#6b7280"
+                        stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                       />
                       <YAxis
                         yAxisId="funcionarios"
                         orientation="left"
-                        stroke="#3b82f6"
+                        stroke="hsl(var(--primary))"
                         fontSize={12}
                       />
                       <YAxis
                         yAxisId="custo"
                         orientation="right"
-                        stroke="#10b981"
+                        stroke="hsl(var(--corporate-green))"
                         fontSize={12}
                         tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
                       />
@@ -298,35 +309,40 @@ function AnalyticsCard({ data }: { data: any }) {
                           if (name === 'funcionarios') return [value, 'Funcionários'];
                           return [new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value), 'Custo'];
                         }}
-                        labelStyle={{ color: '#374151' }}
-                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                        labelStyle={{ color: 'hsl(var(--foreground))' }}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          border: '1px solid hsl(var(--border))', 
+                          borderRadius: '8px',
+                          color: 'hsl(var(--foreground))'
+                        }}
                       />
                       <Legend />
                       <Line
                         yAxisId="funcionarios"
                         type="monotone"
                         dataKey="funcionarios"
-                        stroke="#3b82f6"
+                        stroke="hsl(var(--primary))"
                         strokeWidth={3}
                         name="Funcionários"
-                        dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+                        dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6, stroke: 'hsl(var(--primary))', strokeWidth: 2 }}
                       />
                       <Line
                         yAxisId="custo"
                         type="monotone"
                         dataKey="custo"
-                        stroke="#10b981"
+                        stroke="hsl(var(--corporate-green))"
                         strokeWidth={3}
                         name="Custo (R$)"
-                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
+                        dot={{ fill: 'hsl(var(--corporate-green))', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6, stroke: 'hsl(var(--corporate-green))', strokeWidth: 2 }}
                       />
                     </LineChart>
                   )}
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="flex items-center justify-center h-full text-muted-foreground">
                   <TrendingUp className="h-8 w-8 mr-2" />
                   Nenhum dado disponível para o período selecionado
                 </div>
@@ -334,12 +350,12 @@ function AnalyticsCard({ data }: { data: any }) {
             </div>
 
             {/* Real-time Analysis */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-corporate-green/10 border border-corporate-green/20 rounded-lg p-4">
               <div className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-corporate-green rounded-full mt-2 animate-pulse"></div>
                 <div>
-                  <h4 className="text-sm font-medium text-green-900 mb-1">Análise em Tempo Real</h4>
-                  <p className="text-sm text-green-800">
+                  <h4 className="text-sm font-medium text-corporate-green mb-1">Análise em Tempo Real</h4>
+                  <p className="text-sm text-corporate-green/80">
                     {evolucaoAnalysis || 'Aguardando dados para análise...'}
                   </p>
                 </div>
@@ -352,13 +368,24 @@ function AnalyticsCard({ data }: { data: any }) {
   );
 }
 
-function KPICard({ title, value, description, icon, trend, trendValue, bgColor = 'bg-white', textColor = 'text-gray-900', onClick, actionText, isClickable = false }: KPICardProps) {
+function KPICard({ 
+  title, 
+  value, 
+  description, 
+  icon, 
+  trend, 
+  trendValue, 
+  onClick, 
+  actionText, 
+  isClickable = false, 
+  variant = 'default' 
+}: KPICardProps) {
   const getTrendIcon = () => {
     switch (trend) {
       case 'up':
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
+        return <TrendingUp className="h-4 w-4 text-corporate-green" />;
       case 'down':
-        return <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />;
+        return <TrendingUp className="h-4 w-4 text-destructive rotate-180" />;
       default:
         return null;
     }
@@ -366,33 +393,49 @@ function KPICard({ title, value, description, icon, trend, trendValue, bgColor =
 
   const getTrendColor = () => {
     switch (trend) {
-      case 'up': return 'text-green-600';
-      case 'down': return 'text-red-600';
-      default: return 'text-gray-500';
+      case 'up': return 'text-corporate-green';
+      case 'down': return 'text-destructive';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'success':
+        return 'border-corporate-green/20 bg-corporate-green/5';
+      case 'warning':
+        return 'border-corporate-orange/20 bg-corporate-orange/5';
+      case 'destructive':
+        return 'border-destructive/20 bg-destructive/5';
+      default:
+        return 'border-border bg-card';
     }
   };
 
   return (
-    <Card className={`${bgColor} border transition-all duration-200 ${
-      isClickable
-        ? 'hover:shadow-lg hover:scale-[1.02] cursor-pointer hover:border-blue-300 group'
-        : 'hover:shadow-md'
-    }`} onClick={onClick}>
+    <Card 
+      className={`${getVariantStyles()} transition-all duration-200 ${
+        isClickable
+          ? 'hover:shadow-lg hover:scale-[1.02] cursor-pointer hover:border-primary/50 group'
+          : 'hover:shadow-md'
+      }`} 
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className={`text-sm font-medium ${textColor}`}>
+        <CardTitle className="text-sm font-medium text-foreground">
           {title}
         </CardTitle>
-        <div className={`${isClickable ? 'text-blue-600 group-hover:text-blue-700' : 'text-blue-600'} relative`}>
+        <div className={`${isClickable ? 'text-primary group-hover:text-primary/80' : 'text-primary'} relative`}>
           {icon}
           {isClickable && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-100 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <ArrowRight className="h-2 w-2 text-blue-600" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary/10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="h-2 w-2 text-primary" />
             </div>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className={`text-3xl font-bold ${textColor} mb-1`}>
+        <div className="text-3xl font-bold text-foreground mb-1">
           {typeof value === 'number' && title.includes('Custo')
             ? new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
@@ -401,7 +444,7 @@ function KPICard({ title, value, description, icon, trend, trendValue, bgColor =
             : value
           }
         </div>
-        <p className="text-xs text-gray-600 mb-2">
+        <p className="text-xs text-muted-foreground mb-2">
           {description}
         </p>
         {trend && trendValue && (
@@ -411,7 +454,7 @@ function KPICard({ title, value, description, icon, trend, trendValue, bgColor =
           </div>
         )}
         {isClickable && actionText && (
-          <div className="flex items-center gap-1 text-xs text-blue-600 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <ExternalLink className="h-3 w-3" />
             <span>{actionText}</span>
           </div>
@@ -507,10 +550,10 @@ export default function DashboardPage() {
       <div className="flex flex-1 flex-col gap-6 md:gap-8">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-6">
-            <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+            <div className="h-12 w-1 bg-primary rounded-full"></div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard da Empresa</h1>
-              <p className="text-gray-600">Carregando dados...</p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard da Empresa</h1>
+              <p className="text-muted-foreground">Carregando dados...</p>
             </div>
           </div>
           <div className="flex items-center justify-center h-64">
@@ -553,12 +596,12 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-1 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+            <div className="h-12 w-1 bg-primary rounded-full"></div>
             <div>
-              <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">
                 Dashboard da Empresa
               </h1>
-              <p className="text-lg text-gray-600 mt-2">
+              <p className="text-lg text-muted-foreground mt-2">
                 Visão geral dos indicadores principais
               </p>
             </div>
@@ -590,8 +633,7 @@ export default function DashboardPage() {
             isClickable={true}
             actionText="Ver funcionários"
             onClick={() => navigate('/empresa/funcionarios')}
-            bgColor="bg-gradient-to-br from-blue-50 to-indigo-50"
-            textColor="text-blue-900"
+            variant="default"
           />
 
           <KPICard
@@ -599,8 +641,7 @@ export default function DashboardPage() {
             value={data.totalCnpjs || 0}
             description="Empresas vinculadas"
             icon={<Building2 className="h-5 w-5" />}
-            bgColor="bg-gradient-to-br from-gray-50 to-slate-50"
-            textColor="text-gray-700"
+            variant="default"
           />
 
           <KPICard
@@ -611,8 +652,7 @@ export default function DashboardPage() {
             isClickable={true}
             actionText="Ver relatório de custos"
             onClick={() => navigate('/empresa/relatorios/custos-detalhado')}
-            bgColor="bg-gradient-to-br from-green-50 to-emerald-50"
-            textColor="text-green-900"
+            variant="success"
           />
 
           <KPICard
@@ -623,31 +663,30 @@ export default function DashboardPage() {
             isClickable={true}
             actionText="Ver relatório de pendências"
             onClick={() => navigate('/empresa/relatorios/pendencias')}
-            bgColor={data.funcionariosPendentes > 0 ? "bg-gradient-to-br from-yellow-50 to-orange-50" : "bg-gradient-to-br from-gray-50 to-slate-50"}
-            textColor={data.funcionariosPendentes > 0 ? "text-yellow-900" : "text-gray-700"}
+            variant={data.funcionariosPendentes > 0 ? "warning" : "success"}
           />
         </div>
 
         {/* Seções Detalhadas */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-gray-100 p-1 text-gray-500 shadow-sm">
+          <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground">
             <TabsTrigger
               value="overview"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-950 data-[state=active]:shadow-sm"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <Users className="mr-2 h-4 w-4" />
               Visão Geral
             </TabsTrigger>
             <TabsTrigger
               value="cnpjs"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-950 data-[state=active]:shadow-sm"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <Building2 className="mr-2 h-4 w-4" />
               CNPJs
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-950 data-[state=active]:shadow-sm"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <BarChart3 className="mr-2 h-4 w-4" />
               Análises
@@ -656,24 +695,24 @@ export default function DashboardPage() {
 
           <TabsContent value="overview" className="space-y-6">
             {/* Status dos Funcionários */}
-            <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 pb-4">
+            <Card>
+              <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-xl">
-                      <Users className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                      <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-semibold text-gray-900">
+                      <CardTitle className="text-lg font-semibold text-foreground">
                         Status dos Funcionários
                       </CardTitle>
-                      <CardDescription className="text-sm text-gray-600">
+                      <CardDescription className="text-sm text-muted-foreground">
                         Distribuição atual por status
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Activity className="h-3 w-3 animate-pulse text-green-500" />
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Activity className="h-3 w-3 animate-pulse text-corporate-green" />
                     Atualizado há {Math.floor((Date.now() - lastUpdate.getTime()) / 60000)}min
                   </div>
                 </div>
@@ -681,20 +720,19 @@ export default function DashboardPage() {
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Funcionários Ativos */}
-                  <div className="group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl"></div>
-                    <div className="relative p-5 border border-green-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                  <Card className="border-corporate-green/20 bg-corporate-green/5">
+                    <CardContent className="p-5">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <div className="p-2 bg-green-100 rounded-lg">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          <div className="p-2 bg-corporate-green/20 rounded-lg">
+                            <CheckCircle className="h-4 w-4 text-corporate-green" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-green-900">Funcionários Ativos</p>
-                            <p className="text-xs text-green-700">Status confirmado</p>
+                            <p className="text-sm font-medium text-corporate-green">Funcionários Ativos</p>
+                            <p className="text-xs text-corporate-green/80">Status confirmado</p>
                           </div>
                         </div>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                        <Badge className="bg-corporate-green/20 text-corporate-green border-corporate-green/20">
                           {data.totalFuncionarios > 0
                             ? `${Math.round((data.funcionariosAtivos / data.totalFuncionarios) * 100)}%`
                             : '0%'
@@ -702,12 +740,12 @@ export default function DashboardPage() {
                         </Badge>
                       </div>
                       <div className="flex items-end justify-between">
-                        <p className="text-3xl font-bold text-green-700">{data.funcionariosAtivos || 0}</p>
+                        <p className="text-3xl font-bold text-corporate-green">{data.funcionariosAtivos || 0}</p>
                         <div className="text-right">
-                          <p className="text-xs text-green-600 font-medium">De {data.totalFuncionarios}</p>
-                          <div className="w-16 h-1.5 bg-green-100 rounded-full overflow-hidden mt-1">
+                          <p className="text-xs text-corporate-green/80 font-medium">De {data.totalFuncionarios}</p>
+                          <div className="w-16 h-1.5 bg-corporate-green/20 rounded-full overflow-hidden mt-1">
                             <div
-                              className="h-full bg-green-500 rounded-full transition-all duration-500"
+                              className="h-full bg-corporate-green rounded-full transition-all duration-500"
                               style={{
                                 width: data.totalFuncionarios > 0
                                   ? `${(data.funcionariosAtivos / data.totalFuncionarios) * 100}%`
@@ -717,24 +755,23 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
 
                   {/* Funcionários Pendentes */}
-                  <div className="group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl"></div>
-                    <div className="relative p-5 border border-yellow-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                  <Card className={`${data.funcionariosPendentes > 0 ? 'border-corporate-orange/20 bg-corporate-orange/5' : 'border-corporate-green/20 bg-corporate-green/5'}`}>
+                    <CardContent className="p-5">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <div className="p-2 bg-yellow-100 rounded-lg">
-                            <Clock className="h-4 w-4 text-yellow-600" />
+                          <div className={`p-2 rounded-lg ${data.funcionariosPendentes > 0 ? 'bg-corporate-orange/20' : 'bg-corporate-green/20'}`}>
+                            <Clock className={`h-4 w-4 ${data.funcionariosPendentes > 0 ? 'text-corporate-orange' : 'text-corporate-green'}`} />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-yellow-900">Funcionários Pendentes</p>
-                            <p className="text-xs text-yellow-700">Aguardando processamento</p>
+                            <p className={`text-sm font-medium ${data.funcionariosPendentes > 0 ? 'text-corporate-orange' : 'text-corporate-green'}`}>Funcionários Pendentes</p>
+                            <p className={`text-xs ${data.funcionariosPendentes > 0 ? 'text-corporate-orange/80' : 'text-corporate-green/80'}`}>Aguardando processamento</p>
                           </div>
                         </div>
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                        <Badge className={`${data.funcionariosPendentes > 0 ? 'bg-corporate-orange/20 text-corporate-orange border-corporate-orange/20' : 'bg-corporate-green/20 text-corporate-green border-corporate-green/20'}`}>
                           {data.totalFuncionarios > 0
                             ? `${Math.round((data.funcionariosPendentes / data.totalFuncionarios) * 100)}%`
                             : '0%'
@@ -742,12 +779,12 @@ export default function DashboardPage() {
                         </Badge>
                       </div>
                       <div className="flex items-end justify-between">
-                        <p className="text-3xl font-bold text-yellow-700">{data.funcionariosPendentes || 0}</p>
+                        <p className={`text-3xl font-bold ${data.funcionariosPendentes > 0 ? 'text-corporate-orange' : 'text-corporate-green'}`}>{data.funcionariosPendentes || 0}</p>
                         <div className="text-right">
-                          <p className="text-xs text-yellow-600 font-medium">De {data.totalFuncionarios}</p>
-                          <div className="w-16 h-1.5 bg-yellow-100 rounded-full overflow-hidden mt-1">
+                          <p className={`text-xs font-medium ${data.funcionariosPendentes > 0 ? 'text-corporate-orange/80' : 'text-corporate-green/80'}`}>De {data.totalFuncionarios}</p>
+                          <div className={`w-16 h-1.5 rounded-full overflow-hidden mt-1 ${data.funcionariosPendentes > 0 ? 'bg-corporate-orange/20' : 'bg-corporate-green/20'}`}>
                             <div
-                              className="h-full bg-yellow-500 rounded-full transition-all duration-500"
+                              className={`h-full rounded-full transition-all duration-500 ${data.funcionariosPendentes > 0 ? 'bg-corporate-orange' : 'bg-corporate-green'}`}
                               style={{
                                 width: data.totalFuncionarios > 0
                                   ? `${(data.funcionariosPendentes / data.totalFuncionarios) * 100}%`
@@ -757,55 +794,55 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
                 {/* Real-time Insight */}
-                <div className="mt-6 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                <div className="mt-6 p-3 bg-primary/10 border border-primary/20 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-blue-900">Análise em Tempo Real</span>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-primary">Análise em Tempo Real</span>
                   </div>
-                  <p className="text-sm text-blue-800 mt-1">{statusInsights}</p>
+                  <p className="text-sm text-primary/80 mt-1">{statusInsights}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Plano Principal */}
             {data.planoPrincipal && (
-              <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
-                <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 pb-4">
+              <Card>
+                <CardHeader className="border-b">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-100 rounded-xl">
-                        <Shield className="h-5 w-5 text-purple-600" />
+                      <div className="p-2 bg-primary/10 rounded-xl">
+                        <Shield className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg font-semibold text-gray-900">
+                        <CardTitle className="text-lg font-semibold text-foreground">
                           Plano Principal
                         </CardTitle>
-                        <CardDescription className="text-sm text-gray-600">
+                        <CardDescription className="text-sm text-muted-foreground">
                           Plano com maior valor da carteira
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                    <Badge className="bg-corporate-green/20 text-corporate-green border-corporate-green/20">
                       Ativo
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
                   {/* Header com Seguradora */}
-                  <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+                  <div className="mb-6 p-4 bg-muted rounded-xl border">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Seguradora</p>
-                        <p className="text-xl font-bold text-gray-900">{data.planoPrincipal.seguradora}</p>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Seguradora</p>
+                        <p className="text-xl font-bold text-foreground">{data.planoPrincipal.seguradora}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Empresa</p>
-                        <p className="text-base font-semibold text-gray-800 max-w-48 truncate">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Empresa</p>
+                        <p className="text-base font-semibold text-foreground max-w-48 truncate">
                           {data.planoPrincipal.razao_social}
                         </p>
                       </div>
@@ -815,69 +852,67 @@ export default function DashboardPage() {
                   {/* Métricas Principais */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     {/* Valor Mensal */}
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl"></div>
-                      <div className="relative p-5 border border-green-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                    <Card className="border-corporate-green/20 bg-corporate-green/5">
+                      <CardContent className="p-5">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="p-2 bg-green-100 rounded-lg">
-                            <DollarSign className="h-4 w-4 text-green-600" />
+                          <div className="p-2 bg-corporate-green/20 rounded-lg">
+                            <DollarSign className="h-4 w-4 text-corporate-green" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-green-900">Valor Mensal</p>
-                            <p className="text-xs text-green-700">Custo do plano</p>
+                            <p className="text-sm font-medium text-corporate-green">Valor Mensal</p>
+                            <p className="text-xs text-corporate-green/80">Custo do plano</p>
                           </div>
                         </div>
-                        <p className="text-2xl font-bold text-green-700">
+                        <p className="text-2xl font-bold text-corporate-green">
                           {new Intl.NumberFormat('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           }).format(data.planoPrincipal.valor_mensal)}
                         </p>
-                        <p className="text-xs text-green-600 mt-2">
+                        <p className="text-xs text-corporate-green/80 mt-2">
                           {new Intl.NumberFormat('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           }).format(data.planoPrincipal.valor_mensal * 12)} por ano
                         </p>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Cobertura Morte */}
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl"></div>
-                      <div className="relative p-5 border border-blue-200 rounded-xl bg-white/70 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-5">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Shield className="h-4 w-4 text-blue-600" />
+                          <div className="p-2 bg-primary/20 rounded-lg">
+                            <Shield className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-blue-900">Cobertura Morte</p>
-                            <p className="text-xs text-blue-700">Valor protegido</p>
+                            <p className="text-sm font-medium text-primary">Cobertura Morte</p>
+                            <p className="text-xs text-primary/80">Valor protegido</p>
                           </div>
                         </div>
-                        <p className="text-2xl font-bold text-blue-700">
+                        <p className="text-2xl font-bold text-primary">
                           {new Intl.NumberFormat('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           }).format(data.planoPrincipal.cobertura_morte || 0)}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <div className="flex-1 h-1.5 bg-blue-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full w-full"></div>
+                          <div className="flex-1 h-1.5 bg-primary/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-primary rounded-full w-full"></div>
                           </div>
-                          <span className="text-xs text-blue-600 font-medium">100%</span>
+                          <span className="text-xs text-primary/80 font-medium">100%</span>
                         </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   {/* Real-time Insight */}
-                  <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+                  <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-purple-900">Análise em Tempo Real</span>
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-primary">Análise em Tempo Real</span>
                     </div>
-                    <p className="text-sm text-purple-800 mt-1">{planoInsights}</p>
+                    <p className="text-sm text-primary/80 mt-1">{planoInsights}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -886,30 +921,30 @@ export default function DashboardPage() {
 
           <TabsContent value="cnpjs" className="space-y-6">
             {/* Enhanced CNPJ List */}
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
+            <Card>
+              <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Building2 className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Building2 className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl font-semibold text-gray-900">
+                      <CardTitle className="text-xl font-semibold text-foreground">
                         Empresas Vinculadas
                       </CardTitle>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-muted-foreground">
                         Detalhamento completo por CNPJ
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Badge variant="secondary" className="bg-muted text-muted-foreground">
                     {data.custosPorCnpj?.length || 0} empresas
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 {data.custosPorCnpj && data.custosPorCnpj.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-border">
                     {data.custosPorCnpj.map((cnpj, index) => {
                       const funcionariosPorcentagem = data.totalFuncionarios > 0 ?
                         ((cnpj.funcionarios_count / data.totalFuncionarios) * 100).toFixed(1) : '0';
@@ -917,57 +952,64 @@ export default function DashboardPage() {
                         ((cnpj.valor_mensal / data.custoMensalTotal) * 100).toFixed(1) : '0';
 
                       return (
-                        <div key={index} className="group p-6 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 cursor-pointer border-l-4 border-transparent hover:border-blue-400">
+                        <div key={index} className="group p-6 hover:bg-muted/50 transition-all duration-300 cursor-pointer border-l-4 border-transparent hover:border-primary">
                           <div className="flex items-start justify-between">
                             {/* Company Info */}
                             <div className="flex-1 mr-6">
                               <div className="flex items-start gap-4">
-                                <div className="p-3 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
-                                  <Building2 className="h-6 w-6 text-blue-600" />
+                                <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+                                  <Building2 className="h-6 w-6 text-primary" />
                                 </div>
 
                                 <div className="flex-1">
-                                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900 transition-colors">
+                                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
                                     {cnpj.razao_social}
                                   </h3>
 
                                   <div className="flex items-center gap-2 mt-2 mb-3">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                      <MapPin className="h-3 w-3" />
+                                    <Badge variant="outline" className="text-xs">
                                       CNPJ: {cnpj.cnpj}
-                                    </span>
+                                    </Badge>
                                   </div>
 
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     {/* Funcionários */}
-                                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 group-hover:border-blue-200 transition-colors">
-                                      <div className="p-2 bg-blue-50 rounded-lg">
-                                        <Users className="h-4 w-4 text-blue-600" />
-                                      </div>
-                                      <div>
-                                        <p className="text-sm font-medium text-gray-600">Funcionários</p>
-                                        <p className="text-xl font-bold text-blue-600">
-                                          {cnpj.funcionarios_count}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                          {funcionariosPorcentagem}% do total
-                                        </p>
-                                      </div>
-                                    </div>
+                                    <Card className="border-primary/20 bg-primary/5">
+                                      <CardContent className="p-3">
+                                        <div className="flex items-center gap-3">
+                                          <div className="p-2 bg-primary/20 rounded-lg">
+                                            <Users className="h-4 w-4 text-primary" />
+                                          </div>
+                                          <div>
+                                            <p className="text-sm font-medium text-muted-foreground">Funcionários</p>
+                                            <p className="text-xl font-bold text-primary">
+                                              {cnpj.funcionarios_count}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                              {funcionariosPorcentagem}% do total
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
 
                                     {/* Performance Badge */}
-                                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 group-hover:border-green-200 transition-colors">
-                                      <div className="p-2 bg-green-50 rounded-lg">
-                                        <Star className="h-4 w-4 text-green-600" />
-                                      </div>
-                                      <div>
-                                        <p className="text-sm font-medium text-gray-600">Participação</p>
-                                        <p className="text-lg font-bold text-green-600">
-                                          {custoRelativo}%
-                                        </p>
-                                        <p className="text-xs text-gray-500">do custo total</p>
-                                      </div>
-                                    </div>
+                                    <Card className="border-corporate-green/20 bg-corporate-green/5">
+                                      <CardContent className="p-3">
+                                        <div className="flex items-center gap-3">
+                                          <div className="p-2 bg-corporate-green/20 rounded-lg">
+                                            <Star className="h-4 w-4 text-corporate-green" />
+                                          </div>
+                                          <div>
+                                            <p className="text-sm font-medium text-muted-foreground">Participação</p>
+                                            <p className="text-lg font-bold text-corporate-green">
+                                              {custoRelativo}%
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">do custo total</p>
+                                          </div>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
                                   </div>
                                 </div>
                               </div>
@@ -975,27 +1017,33 @@ export default function DashboardPage() {
 
                             {/* Cost Info */}
                             <div className="text-right">
-                              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
-                                <p className="text-sm font-medium text-green-700 mb-1">Valor Mensal</p>
-                                <p className="text-2xl font-bold text-green-800">
-                                  {new Intl.NumberFormat('pt-BR', {
-                                    style: 'currency',
-                                    currency: 'BRL',
-                                  }).format(cnpj.valor_mensal)}
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                  {new Intl.NumberFormat('pt-BR', {
-                                    style: 'currency',
-                                    currency: 'BRL',
-                                  }).format(cnpj.valor_mensal * 12)} / ano
-                                </p>
-                              </div>
+                              <Card className="border-corporate-green/20 bg-corporate-green/5">
+                                <CardContent className="p-4">
+                                  <p className="text-sm font-medium text-corporate-green mb-1">Valor Mensal</p>
+                                  <p className="text-2xl font-bold text-corporate-green">
+                                    {new Intl.NumberFormat('pt-BR', {
+                                      style: 'currency',
+                                      currency: 'BRL',
+                                    }).format(cnpj.valor_mensal)}
+                                  </p>
+                                  <p className="text-xs text-corporate-green/80 mt-1">
+                                    {new Intl.NumberFormat('pt-BR', {
+                                      style: 'currency',
+                                      currency: 'BRL',
+                                    }).format(cnpj.valor_mensal * 12)} / ano
+                                  </p>
+                                </CardContent>
+                              </Card>
 
                               {/* Action Button */}
-                              <button className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
-                                <ExternalLink className="h-4 w-4" />
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="mt-4 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all"
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
                                 Ver Detalhes
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -1004,11 +1052,11 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-16">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Building2 className="h-8 w-8 text-gray-400" />
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum CNPJ encontrado</h3>
-                    <p className="text-gray-500 max-w-sm mx-auto">
+                    <h3 className="text-lg font-medium text-foreground mb-2">Nenhum CNPJ encontrado</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
                       Não há empresas cadastradas com dados disponíveis no momento.
                     </p>
                   </div>
