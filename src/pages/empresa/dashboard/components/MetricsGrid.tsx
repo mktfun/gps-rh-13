@@ -129,9 +129,7 @@ export function MetricsGrid({ data, loading, empresaId }: MetricsGridProps) {
   };
 
   const handleCnpjsClick = () => {
-    // Navigate to CNPJs section or toggle to CNPJs tab
-    const event = new CustomEvent('navigate-to-cnpjs');
-    window.dispatchEvent(event);
+    window.location.href = '/empresa/cnpjs';
   };
 
   const handleCustosClick = () => {
