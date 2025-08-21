@@ -688,48 +688,6 @@ export default function DashboardPage() {
           </TabsContent>
 
           <TabsContent value="cnpjs" className="space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                <CardContent className="p-6 text-center">
-                  <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-4">
-                    <Building2 className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="text-3xl font-bold text-blue-900 mb-2">
-                    {data.totalCnpjs || 0}
-                  </div>
-                  <div className="text-sm text-blue-700">CNPJs Cadastrados</div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-                <CardContent className="p-6 text-center">
-                  <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-4">
-                    <Users className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="text-3xl font-bold text-green-900 mb-2">
-                    {data.totalFuncionarios || 0}
-                  </div>
-                  <div className="text-sm text-green-700">Total de Funcionários</div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
-                <CardContent className="p-6 text-center">
-                  <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-4">
-                    <DollarSign className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="text-2xl font-bold text-purple-900 mb-2">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    }).format(data.custoMensalTotal || 0)}
-                  </div>
-                  <div className="text-sm text-purple-700">Custo Total Mensal</div>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Enhanced CNPJ List */}
             <Card className="overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
