@@ -1,65 +1,96 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DashboardMetrics {
-  total_funcionarios: number;
-  funcionarios_ativos: number;
-  funcionarios_pendentes: number;
-  total_planos: number;
-  custo_mensal_total: number;
+  totalCnpjs: number;
+  totalFuncionarios: number;
+  funcionariosAtivos: number;
+  funcionariosPendentes: number;
+  custoMensalTotal: number;
+  custosPorCnpj: {
+    cnpj: string;
+    razao_social: string;
+    valor_mensal: number;
+    funcionarios_count: number;
+  }[];
+  evolucaoMensal: {
+    mes: string;
+    funcionarios: number;
+    custo: number;
+  }[];
+  distribuicaoCargos: {
+    cargo: string;
+    count: number;
+  }[];
+  planoPrincipal?: {
+    seguradora: string;
+    valor_mensal: number;
+    cobertura_morte: number;
+    cobertura_morte_acidental: number;
+    cobertura_invalidez_acidente: number;
+    razao_social: string;
+    tipo_seguro: string;
+  };
 }
 
-export const useEmpresaDashboardMetrics = (empresaId: string) => {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<DashboardMetrics> => {
+  if (!empresaId) {
+    throw new Error('ID da empresa é obrigatório');
+  }
 
-  useEffect(() => {
-    if (!empresaId) return;
+  console.log('🔍 [fetchEmpresaDashboardMetrics] Buscando dados para empresa:', empresaId);
 
-    const fetchMetrics = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const { data, error } = await supabase
+    .rpc('get_empresa_dashboard_metrics', {
+      p_empresa_id: empresaId
+    });
 
-        const { data, error: rpcError } = await supabase
-          .rpc('get_empresa_dashboard_metrics', { 
-            p_empresa_id: empresaId 
-          });
+  if (error) {
+    console.error('❌ [fetchEmpresaDashboardMetrics] RPC Error:', error);
+    throw new Error(`Erro ao carregar métricas: ${error.message}`);
+  }
 
-        if (rpcError) {
-          console.error('RPC Error:', rpcError);
-          setError(`Erro ao carregar métricas: ${rpcError.message}`);
-          return;
-        }
+  if (!data) {
+    console.warn('⚠️ [fetchEmpresaDashboardMetrics] Nenhum dado retornado');
+    throw new Error('Nenhum dado encontrado para esta empresa');
+  }
 
-        // Check if the response contains an error
-        if (data?.error) {
-          console.error('Function Error:', data);
-          setError(`Erro na função: ${data.message} (${data.code})`);
-          return;
-        }
+  // Check if the response contains an error
+  if (data?.error) {
+    console.error('❌ [fetchEmpresaDashboardMetrics] Function Error:', data);
+    throw new Error(`Erro na função: ${data.message || 'Erro desconhecido'}`);
+  }
 
-        // Ensure data has the correct structure
-        const metricsData: DashboardMetrics = {
-          total_funcionarios: Number(data.totalFuncionarios) || 0,
-          funcionarios_ativos: Number(data.funcionariosAtivos) || 0,
-          funcionarios_pendentes: Number(data.funcionariosPendentes) || 0,
-          total_planos: Number(data.totalCnpjs) || 0,
-          custo_mensal_total: Number(data.custoMensalTotal) || 0,
-        };
+  console.log('✅ [fetchEmpresaDashboardMetrics] Dados recebidos:', data);
 
-        setMetrics(metricsData);
-      } catch (err) {
-        console.error('Unexpected error:', err);
-        setError('Erro inesperado ao carregar métricas');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Transform data to match expected structure
+  return {
+    totalCnpjs: Number(data.totalCnpjs) || 0,
+    totalFuncionarios: Number(data.totalFuncionarios) || 0,
+    funcionariosAtivos: Number(data.funcionariosAtivos) || 0,
+    funcionariosPendentes: Number(data.funcionariosPendentes) || 0,
+    custoMensalTotal: Number(data.custoMensalTotal) || 0,
+    custosPorCnpj: Array.isArray(data.custosPorCnpj) ? data.custosPorCnpj : [],
+    evolucaoMensal: Array.isArray(data.evolucaoMensal) ? data.evolucaoMensal : [],
+    distribuicaoCargos: Array.isArray(data.distribuicaoCargos) ? data.distribuicaoCargos : [],
+    planoPrincipal: data.planoPrincipal || undefined,
+  };
+};
 
-    fetchMetrics();
-  }, [empresaId]);
+export const useEmpresaDashboardMetrics = () => {
+  const { empresaId } = useAuth();
 
-  return { metrics, loading, error };
+  return useQuery({
+    queryKey: ['empresa-dashboard-metrics', empresaId],
+    queryFn: () => fetchEmpresaDashboardMetrics(empresaId || ''),
+    enabled: !!empresaId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: (failureCount, error) => {
+      console.error(`❌ [useEmpresaDashboardMetrics] Tentativa ${failureCount} falhou:`, error);
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 };
