@@ -14,7 +14,7 @@ interface CNPJsListViewProps {
   onDelete: (cnpjId: string) => void;
 }
 
-export const CNPJsListView: React.FC<CNPJsListViewProps> = ({ cnpjs, onEdit }) => {
+export const CNPJsListView: React.FC<CNPJsListViewProps> = ({ cnpjs, onEdit, onDelete }) => {
   const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
