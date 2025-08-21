@@ -48,6 +48,23 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // Se não há dados ou os dados estão vazios, mostrar fallback
+  if (!metrics || (metrics.totalFuncionarios === 0 && metrics.totalCnpjs === 0)) {
+    return (
+      <DashboardErrorBoundary>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-6">Dashboard da Empresa</h1>
+          <DashboardDataFallback
+            onConnect={() => {
+              // Navegar para MCP popover
+              window.open('#open-mcp-popover', '_blank');
+            }}
+          />
+        </div>
+      </DashboardErrorBoundary>
+    );
+  }
+
   return (
     <DashboardErrorBoundary>
       <div className="p-6">
