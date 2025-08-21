@@ -987,7 +987,11 @@ export default function DashboardPage() {
                         ((cnpj.valor_mensal / data.custoMensalTotal) * 100).toFixed(1) : '0';
 
                       return (
-                        <div key={index} className="group p-6 hover:bg-muted/50 transition-all duration-300 cursor-pointer border-l-4 border-transparent hover:border-primary">
+                        <div
+                          key={index}
+                          className="group p-6 hover:bg-muted/50 transition-all duration-300 cursor-pointer border-l-4 border-transparent hover:border-primary"
+                          onClick={() => navigate('/empresa/cnpjs')}
+                        >
                           <div className="flex items-start justify-between">
                             {/* Company Info */}
                             <div className="flex-1 mr-6">
