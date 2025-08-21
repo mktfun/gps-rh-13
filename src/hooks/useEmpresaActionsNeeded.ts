@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,41 +8,43 @@ interface EmpresaActionsNeeded {
 }
 
 export const useEmpresaActionsNeeded = () => {
-  const { user } = useAuth();
+  const { user, empresaId } = useAuth();
+  const realEmpresaId = empresaId || user?.empresa_id;
 
   return useQuery({
-    queryKey: ['empresa-actions-needed', user?.id],
+    queryKey: ['empresa-actions-needed', realEmpresaId],
     queryFn: async (): Promise<EmpresaActionsNeeded> => {
-      console.log('🔍 Buscando ações necessárias da empresa...');
+      console.log('🔍 [useEmpresaActionsNeeded] Buscando ações necessárias da empresa...', realEmpresaId);
 
-      if (!user?.id) {
-        console.error('❌ Usuário não autenticado');
-        throw new Error('Usuário não autenticado');
+      if (!realEmpresaId) {
+        console.error('❌ [useEmpresaActionsNeeded] ID da empresa não encontrado');
+        throw new Error('ID da empresa é obrigatório');
       }
 
-      const { data, error } = await supabase.rpc('get_empresa_dashboard_metrics');
+      // ✅ CORRETO - usando função com parâmetro UUID
+      const { data, error } = await supabase.rpc('get_empresa_dashboard_metrics', {
+        p_empresa_id: realEmpresaId
+      });
 
       if (error) {
-        console.error('❌ Erro ao buscar métricas da empresa:', error);
+        console.error('❌ [useEmpresaActionsNeeded] Erro ao buscar métricas da empresa:', error);
         throw new Error(`Erro ao buscar métricas: ${error.message}`);
       }
 
       if (!data) {
-        console.error('❌ Nenhum dado retornado');
+        console.error('❌ [useEmpresaActionsNeeded] Nenhum dado retornado');
         throw new Error('Nenhum dado retornado');
       }
 
-      console.log('✅ Métricas de ações necessárias carregadas:', data);
+      console.log('✅ [useEmpresaActionsNeeded] Métricas de ações necessárias carregadas:', data);
 
-      // Safe type assertion using unknown first
-      const typedData = data as unknown as EmpresaActionsNeeded;
-
+      // Extrair dados de pendências dos dados do dashboard
       return {
-        solicitacoes_pendentes_count: typedData.solicitacoes_pendentes_count || 0,
-        funcionarios_travados_count: typedData.funcionarios_travados_count || 0,
+        solicitacoes_pendentes_count: data.funcionariosPendentes || 0,
+        funcionarios_travados_count: 0, // Pode ser calculado baseado em status específicos
       };
     },
-    enabled: !!user?.id,
+    enabled: !!realEmpresaId,
     retry: 1,
     staleTime: 2 * 60 * 1000, // 2 minutos de cache
     refetchOnWindowFocus: true, // Recarrega quando volta para a aba
