@@ -81,11 +81,11 @@ const fetchEmpresaDashboardMetrics = async (empresaId: string): Promise<Dashboar
   console.log('✅ [DASHBOARD] Dados recebidos (raw):', data);
   console.log('🧪 [TESTE DIRETO] Tipo dos dados:', typeof data);
   console.log('🧪 [TESTE DIRETO] Keys dos dados:', Object.keys(data || {}));
-  console.log('🧪 [TESTE DIRETO] Valores específicos:', {
-    totalFuncionarios: data.totalFuncionarios,
-    funcionariosAtivos: data.funcionariosAtivos,
-    custoMensalTotal: data.custoMensalTotal,
-    totalCnpjs: data.totalCnpjs
+  console.log('🧪 [TESTE DIRETO] Valores específicos (raw):', {
+    total_funcionarios: data.total_funcionarios,
+    funcionarios_ativos: data.funcionarios_ativos,
+    custo_mensal_total: data.custo_mensal_total,
+    total_cnpjs: data.total_cnpjs
   });
 
   // Transform data to match expected structure (snake_case to camelCase)
