@@ -963,9 +963,18 @@ export default function DashboardPage() {
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-muted text-muted-foreground">
-                    {data.custosPorCnpj?.length || 0} empresas
-                  </Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                      {data.custosPorCnpj?.length || 0} empresas
+                    </Badge>
+                    <Button
+                      onClick={() => navigate('/empresa/cnpjs')}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Gerenciar CNPJs
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
