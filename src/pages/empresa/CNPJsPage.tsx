@@ -16,7 +16,7 @@ import { CNPJsDashboard } from '@/components/empresa/CNPJsDashboard';
 import { CnpjModal } from '@/components/cnpjs/CnpjModal';
 
 const CNPJsPage = () => {
-  const { user } = useAuthUser();
+  const { user, empresaId } = useAuth();
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -25,11 +25,11 @@ const CNPJsPage = () => {
   const [editingCnpj, setEditingCnpj] = useState<any>(null);
 
   // Buscar empresa do usuário logado
-  const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(user?.user_metadata?.empresa_id);
-  
+  const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId);
+
   // Buscar CNPJs da empresa
   const { data: cnpjs, isLoading: isLoadingCnpjs, refetch } = useCnpjsComPlanos({
-    empresaId: user?.user_metadata?.empresa_id,
+    empresaId: empresaId,
     search,
     filtroPlano: planoFilter === 'todos' ? 'todos' : planoFilter as 'com-plano' | 'sem-plano'
   });
