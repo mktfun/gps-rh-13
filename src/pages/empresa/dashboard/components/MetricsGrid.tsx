@@ -3,7 +3,7 @@ import { Users, Building2, DollarSign, Clock, TrendingUp } from 'lucide-react';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { DashboardMetrics } from '@/types/dashboard';
-import { useDashboardTrends } from '@/hooks/useDashboardData';
+import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
 
 interface MetricsGridProps {
   data: DashboardMetrics;
@@ -12,7 +12,19 @@ interface MetricsGridProps {
 }
 
 export function MetricsGrid({ data, loading, empresaId }: MetricsGridProps) {
-  const { funcionariosTrend } = useDashboardTrends(empresaId);
+  // Calcular trend local sem hook adicional para evitar conflitos
+  const calculateTrend = () => {
+    if (!data?.evolucaoMensal || data.evolucaoMensal.length < 2) return 'neutral';
+
+    const current = data.evolucaoMensal[data.evolucaoMensal.length - 1];
+    const previous = data.evolucaoMensal[data.evolucaoMensal.length - 2];
+
+    if (current.funcionarios > previous.funcionarios) return 'up';
+    if (current.funcionarios < previous.funcionarios) return 'down';
+    return 'neutral';
+  };
+
+  const funcionariosTrend = calculateTrend();
 
   const handleFuncionariosClick = () => {
     window.location.href = '/empresa/funcionarios';
