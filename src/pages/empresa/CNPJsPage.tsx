@@ -281,8 +281,10 @@ const CNPJsPage = () => {
         <CnpjModal
           isOpen={true}
           onClose={handleModalClose}
-          cnpj={editingCnpj}
-          empresaId={empresaId}
+          initialData={editingCnpj}
+          empresaId={empresaId || ''}
+          onSubmit={handleCnpjSubmit}
+          isLoading={addCnpj.isPending || updateCnpj.isPending}
         />
       )}
     </div>
