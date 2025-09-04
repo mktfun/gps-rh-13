@@ -67,22 +67,23 @@ export const useEmpresaDashboardMetrics = (debugMode = false) => {
 
       console.log('✅ [EmpresaDashboardMetrics] Dados recebidos:', mainData);
 
-      // Type casting para acessar propriedades
-      const typedData = mainData as unknown as EmpresaDashboardData;
-
-      // Transform data to match expected structure
-      return {
-        totalCnpjs: Number(typedData.total_cnpjs) || 0,
-        totalFuncionarios: Number(typedData.total_funcionarios) || 0,
-        funcionariosAtivos: Number(typedData.funcionarios_ativos) || 0,
-        funcionariosPendentes: Number(typedData.funcionarios_pendentes) || 0,
-        custoMensalTotal: Number(typedData.custo_mensal_total) || 0,
-        custosPorCnpj: [],
-        evolucaoMensal: [],
-        distribuicaoCargos: [],
-        planoPrincipal: null,
+      // CORREÇÃO: Parse correto da estrutura de dados retornada pelo SQL
+      const typedData = mainData as any; // Cast para acessar propriedades
+      const result = {
+        totalCnpjs: Number(typedData.totalCnpjs) || 0,
+        totalFuncionarios: Number(typedData.totalFuncionarios) || 0,
+        funcionariosAtivos: Number(typedData.funcionariosAtivos) || 0,
+        funcionariosPendentes: Number(typedData.funcionariosPendentes) || 0,
+        custoMensalTotal: Number(typedData.custoMensalTotal) || 0,
+        custosPorCnpj: typedData.custosPorCnpj || [],
+        evolucaoMensal: typedData.evolucaoMensal || [],
+        distribuicaoCargos: typedData.distribuicaoCargos || [],
+        planoPrincipal: typedData.planoPrincipal,
         empresaId: empresaIdToUse
       };
+
+      console.log('✅ [EmpresaDashboardMetrics] Dados processados:', result);
+      return result;
     },
     enabled: !!user?.id,
     refetchInterval: 5 * 60 * 1000,
