@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, BarChart3, Calendar, Filter, CheckCircle, Clock, Activity, Shield, Star, ExternalLink } from 'lucide-react';
+import { RefreshCw, Users, Building2, DollarSign, AlertTriangle, TrendingUp, PieChart, BarChart3, Calendar, Filter, CheckCircle, Clock, Activity, Shield, Star, ExternalLink, CircleDollarSign } from 'lucide-react';
 import {
   PieChart as RechartsPieChart,
   Pie,
@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
+import { CnpjListHorizontal } from '@/components/dashboard/CnpjListHorizontal';
 
 interface KPICardProps {
   title: string;
@@ -977,27 +978,12 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {data.custosPorCnpj && data.custosPorCnpj.length > 0 ? (
-                  <div className="divide-y divide-border">
-                    {data.custosPorCnpj.map((cnpj, index) => {
-                      const funcionariosPorcentagem = data.totalFuncionarios > 0 ?
-                        ((cnpj.funcionarios_count / data.totalFuncionarios) * 100).toFixed(1) : '0';
-                      const custoRelativo = data.custoMensalTotal > 0 ?
-                        ((cnpj.valor_mensal / data.custoMensalTotal) * 100).toFixed(1) : '0';
-
-                      return (
-                        <div
-                          key={index}
-                          className="group p-6 hover:bg-muted/50 transition-all duration-300 cursor-pointer border-l-4 border-transparent hover:border-primary"
-                          onClick={() => navigate('/empresa/cnpjs')}
-                        >
-                          <div className="flex items-start justify-between">
-                            {/* Company Info */}
-                            <div className="flex-1 mr-6">
-                              <div className="flex items-start gap-4">
-                                <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
-                                  <Building2 className="h-6 w-6 text-primary" />
-                                </div>
+                 {data.custosPorCnpj && data.custosPorCnpj.length > 0 ? (
+                  <CnpjListHorizontal 
+                    cnpjs={data.custosPorCnpj}
+                    totalFuncionarios={data.totalFuncionarios}
+                    custoMensalTotal={data.custoMensalTotal}
+                   />
 
                                 <div className="flex-1">
                                   <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
