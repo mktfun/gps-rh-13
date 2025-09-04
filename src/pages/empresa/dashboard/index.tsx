@@ -978,106 +978,12 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                 {data.custosPorCnpj && data.custosPorCnpj.length > 0 ? (
+                {data.custosPorCnpj && data.custosPorCnpj.length > 0 ? (
                   <CnpjListHorizontal 
                     cnpjs={data.custosPorCnpj}
                     totalFuncionarios={data.totalFuncionarios}
                     custoMensalTotal={data.custoMensalTotal}
-                   />
-
-                                <div className="flex-1">
-                                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                                    {cnpj.razao_social}
-                                  </h3>
-
-                                  <div className="flex items-center gap-2 mt-2 mb-3">
-                                    <Badge variant="outline" className="text-xs">
-                                      CNPJ: {cnpj.cnpj}
-                                    </Badge>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                    {/* Funcionários */}
-                                    <Card className="border-primary/20 bg-primary/5">
-                                      <CardContent className="p-3">
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-primary/20 rounded-lg">
-                                            <Users className="h-4 w-4 text-primary" />
-                                          </div>
-                                          <div>
-                                            <p className="text-sm font-medium text-muted-foreground">Funcionários</p>
-                                            <p className="text-xl font-bold text-primary">
-                                              {cnpj.funcionarios_count}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                              {funcionariosPorcentagem}% do total
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-
-                                    {/* Performance Badge */}
-                                    <Card className="border-corporate-green/20 bg-corporate-green/5">
-                                      <CardContent className="p-3">
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-corporate-green/20 rounded-lg">
-                                            <Star className="h-4 w-4 text-corporate-green" />
-                                          </div>
-                                          <div>
-                                            <p className="text-sm font-medium text-muted-foreground">Participaç��o</p>
-                                            <p className="text-lg font-bold text-corporate-green">
-                                              {custoRelativo}%
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">do custo total</p>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Cost Info */}
-                            <div className="text-right">
-                              <Card className="border-corporate-green/20 bg-corporate-green/5">
-                                <CardContent className="p-4">
-                                  <p className="text-sm font-medium text-corporate-green mb-1">Valor Mensal</p>
-                                  <p className="text-2xl font-bold text-corporate-green">
-                                    {new Intl.NumberFormat('pt-BR', {
-                                      style: 'currency',
-                                      currency: 'BRL',
-                                    }).format(cnpj.valor_mensal)}
-                                  </p>
-                                  <p className="text-xs text-corporate-green/80 mt-1">
-                                    {new Intl.NumberFormat('pt-BR', {
-                                      style: 'currency',
-                                      currency: 'BRL',
-                                    }).format(cnpj.valor_mensal * 12)} / ano
-                                  </p>
-                                </CardContent>
-                              </Card>
-
-                              {/* Action Button */}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate('/empresa/cnpjs');
-                                }}
-                                className="mt-4 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all"
-                              >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Ver Detalhes
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  />
                 ) : (
                   <div className="text-center py-16">
                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
