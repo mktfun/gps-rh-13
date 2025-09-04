@@ -40,17 +40,17 @@ export const useEmpresaDashboardMetrics = (debugMode = false) => {
 
       console.log('🔍 [EmpresaDashboardMetrics] Buscando métricas para empresa:', empresaIdToUse);
       
-      const { data: mainData, error: mainError } = await supabase.rpc(
+      const { data, error } = await supabase.rpc(
         'get_empresa_dashboard_metrics', 
         { p_empresa_id: empresaIdToUse }
       );
 
-      if (mainError) {
-        console.error('❌ [EmpresaDashboardMetrics] Erro ao buscar métricas:', mainError);
-        throw mainError;
+      if (error) {
+        console.error('❌ [EmpresaDashboardMetrics] Erro ao buscar métricas:', error);
+        throw error;
       }
 
-      if (!mainData) {
+      if (!data) {
         console.warn('⚠️ [EmpresaDashboardMetrics] Nenhum dado retornado');
         return {
           totalCnpjs: 0,
@@ -58,32 +58,33 @@ export const useEmpresaDashboardMetrics = (debugMode = false) => {
           funcionariosAtivos: 0,
           funcionariosPendentes: 0,
           custoMensalTotal: 0,
-          custosPorCnpj: [],
-          evolucaoMensal: [],
           distribuicaoCargos: [],
-          planoPrincipal: null
+          evolucaoMensal: [],
+          custosPorCnpj: [],
+          planoPrincipal: null,
+          empresaId: empresaIdToUse
         };
       }
 
-      console.log('✅ [EmpresaDashboardMetrics] Dados recebidos:', mainData);
+      console.log('✅ [EmpresaDashboardMetrics] Dados recebidos:', data);
 
-      // CORREÇÃO: Parse correto da estrutura de dados retornada pelo SQL
-      const typedData = mainData as any; // Cast para acessar propriedades
-      const result = {
-        totalCnpjs: Number(typedData.totalCnpjs) || 0,
-        totalFuncionarios: Number(typedData.totalFuncionarios) || 0,
-        funcionariosAtivos: Number(typedData.funcionariosAtivos) || 0,
-        funcionariosPendentes: Number(typedData.funcionariosPendentes) || 0,
-        custoMensalTotal: Number(typedData.custoMensalTotal) || 0,
-        custosPorCnpj: typedData.custosPorCnpj || [],
-        evolucaoMensal: typedData.evolucaoMensal || [],
-        distribuicaoCargos: typedData.distribuicaoCargos || [],
-        planoPrincipal: typedData.planoPrincipal,
+      // MAPEAMENTO CORRETO AQUI, SEU ANIMAL
+      const typedData = data as any; // Cast para acessar propriedades
+      const mappedData = {
+        totalCnpjs: Number(typedData.total_cnpjs) || 0,
+        totalFuncionarios: Number(typedData.total_funcionarios) || 0,
+        funcionariosAtivos: Number(typedData.funcionarios_ativos) || 0,
+        funcionariosPendentes: Number(typedData.funcionarios_pendentes) || 0,
+        custoMensalTotal: Number(typedData.custo_mensal_total) || 0,
+        distribuicaoCargos: typedData.distribuicao_cargos || [],
+        evolucaoMensal: typedData.evolucao_mensal || [],
+        custosPorCnpj: [], // Será implementado depois se necessário
+        planoPrincipal: null, // Será implementado depois se necessário
         empresaId: empresaIdToUse
       };
 
-      console.log('✅ [EmpresaDashboardMetrics] Dados processados:', result);
-      return result;
+      console.log('✅ [EmpresaDashboardMetrics] Dados mapeados para camelCase:', mappedData);
+      return mappedData;
     },
     enabled: !!user?.id,
     refetchInterval: 5 * 60 * 1000,
