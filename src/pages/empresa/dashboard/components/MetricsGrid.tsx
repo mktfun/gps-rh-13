@@ -194,12 +194,12 @@ export function MetricsGrid({ data, loading, empresaId }: MetricsGridProps) {
       
       <MetricCard
         title="Pendências"
-        value={data?.funcionariosPendentes || 0}
+        value={data?.funcionarios_pendentes || 0}
         subtitle="Aguardando ativação"
         icon={<Clock className="h-6 w-6" />}
         onClick={handlePendenciasClick}
         isClickable={true}
-        variant={(data?.funcionariosPendentes || 0) > 0 ? "warning" : "success"}
+        variant={(data?.funcionarios_pendentes || 0) > 0 ? "warning" : "success"}
       />
     </div>
   );
@@ -245,9 +245,9 @@ export function MetricsGridCompact({ data, loading }: { data: DashboardMetrics; 
       
       <Card className="p-4 text-center">
         <div className={`text-2xl font-bold mb-1 ${
-          (data?.funcionariosPendentes || 0) > 0 ? 'text-corporate-orange' : 'text-corporate-green'
+          (data?.funcionarios_pendentes || 0) > 0 ? 'text-corporate-orange' : 'text-corporate-green'
         }`}>
-          {formatNumber(data?.funcionariosPendentes || 0)}
+          {formatNumber(data?.funcionarios_pendentes || 0)}
         </div>
         <div className="text-sm text-muted-foreground">Pendências</div>
       </Card>

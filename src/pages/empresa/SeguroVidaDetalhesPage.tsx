@@ -291,14 +291,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
                 <TabsContent value="funcionarios" className="mt-6">
                   <PlanoFuncionariosTab 
-                    cnpjId={plano.cnpj_id}
-                    plano={{
-                      id: plano.id,
-                      seguradora: plano.seguradora,
-                      valor_mensal: valorReal
-                    }}
-                    shouldOpenAddModal={shouldOpenAddModal}
-                    onAddModalHandled={handleAddModalHandled}
+                    planoId={plano.id}
                   />
                 </TabsContent>
 

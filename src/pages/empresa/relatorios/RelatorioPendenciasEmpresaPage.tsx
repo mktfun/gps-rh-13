@@ -338,7 +338,7 @@ const RelatorioPendenciasEmpresaPage = () => {
         </CardHeader>
         <CardContent>
           <DataTable
-            columns={columns}
+            columns={columns as any}
             data={filteredTableData}
             isLoading={isLoading}
             emptyStateTitle="Nenhuma pendência encontrada"

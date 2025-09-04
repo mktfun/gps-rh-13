@@ -8,22 +8,33 @@ interface EmpresaActionsNeeded {
 }
 
 export const useEmpresaActionsNeeded = () => {
-  const { user, empresaId } = useAuth();
-  const realEmpresaId = empresaId || user?.empresa_id;
+  const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['empresa-actions-needed', realEmpresaId],
+    queryKey: ['empresa-actions-needed', user?.id],
     queryFn: async (): Promise<EmpresaActionsNeeded> => {
-      console.log('🔍 [useEmpresaActionsNeeded] Buscando ações necessárias da empresa...', realEmpresaId);
+      console.log('🔍 [useEmpresaActionsNeeded] Buscando ações necessárias da empresa...');
 
-      if (!realEmpresaId) {
-        console.error('❌ [useEmpresaActionsNeeded] ID da empresa não encontrado');
-        throw new Error('ID da empresa é obrigatório');
+      if (!user?.id) {
+        console.error('❌ [useEmpresaActionsNeeded] ID do usuário não encontrado');
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Primeiro buscar o perfil para obter o empresa_id
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('empresa_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile?.empresa_id) {
+        console.error('❌ [useEmpresaActionsNeeded] Erro ao buscar perfil ou empresa_id não encontrado');
+        throw new Error('ID da empresa não encontrado');
       }
 
       // ✅ CORRETO - usando função com parâmetro UUID
       const { data, error } = await supabase.rpc('get_empresa_dashboard_metrics', {
-        p_empresa_id: realEmpresaId
+        p_empresa_id: profile.empresa_id
       });
 
       if (error) {
@@ -38,13 +49,16 @@ export const useEmpresaActionsNeeded = () => {
 
       console.log('✅ [useEmpresaActionsNeeded] Métricas de ações necessárias carregadas:', data);
 
+      // Type cast the data safely
+      const typedData = data as unknown as { funcionarios_pendentes?: number };
+
       // Extrair dados de pendências dos dados do dashboard
       return {
-        solicitacoes_pendentes_count: data.funcionariosPendentes || 0,
+        solicitacoes_pendentes_count: typedData.funcionarios_pendentes || 0,
         funcionarios_travados_count: 0, // Pode ser calculado baseado em status específicos
       };
     },
-    enabled: !!realEmpresaId,
+    enabled: !!user?.id,
     retry: 1,
     staleTime: 2 * 60 * 1000, // 2 minutos de cache
     refetchOnWindowFocus: true, // Recarrega quando volta para a aba

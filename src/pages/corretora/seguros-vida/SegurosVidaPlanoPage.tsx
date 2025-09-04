@@ -321,13 +321,7 @@ const SegurosVidaPlanoPage = () => {
         <TabsContent value="visao-geral">
           {planoDetalhes && (
             <PlanoVisaoGeralTab
-              plano={{
-                ...planoDetalhes,
-                tipo_seguro: planoDetalhes.tipo_seguro || 'vida'
-              }}
-              funcionarios={funcionarios || []}
-              onNavigateToFuncionarios={navigateToFuncionarios}
-              onAddFuncionario={handleAddFuncionario}
+              planoId={planoDetalhes.id}
             />
           )}
         </TabsContent>
@@ -335,14 +329,7 @@ const SegurosVidaPlanoPage = () => {
         <TabsContent value="funcionarios">
           {planoDetalhes && cnpjId && (
             <PlanoFuncionariosTab 
-              cnpjId={cnpjId}
-              plano={{
-                id: planoDetalhes.id,
-                seguradora: planoDetalhes.seguradora,
-                valor_mensal: planoDetalhes.valor_mensal
-              }}
-              shouldOpenAddModal={shouldOpenAddModal}
-              onAddModalHandled={handleAddModalHandled}
+              planoId={planoDetalhes.id}
             />
           )}
         </TabsContent>

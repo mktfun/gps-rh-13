@@ -166,8 +166,8 @@ export const SelecionarFuncionariosModal: React.FC<SelecionarFuncionariosModalPr
 
     try {
       await adicionarFuncionarios({
-        plano_id: planoId,
-        funcionarios_ids: selectedFuncionarios
+        planoId: planoId,
+        funcionarioIds: selectedFuncionarios
       });
 
       toast.success(`${selectedFuncionarios.length} funcionário(s) adicionado(s) com sucesso!`);

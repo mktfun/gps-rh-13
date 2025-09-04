@@ -21,8 +21,8 @@ export const usePulseFinanceiro = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      // Try the safe function first, fallback to original if not available
-      let { data, error } = await supabase.rpc('get_pulse_financeiro_corretor_safe');
+      // Use the standard function
+      let { data, error } = await supabase.rpc('get_pulse_financeiro_corretor');
 
       // If safe function doesn't exist, try the original
       if (error && error.code === '42883') {

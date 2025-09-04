@@ -29,10 +29,12 @@ export default function PlanoDetalhesPage() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   
   const { data: plano, isLoading: isLoadingPlano } = usePlanoDetalhes(currentPlanoId);
-  const { data: funcionariosForaDoPlano, isLoading: isLoadingFuncionariosForaDoPlano } = useFuncionariosForaDoPlano(currentPlanoId);
+  const { data: funcionariosForaDoPlano, isLoading: isLoadingFuncionariosForaDoPlano } = useFuncionariosForaDoPlano(currentPlanoId, 'vida');
   const { data: planoFuncionarios, isLoading: isLoadingPlanoFuncionarios } = usePlanoFuncionarios({
     planoId: currentPlanoId,
-    tipoSeguro: 'vida'
+    tipoSeguro: 'vida',
+    pageIndex: 0,
+    pageSize: 50
   });
 
   useEffect(() => {
@@ -176,9 +178,6 @@ export default function PlanoDetalhesPage() {
         isOpen={isAdicionarFuncionariosModalOpen}
         onClose={() => setIsAdicionarFuncionariosModalOpen(false)}
         planoId={currentPlanoId}
-        onFuncionariosAdicionados={() => {
-          toast.success('Funcionários adicionados ao plano com sucesso!');
-        }}
       />
     </div>
   );
