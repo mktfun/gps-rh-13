@@ -60,7 +60,7 @@ export const useEmpresaDashboardMetrics = (debugMode = false) => {
           custoMensalTotal: 0,
           distribuicaoCargos: [],
           evolucaoMensal: [],
-          custosPorCnpj: [],
+          custosPorCnpj: [], // Incluir no estado padrão também
           planoPrincipal: null,
           empresaId: empresaIdToUse
         };
@@ -78,7 +78,7 @@ export const useEmpresaDashboardMetrics = (debugMode = false) => {
         custoMensalTotal: Number(typedData.custo_mensal_total) || 0,
         distribuicaoCargos: typedData.distribuicao_cargos || [],
         evolucaoMensal: typedData.evolucao_mensal || [],
-        custosPorCnpj: [], // Será implementado depois se necessário
+        custosPorCnpj: typedData.custos_por_cnpj || [], // Adicionar mapeamento dos CNPJs
         planoPrincipal: null, // Será implementado depois se necessário
         empresaId: empresaIdToUse
       };
