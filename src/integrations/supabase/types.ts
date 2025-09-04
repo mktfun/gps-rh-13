@@ -174,6 +174,7 @@ export type Database = {
         Row: {
           cnpj_id: string
           cobertura_auxilio_funeral: number
+          cobertura_invalidez_acidade: number | null
           cobertura_invalidez_acidente: number
           cobertura_morte: number
           cobertura_morte_acidental: number
@@ -187,6 +188,7 @@ export type Database = {
         Insert: {
           cnpj_id: string
           cobertura_auxilio_funeral: number
+          cobertura_invalidez_acidade?: number | null
           cobertura_invalidez_acidente: number
           cobertura_morte: number
           cobertura_morte_acidental: number
@@ -200,6 +202,7 @@ export type Database = {
         Update: {
           cnpj_id?: string
           cobertura_auxilio_funeral?: number
+          cobertura_invalidez_acidade?: number | null
           cobertura_invalidez_acidente?: number
           cobertura_morte?: number
           cobertura_morte_acidental?: number
@@ -892,6 +895,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      debug_table_structure: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       deletar_conversa: {
         Args: { p_conversa_id: string }
         Returns: undefined
@@ -968,6 +975,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_dashboard_metrics_geral: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_detailed_costs_report: {
         Args: { p_empresa_id: string; p_end_date: string; p_start_date: string }
         Returns: Json
@@ -981,6 +992,10 @@ export type Database = {
       }
       get_empresa_dashboard_metrics: {
         Args: Record<PropertyKey, never> | { p_empresa_id: string }
+        Returns: Json
+      }
+      get_empresa_dashboard_metrics_central: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_empresa_dashboard_metrics_v3: {
@@ -1358,6 +1373,14 @@ export type Database = {
       }
       solicitar_exclusao_funcionario: {
         Args: { p_funcionario_id: string; p_motivo?: string }
+        Returns: Json
+      }
+      test_dashboard_connection: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      test_simple_count: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       toggle_corretora_status: {
