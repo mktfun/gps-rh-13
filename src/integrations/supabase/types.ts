@@ -1244,12 +1244,14 @@ export type Database = {
         Returns: Json
       }
       get_relatorio_funcionarios_empresa: {
-        Args: {
-          p_cnpj_id?: string
-          p_empresa_id: string
-          p_page_offset?: number
-          p_page_size?: number
-        }
+        Args:
+          | { p_cnpj_id?: string; p_empresa_id: string }
+          | {
+              p_cnpj_id?: string
+              p_empresa_id: string
+              p_page_offset?: number
+              p_page_size?: number
+            }
         Returns: {
           cargo: string
           cnpj_razao_social: string
@@ -1259,7 +1261,6 @@ export type Database = {
           nome: string
           salario: number
           status: string
-          total_count: number
         }[]
       }
       get_relatorio_geral_funcionarios: {
