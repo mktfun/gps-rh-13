@@ -29,7 +29,7 @@ import {
   FileX
 } from 'lucide-react';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
-import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug';
+// import { FinancialDataDebug } from '@/components/debug/FinancialDataDebug'; // Removido temporariamente
 import { useCorretoraDashboardData } from '@/hooks/useCorretoraDashboardData';
 import { cn } from '@/lib/utils';
 
@@ -414,7 +414,7 @@ const CorretoraDashboard = () => {
               <p className="text-sm text-muted-foreground">Informações de debug do sistema</p>
             </div>
           </div>
-          <FinancialDataDebug />
+          <div className="text-center py-4 text-gray-500">Diagnóstico temporariamente desabilitado</div>
         </div>
       )}
     </div>

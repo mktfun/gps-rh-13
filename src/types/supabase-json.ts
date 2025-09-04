@@ -22,6 +22,51 @@ export interface DashboardMetricsData {
   }>;
 }
 
+// Interface base unificada para funcionários
+export interface FuncionarioBase {
+  id: string;
+  nome: string;
+  cpf: string;
+  cargo: string;
+  salario: number;
+  data_nascimento: string | Date;
+  status: string;
+  cnpj_id: string;
+  created_at: string;
+  updated_at?: string;
+  data_admissao: string;
+}
+
+// Tipos específicos baseados na interface base
+export interface FuncionarioData extends FuncionarioBase {}
+export interface PlanoFuncionario extends FuncionarioBase {}
+export interface FuncionarioPlano extends FuncionarioBase {}
+
+// Interface para dados de dashboard de corretora
+export interface CorretoraDashboardData {
+  total_empresas: number;
+  total_funcionarios: number;
+  receita_mensal: number;
+  total_pendencias: number;
+  produtividade_carteira: number;
+  taxa_eficiencia: number;
+  qualidade_dados: number;
+  funcionarios_travados: number;
+  cnpjs_sem_plano: number;
+  empresas_inativas: number;
+  acoes_inteligentes: Array<any>;
+}
+
+// Interface para dados de dashboard de empresa
+export interface EmpresaDashboardData {
+  total_cnpjs: number;
+  total_funcionarios: number;
+  funcionarios_ativos: number;
+  funcionarios_pendentes: number;
+  custo_mensal_total: number;
+  funcionariosPendentes: number;
+}
+
 export interface FinancialDataDebugResult {
   pulseFinanceiro: {
     receita_mes: number;

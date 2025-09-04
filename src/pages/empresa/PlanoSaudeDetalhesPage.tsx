@@ -10,7 +10,7 @@ import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
-import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
+import PlanoFuncionariosTab from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { ValoresVidaTable } from '@/components/planos/ValoresVidaTable';
 import {
   Stethoscope,

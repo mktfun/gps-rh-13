@@ -79,8 +79,7 @@ export function DataTable({
                     {column.cell ? (
                       column.cell({ 
                         row: { 
-                          getValue: (key: string) => row[key],
-                          original: row 
+                          getValue: (key: string) => row[key]
                         } 
                       })
                     ) : (

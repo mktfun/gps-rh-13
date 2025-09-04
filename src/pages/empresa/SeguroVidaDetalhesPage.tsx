@@ -9,7 +9,7 @@ import { usePlanoFuncionariosStats } from '@/hooks/usePlanoFuncionariosStats';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
-import { PlanoFuncionariosTab } from '@/components/seguros-vida/PlanoFuncionariosTab';
+import PlanoFuncionariosTab from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { 
   Shield, 
   Building2, 

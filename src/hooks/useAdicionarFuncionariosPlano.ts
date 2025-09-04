@@ -2,45 +2,54 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface AdicionarFuncionariosPlanoData {
-  plano_id: string;
-  funcionarios_ids: string[];
+interface AdicionarFuncionariosPlanoParams {
+  planoId: string;
+  funcionarioIds: string[];
 }
 
 export const useAdicionarFuncionariosPlano = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: AdicionarFuncionariosPlanoData) => {
-      console.log('Adicionando funcionários ao plano:', data);
+    mutationFn: async ({ planoId, funcionarioIds }: AdicionarFuncionariosPlanoParams) => {
+      console.log('🔄 [useAdicionarFuncionariosPlano] Iniciando adição de funcionários');
+      console.log('📝 [useAdicionarFuncionariosPlano] Parâmetros:', { planoId, funcionarioIds });
 
-      // Insert planos_funcionarios records (correct table name)
-      const funcionariosPlanos = data.funcionarios_ids.map(funcionario_id => ({
-        plano_id: data.plano_id,
-        funcionario_id,
-        status: 'pendente'
+      // Preparar dados para inserção na tabela planos_funcionarios
+      const registrosParaInserir = funcionarioIds.map(funcionarioId => ({
+        plano_id: planoId,
+        funcionario_id: funcionarioId,
+        status: 'ativo' as const
       }));
 
-      const { error } = await supabase
+      console.log('📊 [useAdicionarFuncionariosPlano] Dados para inserir:', registrosParaInserir);
+
+      // Inserir registros na tabela planos_funcionarios
+      const { data, error } = await supabase
         .from('planos_funcionarios')
-        .insert(funcionariosPlanos);
+        .insert(registrosParaInserir)
+        .select();
 
       if (error) {
-        console.error('Erro ao adicionar funcionários ao plano:', error);
-        throw error;
+        console.error('❌ [useAdicionarFuncionariosPlano] Erro:', error);
+        throw new Error(`Erro ao adicionar funcionários ao plano: ${error.message}`);
       }
 
-      return { success: true };
+      console.log('✅ [useAdicionarFuncionariosPlano] Funcionários adicionados com sucesso:', data);
+      return data;
     },
-    onSuccess: () => {
-      toast.success('Funcionários adicionados ao plano com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano'] });
-      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
-      queryClient.invalidateQueries({ queryKey: ['pendencias-report'] });
+    onSuccess: (data, variables) => {
+      console.log('🎉 [useAdicionarFuncionariosPlano] Sucesso - invalidando queries');
+      
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['plano-funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-plano'] });
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes'] });
+      
+      toast.success(`${variables.funcionarioIds.length} funcionário(s) adicionado(s) ao plano com sucesso!`);
     },
     onError: (error) => {
-      console.error('Erro na mutação:', error);
+      console.error('💥 [useAdicionarFuncionariosPlano] Erro na mutação:', error);
       toast.error('Erro ao adicionar funcionários ao plano');
     }
   });

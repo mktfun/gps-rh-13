@@ -20,7 +20,7 @@ import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
 import { SincronizarPendenciasButton } from '@/components/debug/SincronizarPendenciasButton';
-import { PendencyVisibilityDebug } from '@/components/debug/PendencyVisibilityDebug';
+// import { PendencyVisibilityDebug } from '@/components/debug/PendencyVisibilityDebug'; // Removido temporariamente
 
 const RelatorioPendenciasCorretoraPage = () => {
   const location = useLocation();
@@ -265,7 +265,7 @@ const RelatorioPendenciasCorretoraPage = () => {
       </div>
 
       {/* Debug Component */}
-      <PendencyVisibilityDebug />
+      {/* <PendencyVisibilityDebug /> Removido temporariamente */}
 
       {/* Tabela Detalhada */}
       <Card>

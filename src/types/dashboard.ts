@@ -4,6 +4,13 @@ export interface DashboardMetrics {
   funcionarios_pendentes: number;
   total_planos: number;
   custo_mensal_total: number;
+  totalFuncionarios: number;
+  funcionariosAtivos: number;
+  custoMensalTotal: number;
+  totalCnpjs: number;
+  evolucaoMensal: any[];
+  distribuicaoCargos: any[];
+  custosPorCnpj: any[];
 }
 
 export interface EvolutionData {
