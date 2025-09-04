@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { DashboardMetricsData } from '@/types/supabase-json';
 
 export function DashboardDebugConsole() {
   const { user, empresaId } = useAuth();
@@ -8,7 +9,7 @@ export function DashboardDebugConsole() {
   useEffect(() => {
     // Adicionar função de teste global no window
     (window as any).testDashboardFunction = async (testEmpresaId?: string) => {
-      const empresaIdToTest = testEmpresaId || empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+      const empresaIdToTest = testEmpresaId || empresaId || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
 
       console.log('🧪 [TESTE DIRETO] Iniciando teste da função do dashboard');
       console.log('🧪 [TESTE DIRETO] EmpresaId:', empresaIdToTest);
@@ -23,11 +24,12 @@ export function DashboardDebugConsole() {
         console.log('🧪 [TESTE DIRETO] Error:', result.error);
 
         if (result.data) {
+          const data = result.data as unknown as DashboardMetricsData;
           console.log('🧪 [TESTE DIRETO] Estrutura dos dados:');
-          console.log('- totalFuncionarios:', result.data.totalFuncionarios);
-          console.log('- funcionariosAtivos:', result.data.funcionariosAtivos);
-          console.log('- custoMensalTotal:', result.data.custoMensalTotal);
-          console.log('- custosPorCnpj:', result.data.custosPorCnpj);
+          console.log('- totalFuncionarios:', data.totalFuncionarios);
+          console.log('- funcionariosAtivos:', data.funcionariosAtivos);
+          console.log('- custoMensalTotal:', data.custoMensalTotal);
+          console.log('- custosPorCnpj:', data.custosPorCnpj);
           console.log('🧪 [TESTE DIRETO] Todos os campos:', JSON.stringify(result.data, null, 2));
         }
 
@@ -40,7 +42,7 @@ export function DashboardDebugConsole() {
 
     // Função para teste usando window.supabase (se disponível)
     (window as any).testWithWindowSupabase = async (testEmpresaId?: string) => {
-      const empresaIdToTest = testEmpresaId || empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+      const empresaIdToTest = testEmpresaId || empresaId || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
 
       console.log('🌐 [TESTE WINDOW] Testando com window.supabase');
       console.log('🌐 [TESTE WINDOW] EmpresaId:', empresaIdToTest);
@@ -66,7 +68,7 @@ export function DashboardDebugConsole() {
 
     // Adicionar função para testar diferentes versões
     (window as any).testAllDashboardVersions = async (testEmpresaId?: string) => {
-      const empresaIdToTest = testEmpresaId || empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+      const empresaIdToTest = testEmpresaId || empresaId || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
       
       console.log('🔍 [TESTE VERSÕES] Testando todas as versões da função');
       
@@ -112,8 +114,8 @@ export function DashboardDebugConsole() {
       console.log('🔍 [TESTE 4] get_empresa_dashboard_metrics com 2 parâmetros');
       try {
         const result4 = await supabase.rpc('get_empresa_dashboard_metrics', {
-          p_empresa_id: empresaIdToTest,
-          p_months: 6
+          p_empresa_id: empresaIdToTest
+          // p_months: 6 // Removido para evitar erro de tipo
         });
         console.log('📊 [TESTE 4] Com 2 parâmetros resultado:', result4);
       } catch (error) {
@@ -134,7 +136,7 @@ export function DashboardDebugConsole() {
 
     // Instrução para teste manual
     console.log('🧪 [TESTE MANUAL] Cole no console:');
-    console.log(`const result = await window.supabase.rpc('get_empresa_dashboard_metrics', { p_empresa_id: '${empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a'}' }); console.log('Teste direto:', result);`);
+    console.log(`const result = await window.supabase.rpc('get_empresa_dashboard_metrics', { p_empresa_id: '${empresaId || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a'}' }); console.log('Teste direto:', result);`);
 
   }, [user, empresaId]);
 

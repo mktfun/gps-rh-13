@@ -14,12 +14,13 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescript
 import { Skeleton } from '@/components/ui/skeleton';
 import AdicionarFuncionariosModal from '@/components/planos/AdicionarFuncionariosModal';
 
-interface PlanoDetalhesPageProps {
-  planoId: string;
-}
-
-export default function PlanoDetalhesPage({ planoId }: PlanoDetalhesPageProps) {
+export default function PlanoDetalhesPage() {
+  const { planoId } = useParams<{ planoId: string }>();
   const navigate = useNavigate();
+
+  if (!planoId) {
+    return <div>Plano não encontrado</div>;
+  }
   const params = useParams();
   const currentPlanoId = planoId || params.planoId || '';
   

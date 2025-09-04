@@ -81,7 +81,7 @@ export const DashboardDataDebug: React.FC = () => {
       }
 
       console.log('📊 [Debug] Dados retornados:', data);
-      setDebugData(data);
+      setDebugData(data as unknown as DebugData);
       toast.success('Debug executado com sucesso!');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erro desconhecido';

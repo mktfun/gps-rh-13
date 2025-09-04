@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, AlertTriangle, RefreshCw, X } from 'lucide-react';
+import { DashboardMetricsData } from '@/types/supabase-json';
 
 interface TestResult {
   name: string;
@@ -20,7 +21,7 @@ export function DashboardDebugPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   
-  const realEmpresaId = empresaId || user?.empresa_id || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
+  const realEmpresaId = empresaId || 'f5d59a88-965c-4e3a-b767-66a8f0df4e1a';
 
   const runTests = async () => {
     setIsRunning(true);
@@ -34,9 +35,7 @@ export function DashboardDebugPanel() {
       status: 'success',
       data: {
         empresaId,
-        userEmpresaId: user?.empresa_id,
         userId: user?.id,
-        userRole: user?.role,
         realEmpresaId
       },
       details: `EmpresaId que será usado: ${realEmpresaId}`
@@ -53,7 +52,10 @@ export function DashboardDebugPanel() {
         status: result1.error ? 'error' : 'success',
         data: result1.data,
         error: result1.error?.message,
-        details: result1.data ? `Funcionários: ${result1.data.totalFuncionarios || 0}, Custo: R$ ${result1.data.custoMensalTotal || 0}` : 'Sem dados'
+        details: result1.data ? (() => {
+          const data = result1.data as unknown as DashboardMetricsData;
+          return `Funcionários: ${data.totalFuncionarios || 0}, Custo: R$ ${data.custoMensalTotal || 0}`;
+        })() : 'Sem dados'
       });
     } catch (error) {
       results.push({
@@ -215,13 +217,19 @@ export function DashboardDebugPanel() {
                   const funcComParam = testResults.find(r => r.name.includes('COM parâmetros'));
                   const funcSemParam = testResults.find(r => r.name.includes('SEM parâmetros'));
                   
-                  if (funcComParam?.status === 'success' && funcComParam.data?.totalFuncionarios === 0) {
+                  if (funcComParam?.status === 'success' && (() => {
+                    const data = funcComParam.data as unknown as DashboardMetricsData;
+                    return data?.totalFuncionarios === 0;
+                  })()) {
                     if (funcSemParam?.status === 'warning') {
                       return '🚨 PROBLEMA: Função sem parâmetros está funcionando! Isso causa ambiguidade no PostgREST.';
                     } else {
                       return '⚠️ Função correta retorna zeros. Problema pode ser: dados não existem, SQL incorreto, ou empresa errada.';
                     }
-                  } else if (funcComParam?.status === 'success' && funcComParam.data?.totalFuncionarios > 0) {
+                  } else if (funcComParam?.status === 'success' && (() => {
+                    const data = funcComParam.data as unknown as DashboardMetricsData;
+                    return data?.totalFuncionarios > 0;
+                  })()) {
                     return '✅ Função está funcionando! Se dashboard mostra zeros, problema é no hook ou cache do React Query.';
                   } else if (funcComParam?.status === 'error') {
                     return '❌ Função com parâmetros está falhando. Verifique se existe no Supabase.';
