@@ -16,7 +16,9 @@ export const useCorretoraDashboard = () => {
   const fetchMetrics = async (): Promise<CorretoraDashboardMetrics> => {
     console.log('Buscando métricas do dashboard via RPC para corretora:', user?.id);
 
-    const { data, error } = await supabase.rpc('get_corretora_dashboard_metrics');
+    const { data, error } = await (supabase as any).rpc('get_corretora_dashboard_metrics', {
+      p_corretora_id: user?.id
+    });
 
     if (error) {
       console.error('Erro ao buscar métricas do dashboard via RPC:', error);

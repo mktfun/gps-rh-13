@@ -18,9 +18,10 @@ export const useCorretoraDashboardData = () => {
       console.log('🔍 [Dashboard] Buscando dados do dashboard da corretora...');
       
       try {
-        // Chamar função RPC do Supabase
-        const { data: dashboardData, error } = await supabase.rpc(
-          'get_corretora_dashboard_metrics'
+        // Chamar função RPC do Supabase passando o ID da corretora
+        const { data: dashboardData, error } = await (supabase as any).rpc(
+          'get_corretora_dashboard_metrics',
+          { p_corretora_id: user.id }
         );
 
         if (error) {
