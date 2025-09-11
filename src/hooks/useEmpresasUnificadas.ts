@@ -27,12 +27,10 @@ export const useEmpresasUnificadas = (search?: string) => {
         return [];
       }
 
-      console.log('🔍 [useEmpresasUnificadas] Buscando dados unificados das empresas');
+      console.log('🔍 [useEmpresasUnificadas] Buscando dados unificados das empresas (seguro)');
 
-      // Call RPC function to get unified empresa data
-      const { data, error } = await supabase.rpc('get_empresas_unificadas', {
-        p_corretora_id: user.id
-      });
+      // SECURITY: Call without parameters - function uses auth.uid() internally
+      const { data, error } = await supabase.rpc('get_empresas_unificadas');
 
       if (error) {
         console.error('❌ [useEmpresasUnificadas] Erro ao buscar dados:', error);

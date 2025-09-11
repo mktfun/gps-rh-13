@@ -42,13 +42,11 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('🏢 useEmpresas - Buscando empresas com métricas via RPC para corretora:', user.id);
+      console.log('🏢 useEmpresas - Buscando empresas com métricas via RPC seguro (sem parâmetros)');
 
       try {
-        // Usar RPC para buscar empresas da corretora
-        const { data, error } = await supabase.rpc('get_empresas_com_metricas', {
-          p_corretora_id: user?.id
-        });
+        // SECURITY: Call without parameters - function uses auth.uid() internally
+        const { data, error } = await supabase.rpc('get_empresas_com_metricas');
 
         if (error) {
           console.error('❌ [useEmpresas] Erro ao executar RPC:', error);

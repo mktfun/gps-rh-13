@@ -32,19 +32,18 @@ export const useRelatorioFinanceiroCorretora = () => {
 
       console.log('Dados retornados da RPC get_empresas_com_metricas:', data);
 
-      // A função get_empresas_com_metricas retorna um objeto de métricas agregadas
-      // Preciso criar um array fictício com base nos dados agregados
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        // Se retornou objeto de métricas, criar um array com uma entrada consolidada
-        const sanitizedData: RelatorioFinanceiroItem[] = [{
-          empresa_id: 'consolidated',
-          empresa_nome: 'Todas as Empresas',
-          total_cnpjs_ativos: isNaN(Number(data.total_cnpjs)) ? 0 : Number(data.total_cnpjs),
-          total_funcionarios_segurados: isNaN(Number(data.total_funcionarios)) ? 0 : Number(data.total_funcionarios),
-          custo_total_mensal: isNaN(Number(data.receita_total)) ? 0 : Number(data.receita_total),
-        }];
+      // A função get_empresas_com_metricas agora retorna dados de empresas
+      // Vamos processar os dados para o relatório financeiro
+      if (data && Array.isArray(data)) {
+        const sanitizedData: RelatorioFinanceiroItem[] = data.map((empresa: any) => ({
+          empresa_id: empresa.id || 'unknown',
+          empresa_nome: empresa.nome || 'Empresa Desconhecida',
+          total_cnpjs_ativos: Number(empresa.total_funcionarios) > 0 ? 1 : 0, // Estimate based on having employees
+          total_funcionarios_segurados: Number(empresa.total_funcionarios) || 0,
+          custo_total_mensal: Number(empresa.total_funcionarios) * 450 || 0, // Estimate R$450 per employee
+        }));
 
-        console.log('Dados processados para relatório financeiro (objeto):', sanitizedData);
+        console.log('Dados processados para relatório financeiro (array):', sanitizedData);
         return sanitizedData;
       }
 

@@ -1036,8 +1036,21 @@ export type Database = {
         }[]
       }
       get_empresas_com_metricas: {
-        Args: Record<PropertyKey, never> | { p_corretora_id: string }
-        Returns: Json
+        Args: Record<PropertyKey, never>
+        Returns: {
+          corretora_id: string
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          primeiro_acesso: boolean
+          responsavel: string
+          status_geral: string
+          telefone: string
+          total_funcionarios: number
+          total_pendencias: number
+          updated_at: string
+        }[]
       }
       get_empresas_com_planos_por_tipo: {
         Args: { p_corretora_id: string; p_tipo_seguro: string }
@@ -1048,7 +1061,7 @@ export type Database = {
         }[]
       }
       get_empresas_unificadas: {
-        Args: { p_corretora_id: string }
+        Args: Record<PropertyKey, never>
         Returns: {
           funcionarios_ativos: number
           funcionarios_pendentes: number

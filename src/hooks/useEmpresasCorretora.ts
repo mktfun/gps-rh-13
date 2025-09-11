@@ -33,12 +33,12 @@ export const useEmpresasCorretora = () => {
       console.log('🔍 Buscando empresas da corretora...');
 
       try {
-        // Primeiro, tentar a função RPC se existir
+        // SECURITY: Call without parameters - function uses auth.uid() internally
         const { data: empresasRpc, error: rpcError } = await supabase
-          .rpc('get_empresas_unificadas', { p_corretora_id: user.id });
+          .rpc('get_empresas_unificadas');
 
         if (!rpcError && empresasRpc) {
-          console.log('✅ Empresas carregadas via RPC:', empresasRpc);
+          console.log('✅ Empresas carregadas via RPC (seguro):', empresasRpc);
           return empresasRpc.map((empresa: any) => ({
             id: empresa.id,
             nome: empresa.nome,
