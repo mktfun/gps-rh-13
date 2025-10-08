@@ -6,6 +6,7 @@ import { MoreHorizontal, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { PlanoFuncionario } from '@/hooks/usePlanoFuncionarios';
 import { useAuth } from '@/hooks/useAuth';
+import { useAtivarFuncionarioPlano } from '@/hooks/useAtivarFuncionarioPlano';
 
 interface FuncionarioActionsMenuProps {
   funcionario: PlanoFuncionario;
@@ -31,6 +32,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
     pageIndex: 0,
     pageSize: 10,
   });
+  const ativarFuncionario = useAtivarFuncionarioPlano();
 
   const isCorretora = role === 'corretora';
   const isEmpresa = role === 'empresa';
@@ -54,6 +56,15 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
     }
   };
 
+  const handleAtivarPendente = () => {
+    if (window.confirm('Tem certeza que deseja ativar este funcionário no plano?')) {
+      ativarFuncionario.mutate({
+        funcionarioId: funcionario.funcionario_id,
+        planoId: planoId
+      });
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -72,7 +83,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
         {isCorretora && (
           <>
             {funcionario.status === 'pendente' && (
-              <DropdownMenuItem onClick={() => handleStatusChange('ativo')}>
+              <DropdownMenuItem onClick={handleAtivarPendente}>
                 <Edit className="mr-2 h-4 w-4" />
                 Ativar
               </DropdownMenuItem>
