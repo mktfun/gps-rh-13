@@ -45,7 +45,7 @@ export const usePlanoFuncionarios = ({
   const query = useQuery({
     queryKey: ['planoFuncionarios', tipoSeguro, planoId, statusFilter, search, pageIndex, pageSize],
     queryFn: async () => {
-      console.log('🔍 usePlanoFuncionarios - Buscando funcionários via planos_funcionarios:', {
+      console.log('🔍 usePlanoFuncionarios - Buscando funcionários via RPC:', {
         planoId,
         tipoSeguro,
         statusFilter,
@@ -54,85 +54,52 @@ export const usePlanoFuncionarios = ({
         pageSize
       });
 
-      // Agora buscar as matrículas com os dados dos funcionários usando planoId diretamente
-      let query = supabase
-        .from('planos_funcionarios')
-        .select(`
-          id,
-          status,
-          funcionarios!inner (
-            id,
-            nome,
-            cpf,
-            data_nascimento,
-            cargo,
-            salario,
-            email,
-            cnpj_id,
-            idade,
-            created_at
-          )
-        `, { count: 'exact' })
-        .eq('plano_id', planoId);
-
-      // Aplicar filtro de status
-      if (statusFilter && statusFilter !== 'todos') {
-        const validStatuses: StatusMatricula[] = ['ativo', 'pendente', 'inativo', 'exclusao_solicitada'];
-        
-        if (statusFilter === 'pendentes') {
-          query = query.in('status', ['pendente', 'exclusao_solicitada'] as StatusMatricula[]);
-        } else if (validStatuses.includes(statusFilter as StatusMatricula)) {
-          query = query.eq('status', statusFilter as StatusMatricula);
-        }
-      }
-
-      // Aplicar filtro de busca nos dados do funcionário
-      if (search) {
-        query = query.or(`funcionarios.nome.ilike.%${search}%,funcionarios.cpf.ilike.%${search}%,funcionarios.email.ilike.%${search}%`);
-      }
-
-      // Aplicar paginação
-      const from = pageIndex * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query.order('funcionarios(nome)');
+      // Usar a RPC com SECURITY INVOKER para respeitar a RLS
+      const { data, error } = await supabase.rpc('get_funcionarios_por_plano', {
+        p_plano_id: planoId,
+        p_status_filter: statusFilter || null,
+        p_search: search || null,
+        p_page_index: pageIndex,
+        p_page_size: pageSize
+      });
 
       if (error) {
-        console.error('❌ usePlanoFuncionarios - Erro ao buscar matrículas:', error);
+        console.error('❌ usePlanoFuncionarios - Erro ao buscar funcionários via RPC:', error);
         throw error;
       }
 
-      console.log('✅ usePlanoFuncionarios - Matrículas encontradas:', {
-        totalRegistros: count,
+      console.log('✅ usePlanoFuncionarios - Funcionários encontrados via RPC:', {
+        totalRegistros: data?.[0]?.total_count || 0,
         paginaAtual: pageIndex + 1,
-        totalPaginas: Math.ceil((count || 0) / pageSize),
-        matriculas: data?.length || 0,
+        funcionarios: data?.length || 0,
         planoId,
         tipoSeguro
       });
 
+      // Pegar o total_count do primeiro registro (todos têm o mesmo valor)
+      const totalCount = data?.[0]?.total_count || 0;
+
       // Transformar os dados para o formato esperado
-      const funcionarios: PlanoFuncionario[] = (data || []).map((matricula: any) => ({
-        id: matricula.funcionarios.id,
-        nome: matricula.funcionarios.nome,
-        cpf: matricula.funcionarios.cpf,
-        data_nascimento: matricula.funcionarios.data_nascimento,
-        cargo: matricula.funcionarios.cargo,
-        salario: matricula.funcionarios.salario,
-        email: matricula.funcionarios.email,
-        cnpj_id: matricula.funcionarios.cnpj_id,
-        status: matricula.status,
-        idade: matricula.funcionarios.idade,
-        created_at: matricula.funcionarios.created_at,
-        matricula_id: matricula.id,
-        funcionario_id: matricula.funcionarios.id
+      const funcionarios: PlanoFuncionario[] = (data || []).map((row: any) => ({
+        id: row.id,
+        nome: row.nome,
+        cpf: row.cpf,
+        data_nascimento: row.data_nascimento,
+        cargo: row.cargo,
+        salario: row.salario,
+        email: row.email,
+        cnpj_id: row.cnpj_id,
+        status: row.status as StatusMatricula,
+        idade: row.idade,
+        created_at: row.created_at,
+        matricula_id: row.matricula_id,
+        funcionario_id: row.funcionario_id
       }));
       
       return {
         funcionarios,
-        totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / pageSize)
+        totalCount: Number(totalCount),
+        totalPages: Math.ceil(Number(totalCount) / pageSize)
       };
     },
     enabled: !!planoId && !!tipoSeguro,

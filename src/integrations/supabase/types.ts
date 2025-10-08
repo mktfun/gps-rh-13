@@ -1290,6 +1290,31 @@ export type Database = {
           status: string
         }[]
       }
+      get_funcionarios_por_plano: {
+        Args: {
+          p_page_index?: number
+          p_page_size?: number
+          p_plano_id: string
+          p_search?: string
+          p_status_filter?: string
+        }
+        Returns: {
+          cargo: string
+          cnpj_id: string
+          cpf: string
+          created_at: string
+          data_nascimento: string
+          email: string
+          funcionario_id: string
+          id: string
+          idade: number
+          matricula_id: string
+          nome: string
+          salario: number
+          status: string
+          total_count: number
+        }[]
+      }
       get_my_empresa_id: {
         Args: Record<PropertyKey, never>
         Returns: string
