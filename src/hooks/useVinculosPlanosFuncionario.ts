@@ -48,7 +48,7 @@ export const useVinculosPlanosFuncionario = (funcionarioId: string | null) => {
       // Buscar pendências de ativação
       const { data: pendencias, error: pendenciasError } = await supabase
         .from('pendencias')
-        .select('id, descricao, tipo')
+        .select('id, tipo, tipo_plano')
         .eq('funcionario_id', funcionarioId)
         .eq('tipo', 'ativacao')
         .eq('status', 'pendente');
@@ -81,7 +81,7 @@ export const useVinculosPlanosFuncionario = (funcionarioId: string | null) => {
         }
 
         const pendenciaAtiva = pendencias?.find(p => 
-          p.descricao.toLowerCase().includes(tipo === 'saude' ? 'saúde' : 'vida')
+          p.tipo_plano === tipo
         );
 
         if (pendenciaAtiva) {

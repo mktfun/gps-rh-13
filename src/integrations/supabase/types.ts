@@ -620,6 +620,7 @@ export type Database = {
           protocolo: string
           status: string
           tipo: string
+          tipo_plano: Database["public"]["Enums"]["tipo_plano"] | null
           updated_at: string
         }
         Insert: {
@@ -635,6 +636,7 @@ export type Database = {
           protocolo: string
           status?: string
           tipo: string
+          tipo_plano?: Database["public"]["Enums"]["tipo_plano"] | null
           updated_at?: string
         }
         Update: {
@@ -650,6 +652,7 @@ export type Database = {
           protocolo?: string
           status?: string
           tipo?: string
+          tipo_plano?: Database["public"]["Enums"]["tipo_plano"] | null
           updated_at?: string
         }
         Relationships: [
@@ -1576,6 +1579,7 @@ export type Database = {
         | "arquivado"
         | "edicao_solicitada"
       status_matricula: "ativo" | "pendente" | "inativo" | "exclusao_solicitada"
+      tipo_plano: "saude" | "vida"
       tipo_seguro: "vida" | "saude" | "outros"
       user_role: "corretora" | "empresa" | "admin"
     }
@@ -1724,6 +1728,7 @@ export const Constants = {
         "edicao_solicitada",
       ],
       status_matricula: ["ativo", "pendente", "inativo", "exclusao_solicitada"],
+      tipo_plano: ["saude", "vida"],
       tipo_seguro: ["vida", "saude", "outros"],
       user_role: ["corretora", "empresa", "admin"],
     },
