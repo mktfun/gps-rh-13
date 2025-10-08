@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock, Plus, Heart, Activity, Mail, HeartHandshake, CalendarPlus, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDependentes } from '@/hooks/useDependentes';
+import { useFuncionarioDetalhes } from '@/hooks/useFuncionarioDetalhes';
 import { DocumentoUploadRow } from './DocumentoUploadRow';
 import { DependenteCard } from './DependenteCard';
 import { AdicionarDependenteModal } from './AdicionarDependenteModal';
@@ -47,9 +48,15 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
   onOpenChange,
 }) => {
   const [showAddDependente, setShowAddDependente] = useState(false);
+  
+  // Buscar dados completos do funcionário com CNPJ
+  const { data: funcionarioDetalhado, isLoading: loadingDetalhes } = useFuncionarioDetalhes(funcionario?.id || null);
   const { dependentes, isLoading: loadingDependentes } = useDependentes(funcionario?.id || null);
 
   if (!funcionario) return null;
+
+  // Usar dados detalhados se disponíveis, caso contrário usar os dados básicos
+  const dadosFuncionario = funcionarioDetalhado || funcionario;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -106,7 +113,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
     }
   };
 
-  const isExclusaoSolicitada = funcionario.status === 'exclusao_solicitada';
+  const isExclusaoSolicitada = dadosFuncionario.status === 'exclusao_solicitada';
 
   const DOCUMENTOS_SAUDE = isExclusaoSolicitada
     ? [
@@ -133,14 +140,14 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
             <div className="flex items-center justify-center w-10 h-10 bg-muted rounded-full">
               <User className="h-5 w-5" />
             </div>
-            {funcionario.nome}
+            {dadosFuncionario.nome}
           </DialogTitle>
           <div className="flex items-center gap-2">
-            <Badge variant={getStatusVariant(funcionario.status)}>
-              {funcionario.status.charAt(0).toUpperCase() + funcionario.status.slice(1)}
+            <Badge variant={getStatusVariant(dadosFuncionario.status)}>
+              {dadosFuncionario.status.charAt(0).toUpperCase() + dadosFuncionario.status.slice(1)}
             </Badge>
             <span className="text-sm text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground">{funcionario.cargo}</span>
+            <span className="text-sm text-muted-foreground">{dadosFuncionario.cargo}</span>
           </div>
         </DialogHeader>
 
@@ -156,7 +163,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">E-mail</p>
-                <p className="text-sm font-medium">{funcionario.email || 'Não informado'}</p>
+                <p className="text-sm font-medium">{dadosFuncionario.email || 'Não informado'}</p>
               </div>
             </div>
 
@@ -166,7 +173,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Estado Civil</p>
-                <p className="text-sm font-medium">{formatEstadoCivil(funcionario.estado_civil)}</p>
+                <p className="text-sm font-medium">{formatEstadoCivil(dadosFuncionario.estado_civil)}</p>
               </div>
             </div>
 
@@ -177,10 +184,10 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">CNPJ Vinculado</p>
                 <p className="text-sm font-medium">
-                  {funcionario.cnpj_razao_social || 'Não informado'}
-                  {funcionario.cnpj_numero && (
+                  {loadingDetalhes ? 'Carregando...' : (dadosFuncionario.cnpj_razao_social || 'Não informado')}
+                  {dadosFuncionario.cnpj_numero && (
                     <span className="text-xs text-muted-foreground ml-2">
-                      ({formatCnpj(funcionario.cnpj_numero)})
+                      ({formatCnpj(dadosFuncionario.cnpj_numero)})
                     </span>
                   )}
                 </p>
@@ -194,7 +201,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Data de Admissão</p>
                 <p className="text-sm font-medium">
-                  {formatDate(funcionario.data_admissao || funcionario.created_at)}
+                  {formatDate(dadosFuncionario.data_admissao || dadosFuncionario.created_at)}
                 </p>
               </div>
             </div>
@@ -205,7 +212,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Última Atualização</p>
-                <p className="text-sm font-medium">{formatDateTime(funcionario.updated_at)}</p>
+                <p className="text-sm font-medium">{formatDateTime(dadosFuncionario.updated_at)}</p>
               </div>
             </div>
           </CardContent>

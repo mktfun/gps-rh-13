@@ -1159,6 +1159,27 @@ export type Database = {
           total_funcionarios: number
         }[]
       }
+      get_funcionario_by_id: {
+        Args: { p_funcionario_id: string }
+        Returns: {
+          cargo: string
+          cnpj_id: string
+          cnpj_numero: string
+          cnpj_razao_social: string
+          cpf: string
+          created_at: string
+          data_admissao: string
+          data_nascimento: string
+          email: string
+          estado_civil: string
+          id: string
+          idade: number
+          nome: string
+          salario: number
+          status: string
+          updated_at: string
+        }[]
+      }
       get_funcionarios_arquivados: {
         Args: { p_cnpj_id: string }
         Returns: {
