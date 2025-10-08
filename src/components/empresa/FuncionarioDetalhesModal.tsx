@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock, Plus, Heart, Activity } from 'lucide-react';
+import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock, Plus, Heart, Activity, Mail, HeartHandshake, CalendarPlus, RefreshCw } from 'lucide-react';
+import { format } from 'date-fns';
 import { useDependentes } from '@/hooks/useDependentes';
 import { DocumentoUploadRow } from './DocumentoUploadRow';
 import { DependenteCard } from './DependenteCard';
@@ -26,6 +27,10 @@ interface FuncionarioDetalhesModalProps {
     idade: number;
     status: string;
     created_at: string;
+    updated_at?: string;
+    email?: string;
+    estado_civil?: string;
+    data_admissao?: string;
     cnpj_razao_social?: string;
     cnpj_numero?: string;
     plano_seguradora?: string;
@@ -51,6 +56,41 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Não informado';
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy');
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return 'Não informado';
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
+  const formatCnpj = (cnpj?: string) => {
+    if (!cnpj) return '';
+    return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  };
+
+  const formatEstadoCivil = (estadoCivil?: string) => {
+    if (!estadoCivil) return 'Não informado';
+    const estados: Record<string, string> = {
+      'solteiro': 'Solteiro(a)',
+      'casado': 'Casado(a)',
+      'divorciado': 'Divorciado(a)',
+      'viuvo': 'Viúvo(a)',
+      'separado': 'Separado(a)',
+    };
+    return estados[estadoCivil] || estadoCivil;
   };
 
   const getStatusVariant = (status: string) => {
@@ -103,6 +143,73 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
             <span className="text-sm text-muted-foreground">{funcionario.cargo}</span>
           </div>
         </DialogHeader>
+
+        {/* Seção: Detalhes de Cadastro e Vínculo */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Detalhes de Cadastro e Vínculo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">E-mail</p>
+                <p className="text-sm font-medium">{funcionario.email || 'Não informado'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
+                <HeartHandshake className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Estado Civil</p>
+                <p className="text-sm font-medium">{formatEstadoCivil(funcionario.estado_civil)}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">CNPJ Vinculado</p>
+                <p className="text-sm font-medium">
+                  {funcionario.cnpj_razao_social || 'Não informado'}
+                  {funcionario.cnpj_numero && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      ({formatCnpj(funcionario.cnpj_numero)})
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
+                <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Data de Admissão</p>
+                <p className="text-sm font-medium">
+                  {formatDate(funcionario.data_admissao || funcionario.created_at)}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Última Atualização</p>
+                <p className="text-sm font-medium">{formatDateTime(funcionario.updated_at)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="saude" className="w-full">
           <TabsList className="grid w-full grid-cols-2">

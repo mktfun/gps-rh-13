@@ -389,6 +389,7 @@ export type Database = {
           cpf: string
           created_at: string
           dados_pendentes: Json | null
+          data_admissao: string | null
           data_exclusao: string | null
           data_nascimento: string
           data_solicitacao_exclusao: string | null
@@ -410,6 +411,7 @@ export type Database = {
           cpf: string
           created_at?: string
           dados_pendentes?: Json | null
+          data_admissao?: string | null
           data_exclusao?: string | null
           data_nascimento: string
           data_solicitacao_exclusao?: string | null
@@ -431,6 +433,7 @@ export type Database = {
           cpf?: string
           created_at?: string
           dados_pendentes?: Json | null
+          data_admissao?: string | null
           data_exclusao?: string | null
           data_nascimento?: string
           data_solicitacao_exclusao?: string | null
