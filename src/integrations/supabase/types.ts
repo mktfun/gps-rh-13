@@ -973,6 +973,21 @@ export type Database = {
         }
         Returns: Json
       }
+      criar_funcionario_com_planos: {
+        Args: {
+          p_cargo: string
+          p_cnpj_id: string
+          p_cpf: string
+          p_data_nascimento: string
+          p_email: string
+          p_estado_civil: Database["public"]["Enums"]["estado_civil"]
+          p_incluir_saude?: boolean
+          p_incluir_vida?: boolean
+          p_nome: string
+          p_salario: number
+        }
+        Returns: Json
+      }
       debug_dashboard_data: {
         Args: { p_empresa_id?: string }
         Returns: Json

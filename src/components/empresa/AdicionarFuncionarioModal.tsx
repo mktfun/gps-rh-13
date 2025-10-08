@@ -13,9 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFuncionariosMutation } from '@/hooks/useFuncionariosMutation';
+import { Card, CardContent } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { useCriarFuncionarioComPlanos } from '@/hooks/useCriarFuncionarioComPlanos';
+import { usePlanosDisponiveis } from '@/hooks/usePlanosDisponiveis';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Heart, Cross } from 'lucide-react';
 
 const funcionarioSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -44,7 +47,11 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   planoSeguradora,
   onFuncionarioAdded,
 }) => {
-  const { createFuncionario, isCreating } = useFuncionariosMutation(cnpjId, onFuncionarioAdded);
+  const { criarFuncionario, isCreating } = useCriarFuncionarioComPlanos();
+  const [incluirSaude, setIncluirSaude] = React.useState(false);
+  const [incluirVida, setIncluirVida] = React.useState(false);
+  
+  const { data: planosDisponiveis = [] } = usePlanosDisponiveis(cnpjId);
   
   const {
     register,
@@ -70,15 +77,19 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
   const onSubmit = async (data: FuncionarioFormData) => {
     try {
-      await createFuncionario.mutateAsync({
+      await criarFuncionario.mutateAsync({
         ...data,
         email: data.email || undefined,
         cnpj_id: cnpjId,
+        incluir_saude: incluirSaude,
+        incluir_vida: incluirVida,
       });
       
-      toast.success('Funcionário adicionado com sucesso!');
       reset();
+      setIncluirSaude(false);
+      setIncluirVida(false);
       onOpenChange(false);
+      onFuncionarioAdded?.();
     } catch (error) {
       console.error('Erro ao adicionar funcionário:', error);
       toast.error('Erro ao adicionar funcionário');
@@ -87,14 +98,19 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
   const handleClose = () => {
     reset();
+    setIncluirSaude(false);
+    setIncluirVida(false);
     onOpenChange(false);
   };
 
+  const planoSaude = planosDisponiveis.find(p => p.tipo_seguro === 'saude');
+  const planoVida = planosDisponiveis.find(p => p.tipo_seguro === 'vida');
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Adicionar Funcionário ao Plano</DialogTitle>
+          <DialogTitle>Adicionar Funcionário</DialogTitle>
           <p className="text-sm text-muted-foreground">
             Plano: {planoSeguradora}
           </p>
@@ -200,6 +216,72 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
+          </div>
+
+          {/* Seção de Seleção de Planos */}
+          <div className="space-y-4 pt-4 border-t">
+            <div>
+              <h3 className="text-sm font-semibold">Vincular Planos Disponíveis</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Selecione em quais planos o funcionário deve ser incluído
+              </p>
+            </div>
+
+            <Card>
+              <CardContent className="pt-4 space-y-4">
+                {/* Plano de Saúde */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Cross className="h-4 w-4 text-primary" />
+                      <label className="text-sm font-medium">
+                        Incluir no Plano de Saúde
+                      </label>
+                    </div>
+                    {planoSaude ? (
+                      <p className="text-xs text-muted-foreground">
+                        Seguradora: {planoSaude.seguradora}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Nenhum plano de saúde disponível para o CNPJ selecionado
+                      </p>
+                    )}
+                  </div>
+                  <Switch
+                    checked={incluirSaude}
+                    onCheckedChange={setIncluirSaude}
+                    disabled={!planoSaude}
+                  />
+                </div>
+
+                {/* Seguro de Vida */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Heart className="h-4 w-4 text-primary" />
+                      <label className="text-sm font-medium">
+                        Incluir no Seguro de Vida
+                      </label>
+                    </div>
+                    {planoVida ? (
+                      <p className="text-xs text-muted-foreground">
+                        Seguradora: {planoVida.seguradora}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Nenhum seguro de vida disponível para o CNPJ selecionado
+                      </p>
+                    )}
+                  </div>
+                  <Switch
+                    checked={incluirVida}
+                    onCheckedChange={setIncluirVida}
+                    disabled={!planoVida}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
