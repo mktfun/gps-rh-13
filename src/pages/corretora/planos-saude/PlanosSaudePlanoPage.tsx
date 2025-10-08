@@ -19,6 +19,8 @@ import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSaudeModal';
 import { EditarPlanoSaudeModal } from '@/components/planos/EditarPlanoSaudeModal';
+import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PlanoDetalhes {
   id: string;
@@ -53,6 +55,7 @@ const PlanosSaudePlanoPage = () => {
   const { empresaId, cnpjId } = useParams<{ empresaId: string; cnpjId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -386,6 +389,19 @@ const PlanosSaudePlanoPage = () => {
               cnpj_razao_social: planoDetalhes.cnpj_razao_social
             } : null}
           />
+          {planoDetalhes && (
+            <AdicionarFuncionarioModal
+              open={shouldOpenAddModal}
+              onOpenChange={setShouldOpenAddModal}
+              cnpjId={cnpjId}
+              planoSeguradora={planoDetalhes.seguradora}
+              onFuncionarioAdded={() => {
+                queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', planoDetalhes.id] });
+                queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', planoDetalhes.id] });
+                queryClient.invalidateQueries({ queryKey: ['funcionarios-cnpj', cnpjId] });
+              }}
+            />
+          )}
         </>
       )}
     </div>
