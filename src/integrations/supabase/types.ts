@@ -1274,6 +1274,7 @@ export type Database = {
           nome: string
           salario: number
           status: string
+          total_count: number
         }[]
       }
       get_relatorio_geral_funcionarios: {
