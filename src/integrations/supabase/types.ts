@@ -1338,6 +1338,10 @@ export type Database = {
           valor_mensal: number
         }[]
       }
+      get_plano_funcionarios_stats: {
+        Args: { p_plano_id: string }
+        Returns: Json
+      }
       get_planos_por_empresa: {
         Args: { p_empresa_id: string }
         Returns: {

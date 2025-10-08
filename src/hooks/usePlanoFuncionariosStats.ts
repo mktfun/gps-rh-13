@@ -13,13 +13,12 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
   return useQuery({
     queryKey: ['planoFuncionariosStats', tipoSeguro, planoId],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via planos_funcionarios para planoId:', planoId, 'tipo:', tipoSeguro);
+      console.log('🔍 Buscando estatísticas via RPC SECURITY INVOKER para planoId:', planoId, 'tipo:', tipoSeguro);
 
-      // Buscar estatísticas das matrículas usando planoId diretamente
-      const { data, error } = await supabase
-        .from('planos_funcionarios')
-        .select('status')
-        .eq('plano_id', planoId);
+      // Usar a nova função RPC com SECURITY INVOKER (aplica RLS corretamente)
+      const { data, error } = await (supabase as any).rpc('get_plano_funcionarios_stats', {
+        p_plano_id: planoId
+      });
 
       if (error) {
         console.error('❌ Erro ao buscar estatísticas de matrículas:', error);
@@ -27,34 +26,26 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
         console.error('❌ Mensagem:', error.message);
         console.error('❌ Detalhes:', error.details);
 
-        // Criar um erro com mensagem legível
         const errorMessage = error.message || 'Erro ao buscar estatísticas de matrículas';
         throw new Error(`Erro ao buscar estatísticas: ${errorMessage}`);
       }
 
-      const stats = data?.reduce((acc, matricula) => {
-        acc.total++;
-        switch (matricula.status) {
-          case 'ativo':
-            acc.ativos++;
-            break;
-          case 'pendente':
-            acc.pendentes++;
-            break;
-          case 'inativo':
-            acc.inativos++;
-            break;
-          case 'exclusao_solicitada':
-            acc.pendentes++; // Consideramos exclusão solicitada como pendente
-            break;
-        }
-        return acc;
-      }, { total: 0, ativos: 0, pendentes: 0, inativos: 0 }) || { total: 0, ativos: 0, pendentes: 0, inativos: 0 };
+      if (!data) {
+        console.warn('⚠️ Nenhuma estatística retornada');
+        return { total: 0, ativos: 0, pendentes: 0, inativos: 0, custoPorFuncionario: 0 };
+      }
+
+      const stats = {
+        total: data.total || 0,
+        ativos: data.ativos || 0,
+        pendentes: data.pendentes || 0,
+        inativos: data.inativos || 0
+      };
 
       // Calcular custo por funcionário ativo
       const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas de matrículas calculadas para plano:', planoId, 'tipo:', tipoSeguro, { ...stats, custoPorFuncionario });
+      console.log('✅ Estatísticas de matrículas via RPC:', { ...stats, custoPorFuncionario });
 
       return { ...stats, custoPorFuncionario };
     },
