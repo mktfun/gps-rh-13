@@ -223,6 +223,89 @@ export type Database = {
           },
         ]
       }
+      dependentes: {
+        Row: {
+          created_at: string
+          data_nascimento: string
+          funcionario_id: string
+          id: string
+          nome: string
+          parentesco: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_nascimento: string
+          funcionario_id: string
+          id?: string
+          nome: string
+          parentesco: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_nascimento?: string
+          funcionario_id?: string
+          id?: string
+          nome?: string
+          parentesco?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dependentes_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_funcionarios: {
+        Row: {
+          created_at: string
+          dependente_id: string | null
+          funcionario_id: string
+          id: string
+          nome_arquivo: string
+          path_storage: string
+          tipo_documento: string
+        }
+        Insert: {
+          created_at?: string
+          dependente_id?: string | null
+          funcionario_id: string
+          id?: string
+          nome_arquivo: string
+          path_storage: string
+          tipo_documento: string
+        }
+        Update: {
+          created_at?: string
+          dependente_id?: string | null
+          funcionario_id?: string
+          id?: string
+          nome_arquivo?: string
+          path_storage?: string
+          tipo_documento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_funcionarios_dependente_id_fkey"
+            columns: ["dependente_id"]
+            isOneToOne: false
+            referencedRelation: "dependentes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_funcionarios_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresa_branding: {
         Row: {
           created_at: string

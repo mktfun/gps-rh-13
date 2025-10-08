@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,13 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock, Plus, Heart, Activity } from 'lucide-react';
+import { useDependentes } from '@/hooks/useDependentes';
+import { DocumentoUploadRow } from './DocumentoUploadRow';
+import { DependenteCard } from './DependenteCard';
+import { AdicionarDependenteModal } from './AdicionarDependenteModal';
 
 interface FuncionarioDetalhesModalProps {
   funcionario: {
@@ -35,6 +41,9 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
   open,
   onOpenChange,
 }) => {
+  const [showAddDependente, setShowAddDependente] = useState(false);
+  const { dependentes, isLoading: loadingDependentes } = useDependentes(funcionario?.id || null);
+
   if (!funcionario) return null;
 
   const formatCurrency = (value: number) => {
@@ -57,6 +66,25 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
     }
   };
 
+  const isExclusaoSolicitada = funcionario.status === 'exclusao_solicitada';
+
+  const DOCUMENTOS_SAUDE = isExclusaoSolicitada
+    ? [
+        { tipo: 'formulario_exclusao', label: 'Formulário de Exclusão', descricao: 'Formulário solicitando exclusão do plano de saúde' },
+        { tipo: 'termo_rescisao', label: 'Termo de Rescisão', descricao: 'Documento de rescisão do contrato' },
+      ]
+    : [
+        { tipo: 'declaracao_saude', label: 'Declaração de Saúde', descricao: 'Formulário de declaração de saúde preenchido' },
+        { tipo: 'rg_cpf_cnh', label: 'Cópia do RG/CPF ou CNH', descricao: 'Documento de identificação com foto' },
+      ];
+
+  const DOCUMENTOS_VIDA = isExclusaoSolicitada
+    ? [{ tipo: 'termo_rescisao', label: 'Termo de Rescisão', descricao: 'Documento de rescisão do contrato' }]
+    : [
+        { tipo: 'rg_cnh_cpf', label: 'RG/CNH CPF', descricao: 'Documentos de identificação' },
+        { tipo: 'ficha_cadastral', label: 'Ficha Cadastral ou Contrato de Experiência', descricao: 'Documento trabalhista comprobatório' },
+      ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -76,123 +104,108 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
           </div>
         </DialogHeader>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Informações Pessoais */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5" />
-                Informações Pessoais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-muted-foreground">CPF</label>
-                    <p className="text-sm font-mono">{funcionario.cpf}</p>
-                  </div>
+        <Tabs defaultValue="saude" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="saude" className="gap-2">
+              <Heart className="h-4 w-4" />
+              Planos de Saúde
+            </TabsTrigger>
+            <TabsTrigger value="vida" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Seguros de Vida
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="saude" className="space-y-6">
+            {/* Seção de Documentos de Saúde */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Documentos Necessários</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {DOCUMENTOS_SAUDE.map((doc) => (
+                  <DocumentoUploadRow
+                    key={doc.tipo}
+                    tipoDocumento={doc.tipo}
+                    label={doc.label}
+                    descricao={doc.descricao}
+                    funcionarioId={funcionario.id}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Seção de Dependentes */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Dependentes</CardTitle>
+                  <Button size="sm" onClick={() => setShowAddDependente(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar Dependente
+                  </Button>
                 </div>
+              </CardHeader>
+              <CardContent>
+                {loadingDependentes && <p className="text-sm text-muted-foreground">Carregando...</p>}
+                {!loadingDependentes && dependentes.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhum dependente cadastrado</p>
+                )}
+                {dependentes.map((dependente) => (
+                  <DependenteCard key={dependente.id} dependente={dependente} funcionarioId={funcionario.id} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-muted-foreground">Idade</label>
-                    <p className="text-sm">{funcionario.idade} anos</p>
-                  </div>
+          <TabsContent value="vida" className="space-y-6">
+            {/* Seção de Documentos de Vida */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Documentos Necessários</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {DOCUMENTOS_VIDA.map((doc) => (
+                  <DocumentoUploadRow
+                    key={doc.tipo}
+                    tipoDocumento={doc.tipo}
+                    label={doc.label}
+                    descricao={doc.descricao}
+                    funcionarioId={funcionario.id}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Seção de Dependentes */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Dependentes</CardTitle>
+                  <Button size="sm" onClick={() => setShowAddDependente(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar Dependente
+                  </Button>
                 </div>
+              </CardHeader>
+              <CardContent>
+                {loadingDependentes && <p className="text-sm text-muted-foreground">Carregando...</p>}
+                {!loadingDependentes && dependentes.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhum dependente cadastrado</p>
+                )}
+                {dependentes.map((dependente) => (
+                  <DependenteCard key={dependente.id} dependente={dependente} funcionarioId={funcionario.id} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-                <div className="flex items-center gap-3">
-                  <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-muted-foreground">Cargo</label>
-                    <p className="text-sm font-medium">{funcionario.cargo}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-muted-foreground">Salário</label>
-                    <p className="text-sm font-semibold">{formatCurrency(funcionario.salario)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-muted-foreground">Data de Contratação</label>
-                    <p className="text-sm">
-                      {new Date(funcionario.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Informações da Empresa e Plano */}
-          <div className="space-y-6">
-            {/* Empresa */}
-            {funcionario.cnpj_razao_social && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Building2 className="h-5 w-5" />
-                    Empresa
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Razão Social</label>
-                    <p className="text-sm font-medium">{funcionario.cnpj_razao_social}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">CNPJ</label>
-                    <p className="text-sm font-mono">{funcionario.cnpj_numero}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Plano de Seguro */}
-            {funcionario.plano_seguradora && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Shield className="h-5 w-5" />
-                    Plano de Seguro
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Seguradora</label>
-                    <Badge variant="secondary" className="mt-1">
-                      {funcionario.plano_seguradora}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <label className="text-sm font-medium text-muted-foreground">Custo Mensal</label>
-                      <div className="text-lg font-bold mt-1">
-                        {formatCurrency(funcionario.plano_valor_mensal || 0)}
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <label className="text-sm font-medium text-muted-foreground">Cobertura Morte</label>
-                      <div className="text-lg font-bold mt-1">
-                        {formatCurrency(funcionario.plano_cobertura_morte || 0)}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+        <AdicionarDependenteModal
+          open={showAddDependente}
+          onOpenChange={setShowAddDependente}
+          funcionarioId={funcionario.id}
+        />
       </DialogContent>
     </Dialog>
   );
