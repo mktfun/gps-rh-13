@@ -943,6 +943,10 @@ export type Database = {
         }
         Returns: Json
       }
+      ativar_funcionario_no_plano: {
+        Args: { p_funcionario_id: string; p_plano_id: string }
+        Returns: Json
+      }
       calcular_valor_mensal_plano_saude: {
         Args: { plano_uuid: string }
         Returns: number
