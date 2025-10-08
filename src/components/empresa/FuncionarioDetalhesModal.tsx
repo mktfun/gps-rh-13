@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock, Plus, Heart, Activity, Mail, HeartHandshake, CalendarPlus, RefreshCw } from 'lucide-react';
+import { User, Briefcase, Calendar, DollarSign, Shield, Building2, CreditCard, Clock, Plus, Heart, Activity, Mail, HeartHandshake, CalendarPlus, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDependentes } from '@/hooks/useDependentes';
 import { useFuncionarioDetalhes } from '@/hooks/useFuncionarioDetalhes';
+import { useVinculosPlanosFuncionario } from '@/hooks/useVinculosPlanosFuncionario';
+import { useSolicitarAtivacaoPlano } from '@/hooks/useSolicitarAtivacaoPlano';
 import { DocumentoUploadRow } from './DocumentoUploadRow';
 import { DependenteCard } from './DependenteCard';
 import { AdicionarDependenteModal } from './AdicionarDependenteModal';
@@ -52,6 +54,8 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
   // Buscar dados completos do funcionário com CNPJ
   const { data: funcionarioDetalhado, isLoading: loadingDetalhes } = useFuncionarioDetalhes(funcionario?.id || null);
   const { dependentes, isLoading: loadingDependentes } = useDependentes(funcionario?.id || null);
+  const { data: vinculosPlanos, isLoading: loadingVinculos } = useVinculosPlanosFuncionario(funcionario?.id || null);
+  const solicitarAtivacao = useSolicitarAtivacaoPlano();
 
   if (!funcionario) return null;
 
@@ -215,6 +219,79 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
                 <p className="text-sm font-medium">{formatDateTime(dadosFuncionario.updated_at)}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Seção: Vínculos de Planos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Vínculos de Planos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loadingVinculos && <p className="text-sm text-muted-foreground">Carregando vínculos...</p>}
+            
+            {!loadingVinculos && vinculosPlanos?.map((vinculo) => {
+              const nomeExibicao = vinculo.tipo_seguro === 'saude' ? 'Plano de Saúde' : 'Seguro de Vida';
+              
+              return (
+                <div key={vinculo.tipo_seguro} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
+                    {vinculo.status === 'nao_vinculado' && (
+                      <>
+                        <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{nomeExibicao}</p>
+                          <p className="text-xs text-muted-foreground">Não vinculado</p>
+                        </div>
+                      </>
+                    )}
+                    
+                    {vinculo.status === 'pendente' && (
+                      <>
+                        <Clock className="h-5 w-5 text-secondary-foreground" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{nomeExibicao}</p>
+                          <Badge variant="secondary" className="mt-1">Pendente de Ativação</Badge>
+                          <p className="text-xs text-muted-foreground mt-1">Aguardando ação da corretora</p>
+                        </div>
+                      </>
+                    )}
+                    
+                    {vinculo.status === 'ativo' && (
+                      <>
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{nomeExibicao}</p>
+                          <Badge variant="default" className="mt-1">Ativo</Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Seguradora: {vinculo.seguradora}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  {vinculo.status === 'nao_vinculado' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => solicitarAtivacao.mutate({ 
+                        funcionarioId: funcionario.id, 
+                        tipoPlano: vinculo.tipo_seguro 
+                      })}
+                      disabled={solicitarAtivacao.isPending}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Incluir no Plano
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+            
+            {!loadingVinculos && (!vinculosPlanos || vinculosPlanos.length === 0) && (
+              <p className="text-sm text-muted-foreground">Nenhum plano disponível para este CNPJ</p>
+            )}
           </CardContent>
         </Card>
 

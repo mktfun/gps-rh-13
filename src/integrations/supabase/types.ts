@@ -1508,6 +1508,10 @@ export type Database = {
         Args: { p_aprovado: boolean; p_funcionario_id: string }
         Returns: Json
       }
+      solicitar_ativacao_plano_existente: {
+        Args: { p_funcionario_id: string; p_tipo_plano: string }
+        Returns: Json
+      }
       solicitar_exclusao_funcionario: {
         Args: { p_funcionario_id: string; p_motivo?: string }
         Returns: Json
