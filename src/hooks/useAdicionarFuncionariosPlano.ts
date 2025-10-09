@@ -36,6 +36,24 @@ export const useAdicionarFuncionariosPlano = () => {
       }
 
       console.log('✅ [useAdicionarFuncionariosPlano] Funcionários adicionados com sucesso:', data);
+
+      // Ativar os funcionários que estavam pendentes
+      const { error: updateError } = await supabase
+        .from('funcionarios')
+        .update({ 
+          status: 'ativo',
+          updated_at: new Date().toISOString()
+        })
+        .in('id', funcionarioIds)
+        .eq('status', 'pendente');
+
+      if (updateError) {
+        console.error('⚠️ [useAdicionarFuncionariosPlano] Erro ao ativar funcionários:', updateError);
+        // Não vamos falhar a operação por causa disso, apenas log
+      } else {
+        console.log('✅ [useAdicionarFuncionariosPlano] Status dos funcionários atualizado para ativo');
+      }
+
       return data;
     },
     onSuccess: (data, variables) => {
@@ -50,6 +68,10 @@ export const useAdicionarFuncionariosPlano = () => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios-cnpj'] });
       queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj-saude'] });
       queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj-vida'] });
+      
+      // Invalidar queries da empresa para atualizar visão geral dos funcionários
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
       
       toast.success(`${variables.funcionarioIds.length} funcionário(s) adicionado(s) ao plano com sucesso!`);
     },
