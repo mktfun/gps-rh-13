@@ -9,7 +9,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { FuncionarioDetalhesModal } from '@/components/empresa/FuncionarioDetalhesModal';
 import { createFuncionariosEmpresaTableColumns } from '@/components/empresa/funcionariosEmpresaTableColumns';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
-import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
+import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -263,12 +263,15 @@ const Funcionarios = () => {
       />
 
       {/* Modal de criação */}
-      <FuncionarioModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onSubmit={handleCreateFuncionario}
-        isLoading={addFuncionario.isPending}
+      <AdicionarFuncionarioModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
         empresaId={empresaId}
+        planoSeguradora=""
+        onFuncionarioAdded={() => {
+          setCreateModalOpen(false);
+          setSearch('');
+        }}
       />
     </div>
   );
