@@ -17,7 +17,7 @@ import { PlanoHistoricoTab } from '@/components/seguros-vida/PlanoHistoricoTab';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
-import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface PlanoDetalhes {
@@ -355,15 +355,17 @@ const SegurosVidaPlanoPage = () => {
       </Tabs>
 
       {cnpjId && planoDetalhes && (
-        <AdicionarFuncionarioModal
-          open={shouldOpenAddModal}
-          onOpenChange={setShouldOpenAddModal}
+        <SelecionarFuncionariosModal
+          isOpen={shouldOpenAddModal}
+          onClose={() => setShouldOpenAddModal(false)}
           cnpjId={cnpjId}
-          planoSeguradora={planoDetalhes.seguradora}
-          onFuncionarioAdded={() => {
+          planoId={planoDetalhes.id}
+          onFuncionariosAdicionados={() => {
             queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', planoDetalhes.id] });
             queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', planoDetalhes.id] });
             queryClient.invalidateQueries({ queryKey: ['funcionarios-cnpj', cnpjId] });
+            queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano', planoDetalhes.id] });
+            setShouldOpenAddModal(false);
           }}
         />
       )}
