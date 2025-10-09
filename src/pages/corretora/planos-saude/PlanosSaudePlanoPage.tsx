@@ -400,6 +400,7 @@ const PlanosSaudePlanoPage = () => {
                 queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', planoDetalhes.id] });
                 queryClient.invalidateQueries({ queryKey: ['funcionarios-cnpj', cnpjId] });
                 queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano', planoDetalhes.id] });
+                queryClient.invalidateQueries({ queryKey: ['funcionarios-disponiveis', cnpjId, planoDetalhes.id] });
                 setShouldOpenAddModal(false);
               }}
             />

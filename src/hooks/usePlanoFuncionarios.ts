@@ -103,9 +103,9 @@ export const usePlanoFuncionarios = ({
       };
     },
     enabled: !!planoId && !!tipoSeguro,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Dados sempre frescos após invalidação
     gcTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Refetch ao voltar para a janela
     retry: (failureCount, error) => {
       if (error?.message?.includes('416')) {
         return false;

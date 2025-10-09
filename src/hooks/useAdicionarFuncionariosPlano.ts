@@ -40,11 +40,16 @@ export const useAdicionarFuncionariosPlano = () => {
     },
     onSuccess: (data, variables) => {
       console.log('🎉 [useAdicionarFuncionariosPlano] Sucesso - invalidando queries');
+      console.log('🔄 [useAdicionarFuncionariosPlano] Invalidando queries para planoId:', variables.planoId);
       
-      // Invalidar queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ['plano-funcionarios'] });
-      queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-plano'] });
-      queryClient.invalidateQueries({ queryKey: ['plano-detalhes'] });
+      // Invalidar todas as variações da query de funcionários do plano
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-disponiveis'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-fora-do-plano'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-cnpj'] });
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj-saude'] });
+      queryClient.invalidateQueries({ queryKey: ['plano-detalhes-cnpj-vida'] });
       
       toast.success(`${variables.funcionarioIds.length} funcionário(s) adicionado(s) ao plano com sucesso!`);
     },
