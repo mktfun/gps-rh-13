@@ -146,79 +146,102 @@ export const DemonstrativosTab: React.FC<DemonstrativosTabProps> = ({
               return (
                 <div
                   key={m.numero}
-                  className="border rounded-lg p-3 flex flex-col gap-2"
+                  className="border rounded-lg p-3"
                 >
-                  <div className="font-medium text-center">{m.nome}/{year}</div>
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="font-medium text-center mb-3">{m.nome}/{year}</div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
                     {isCorretora ? (
                       <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Anexar Demonstrativo"
-                          onClick={async () => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "application/pdf";
-                            input.onchange = (e: any) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                upload.mutate({
-                                  file,
-                                  mes: m.numero,
-                                  tipo: "demonstrativo",
-                                });
-                              }
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Anexar Boleto"
-                          onClick={async () => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "application/pdf";
-                            input.onchange = (e: any) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                upload.mutate({
-                                  file,
-                                  mes: m.numero,
-                                  tipo: "boleto",
-                                });
-                              }
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
+                        {/* Coluna Demonstrativo */}
+                        <div className="flex flex-col items-center gap-1">
+                          <Button
+                            variant={hasDem ? "default" : "outline"}
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "application/pdf";
+                              input.onchange = (e: any) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  upload.mutate({
+                                    file,
+                                    mes: m.numero,
+                                    tipo: "demonstrativo",
+                                  });
+                                }
+                              };
+                              input.click();
+                            }}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />
+                            {hasDem ? "Trocar" : "Anexar"}
+                          </Button>
+                          <span className="text-xs text-muted-foreground">Demonstrativo</span>
+                        </div>
+                        
+                        {/* Coluna Boleto */}
+                        <div className="flex flex-col items-center gap-1">
+                          <Button
+                            variant={hasBol ? "default" : "outline"}
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "application/pdf";
+                              input.onchange = (e: any) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  upload.mutate({
+                                    file,
+                                    mes: m.numero,
+                                    tipo: "boleto",
+                                  });
+                                }
+                              };
+                              input.click();
+                            }}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            {hasBol ? "Trocar" : "Anexar"}
+                          </Button>
+                          <span className="text-xs text-muted-foreground">Boleto</span>
+                        </div>
                       </>
                     ) : (
                       <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={!hasDem}
-                          title={hasDem ? "Baixar Demonstrativo" : "Sem Demonstrativo"}
-                          onClick={() => handleDownload(registro?.path_demonstrativo)}
-                        >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={!hasBol}
-                          title={hasBol ? "Baixar Boleto" : "Sem Boleto"}
-                          onClick={() => handleDownload(registro?.path_boleto)}
-                        >
-                          <DollarSign className="h-4 w-4" />
-                        </Button>
+                        {/* Coluna Demonstrativo */}
+                        <div className="flex flex-col items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            disabled={!hasDem}
+                            onClick={() => handleDownload(registro?.path_demonstrativo)}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />
+                            Baixar
+                          </Button>
+                          <span className="text-xs text-muted-foreground">Demonstrativo</span>
+                        </div>
+                        
+                        {/* Coluna Boleto */}
+                        <div className="flex flex-col items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            disabled={!hasBol}
+                            onClick={() => handleDownload(registro?.path_boleto)}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            Baixar
+                          </Button>
+                          <span className="text-xs text-muted-foreground">Boleto</span>
+                        </div>
                       </>
                     )}
                   </div>
