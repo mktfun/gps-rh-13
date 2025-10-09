@@ -19,7 +19,8 @@ import { Search } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
-import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import FuncionarioModal from '@/components/funcionarios/FuncionarioModal';
+import { useCreateFuncionario } from '@/hooks/useCreateFuncionario';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -64,6 +65,7 @@ const EmpresaDetalhes = () => {
   const [funcionarioModalOpen, setFuncionarioModalOpen] = useState(false);
 
   const { clearEmpresaCache, refreshEmpresa } = useEmpresaCache();
+  const { createFuncionario, isCreating } = useCreateFuncionario();
 
   // Atualizar o filtro quando o parâmetro da URL mudar
   useEffect(() => {
@@ -146,6 +148,15 @@ const EmpresaDetalhes = () => {
     setEditingCnpj(null);
   };
 
+  const handleCreateFuncionario = async (data: any) => {
+    try {
+      await createFuncionario.mutateAsync(data);
+      setFuncionarioModalOpen(false);
+      setPagination({ pageIndex: 0, pageSize: pagination.pageSize }); // Reset to first page to see the new employee
+    } catch (error) {
+      console.error('Erro ao criar funcionário:', error);
+    }
+  };
 
   const handleForceRefresh = async () => {
     if (empresaId) {
@@ -331,14 +342,12 @@ const EmpresaDetalhes = () => {
         />
 
         {/* Modal para adicionar funcionário */}
-        <AdicionarFuncionarioModal
-          open={funcionarioModalOpen}
-          onOpenChange={setFuncionarioModalOpen}
-          empresaId={empresaId!}
-          planoSeguradora=""
-          onFuncionarioAdded={() => {
-            setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-          }}
+        <FuncionarioModal
+          isOpen={funcionarioModalOpen}
+          onClose={() => setFuncionarioModalOpen(false)}
+          onSubmit={handleCreateFuncionario}
+          isLoading={isCreating}
+          empresaId={empresaId}
         />
       </div>
     );
