@@ -5,10 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Edit, Archive, UserCheck, UserX, Shield, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Archive, UserCheck, UserX, Shield, Trash2, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/ui/data-table';
 import FuncionarioModal from './FuncionarioModal';
+import { FuncionarioDetalhesModal } from '@/components/empresa/FuncionarioDetalhesModal';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
 import { useAuth } from '@/hooks/useAuth';
 import { Tables } from '@/integrations/supabase/types';
@@ -63,6 +64,8 @@ export const FuncionariosTable = ({
 }: FuncionariosTableProps) => {
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState<Funcionario | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detalhesModalOpen, setDetalhesModalOpen] = useState(false);
+  const [funcionarioDetalhes, setFuncionarioDetalhes] = useState<Funcionario | null>(null);
   const { role } = useAuth();
   const queryClient = useQueryClient();
   const { archiveFuncionario, approveExclusao, denyExclusao, updateFuncionario } = useFuncionarios();
@@ -133,6 +136,11 @@ export const FuncionariosTable = ({
   const handleEdit = (funcionario: Funcionario) => {
     setFuncionarioSelecionado(funcionario);
     setModalOpen(true);
+  };
+
+  const handleVerDetalhes = (funcionario: Funcionario) => {
+    setFuncionarioDetalhes(funcionario);
+    setDetalhesModalOpen(true);
   };
 
   const handleSubmit = (data: any) => {
@@ -240,6 +248,13 @@ export const FuncionariosTable = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              {isCorretora && (
+                <DropdownMenuItem onClick={() => handleVerDetalhes(funcionario)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Ver Detalhes
+                </DropdownMenuItem>
+              )}
+              
               <DropdownMenuItem onClick={() => handleEdit(funcionario)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
@@ -318,6 +333,13 @@ export const FuncionariosTable = ({
         }}
         onSubmit={handleSubmit}
         isLoading={updateFuncionario.isPending}
+      />
+
+      <FuncionarioDetalhesModal
+        funcionario={funcionarioDetalhes}
+        open={detalhesModalOpen}
+        onOpenChange={setDetalhesModalOpen}
+        readOnly={true}
       />
     </>
   );

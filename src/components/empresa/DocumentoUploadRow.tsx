@@ -10,6 +10,7 @@ interface DocumentoUploadRowProps {
   descricao: string;
   funcionarioId: string;
   dependenteId?: string | null;
+  readOnly?: boolean;
 }
 
 export const DocumentoUploadRow: React.FC<DocumentoUploadRowProps> = ({
@@ -18,6 +19,7 @@ export const DocumentoUploadRow: React.FC<DocumentoUploadRowProps> = ({
   descricao,
   funcionarioId,
   dependenteId,
+  readOnly = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -77,7 +79,7 @@ export const DocumentoUploadRow: React.FC<DocumentoUploadRowProps> = ({
       </div>
 
       <div className="flex items-center gap-2 ml-4">
-        {!documento && !isUploading && (
+        {!readOnly && !documento && !isUploading && (
           <>
             <input
               type="file"
@@ -98,6 +100,10 @@ export const DocumentoUploadRow: React.FC<DocumentoUploadRowProps> = ({
           </>
         )}
 
+        {readOnly && !documento && (
+          <span className="text-sm text-muted-foreground">Nenhum documento enviado</span>
+        )}
+
         {isUploading && (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -116,29 +122,33 @@ export const DocumentoUploadRow: React.FC<DocumentoUploadRowProps> = ({
               <Download className="h-3 w-3" />
               {documento.nome_arquivo}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              className="h-8 w-8"
-            >
-              <Pencil className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDelete}
-              className="h-8 w-8 text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            />
+            {!readOnly && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-8 w-8"
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleDelete}
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                />
+              </>
+            )}
           </div>
         )}
 

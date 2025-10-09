@@ -42,12 +42,14 @@ interface FuncionarioDetalhesModalProps {
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  readOnly?: boolean;
 }
 
 export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> = ({
   funcionario,
   open,
   onOpenChange,
+  readOnly = false,
 }) => {
   const [showAddDependente, setShowAddDependente] = useState(false);
   
@@ -271,7 +273,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
                     )}
                   </div>
                   
-                  {vinculo.status === 'nao_vinculado' && (
+                  {!readOnly && vinculo.status === 'nao_vinculado' && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -321,6 +323,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
                     label={doc.label}
                     descricao={doc.descricao}
                     funcionarioId={funcionario.id}
+                    readOnly={readOnly}
                   />
                 ))}
               </CardContent>
@@ -331,10 +334,12 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Dependentes</CardTitle>
-                  <Button size="sm" onClick={() => setShowAddDependente(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Adicionar Dependente
-                  </Button>
+                  {!readOnly && (
+                    <Button size="sm" onClick={() => setShowAddDependente(true)} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Adicionar Dependente
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -363,6 +368,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
                     label={doc.label}
                     descricao={doc.descricao}
                     funcionarioId={funcionario.id}
+                    readOnly={readOnly}
                   />
                 ))}
               </CardContent>
@@ -373,10 +379,12 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Dependentes</CardTitle>
-                  <Button size="sm" onClick={() => setShowAddDependente(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Adicionar Dependente
-                  </Button>
+                  {!readOnly && (
+                    <Button size="sm" onClick={() => setShowAddDependente(true)} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Adicionar Dependente
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
