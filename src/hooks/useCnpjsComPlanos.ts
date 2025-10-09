@@ -40,13 +40,13 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
   return useQuery({
     queryKey: ['cnpjs-com-planos', empresaId, search, filtroPlano, tipoSeguro],
     queryFn: async (): Promise<CnpjComPlano[]> => {
-      // ✅ SOLUÇÃO DEFINITIVA: Usar a RPC que faz toda a filtragem no backend
+      // ✅ CORREÇÃO DEFINITIVA: Usar RPC que já filtra corretamente por tipo de plano
       if (!empresaId || !tipoSeguro) {
-        console.warn('⚠️ empresaId ou tipoSeguro não fornecido');
+        console.warn('⚠️ empresaId ou tipoSeguro não fornecidos');
         return [];
       }
 
-      console.log('🔍 [useCnpjsComPlanos] Chamando RPC get_cnpjs_com_metricas_por_tipo:', {
+      console.log('🔍 Chamando RPC get_cnpjs_com_metricas_por_tipo:', {
         empresaId,
         tipoSeguro
       });
@@ -57,12 +57,12 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
       });
 
       if (error) {
-        console.error('❌ Erro ao buscar métricas de CNPJs por tipo:', error);
+        console.error('❌ Erro ao buscar CNPJs com métricas:', error);
         throw error;
       }
 
-      // O backend já entrega os dados mastigados. Sem cálculo no frontend.
-      const cnpjsComPlanos: CnpjComPlano[] = (data || []).map((cnpj: any) => ({
+      // Backend já entrega tudo mastigado - apenas mapear para o formato esperado
+      let cnpjsComPlanos: CnpjComPlano[] = (data || []).map((cnpj: any) => ({
         id: cnpj.id,
         cnpj: cnpj.cnpj,
         razao_social: cnpj.razao_social,
@@ -73,35 +73,34 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         planoId: cnpj.plano_id,
         seguradora: cnpj.seguradora,
         valor_mensal: cnpj.valor_mensal,
-        funcionariosAtivos: Number(cnpj.funcionarios_ativos || 0),
-        funcionariosPendentes: Number(cnpj.funcionarios_pendentes || 0),
-        funcionariosExclusaoSolicitada: Number(cnpj.funcionarios_exclusao_solicitada || 0),
-        totalFuncionarios: Number(cnpj.total_funcionarios || 0),
-        totalPendencias: Number(cnpj.total_pendencias || 0),
+        funcionariosAtivos: Number(cnpj.funcionarios_ativos) || 0,
+        totalFuncionarios: Number(cnpj.total_funcionarios) || 0,
+        totalPendencias: Number(cnpj.total_pendencias) || 0,
+        funcionariosPendentes: Number(cnpj.funcionarios_pendentes) || 0,
+        funcionariosExclusaoSolicitada: Number(cnpj.funcionarios_exclusao_solicitada) || 0,
       }));
 
-      // Aplicar filtro de busca no client-side (para evitar roundtrips)
-      let resultado = cnpjsComPlanos;
+      // Aplicar filtro de busca (client-side)
       if (search && search.trim()) {
-        const s = search.toLowerCase();
-        resultado = resultado.filter(c => 
-          c.razao_social.toLowerCase().includes(s) || 
-          c.cnpj.includes(s)
+        const searchLower = search.toLowerCase();
+        cnpjsComPlanos = cnpjsComPlanos.filter(c => 
+          c.cnpj.toLowerCase().includes(searchLower) ||
+          c.razao_social.toLowerCase().includes(searchLower)
         );
       }
 
       // Aplicar filtro de plano
       if (filtroPlano === 'com-plano') {
-        resultado = resultado.filter(c => c.temPlano);
+        cnpjsComPlanos = cnpjsComPlanos.filter(c => c.temPlano);
       } else if (filtroPlano === 'sem-plano') {
-        resultado = resultado.filter(c => !c.temPlano);
+        cnpjsComPlanos = cnpjsComPlanos.filter(c => !c.temPlano);
       }
 
-      console.log('✅ [useCnpjsComPlanos] CNPJs encontrados:', resultado.length, 'tipo:', tipoSeguro);
-      return resultado;
+      console.log('✅ CNPJs retornados (via RPC):', cnpjsComPlanos.length, 'tipo:', tipoSeguro);
+      return cnpjsComPlanos;
     },
     enabled: !!empresaId && !!tipoSeguro,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos
+    staleTime: 1000 * 60 * 2, // 2 minutos
+    gcTime: 1000 * 60 * 5, // 5 minutos
   });
 }
