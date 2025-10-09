@@ -94,7 +94,7 @@ const HeroSection = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="text-lg px-8 py-4 border-2 border-[#9CA3AF] text-[#E0E0E0] hover:bg-[#9CA3AF]/10 font-medium"
+              className="text-lg px-8 py-4 border-2 border-[#2563EB] text-[#2563EB] hover:border-[#2563EB] hover:text-[#2563EB] hover:bg-transparent font-medium"
               asChild
             >
               <Link to="/login">
