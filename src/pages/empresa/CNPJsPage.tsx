@@ -29,10 +29,13 @@ const CNPJsPage = () => {
   const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId);
 
   // Buscar CNPJs da empresa (para listagem)
+  // Nota: Empresas veem TODOS os funcionários (independente do tipo de plano)
+  // então passamos 'vida' como padrão mas poderia ser qualquer tipo
   const { data: cnpjs, isLoading: isLoadingCnpjs, refetch } = useCnpjsComPlanos({
     empresaId: empresaId,
     search,
-    filtroPlano: planoFilter === 'todos' ? 'todos' : planoFilter as 'com-plano' | 'sem-plano'
+    filtroPlano: planoFilter === 'todos' ? 'todos' : planoFilter as 'com-plano' | 'sem-plano',
+    tipoSeguro: 'vida' // Default para CNPJs página - considerar adicionar toggle no futuro
   });
 
   // Hook para operações CRUD de CNPJs

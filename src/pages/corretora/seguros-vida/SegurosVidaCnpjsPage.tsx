@@ -23,7 +23,8 @@ const SegurosVidaCnpjsPage = () => {
   const { data: empresa, isLoading: isLoadingEmpresa } = useEmpresa(empresaId);
   const { data: cnpjs, isLoading: isLoadingCnpjs } = useCnpjsComPlanos({ 
     empresaId: empresaId || '',
-    search 
+    search,
+    tipoSeguro: 'vida'
   });
 
   const handleCnpjClick = (cnpj: any) => {
