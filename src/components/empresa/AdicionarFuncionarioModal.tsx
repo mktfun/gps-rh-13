@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useCriarFuncionarioComPlanos } from '@/hooks/useCriarFuncionarioComPlanos';
 import { usePlanosDisponiveis } from '@/hooks/usePlanosDisponiveis';
+import { useCnpjs } from '@/hooks/useCnpjs';
 import { toast } from 'sonner';
 import { Loader2, Heart, Cross } from 'lucide-react';
 
@@ -29,6 +30,7 @@ const funcionarioSchema = z.object({
   salario: z.number().min(0, 'Salário deve ser maior que zero'),
   estado_civil: z.enum(['solteiro', 'casado', 'divorciado', 'viuvo']),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
+  cnpj_id: z.string().min(1, 'CNPJ é obrigatório'),
 });
 
 type FuncionarioFormData = z.infer<typeof funcionarioSchema>;
@@ -36,7 +38,8 @@ type FuncionarioFormData = z.infer<typeof funcionarioSchema>;
 interface AdicionarFuncionarioModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  cnpjId: string;
+  cnpjId?: string;
+  empresaId?: string;
   planoSeguradora: string;
   onFuncionarioAdded?: () => void;
 }
@@ -45,15 +48,23 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   open,
   onOpenChange,
   cnpjId,
+  empresaId,
   planoSeguradora,
   onFuncionarioAdded,
 }) => {
   const { criarFuncionario, isCreating } = useCriarFuncionarioComPlanos();
   const [incluirSaude, setIncluirSaude] = React.useState(false);
   const [incluirVida, setIncluirVida] = React.useState(false);
+  const [selectedCnpjId, setSelectedCnpjId] = React.useState(cnpjId || '');
   
-  const { data: planosDisponiveis = [] } = usePlanosDisponiveis(cnpjId);
+  const { data: planosDisponiveis = [] } = usePlanosDisponiveis(selectedCnpjId || null);
   
+  const { cnpjs: cnpjsData } = useCnpjs({ 
+    empresaId: empresaId || undefined,
+    page: 1,
+    pageSize: 100
+  });
+
   const {
     register,
     handleSubmit,
@@ -72,10 +83,18 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       salario: 0,
       estado_civil: 'solteiro',
       email: '',
+      cnpj_id: cnpjId || '',
     },
   });
 
   const estadoCivil = watch('estado_civil');
+  const watchedCnpjId = watch('cnpj_id');
+
+  React.useEffect(() => {
+    if (watchedCnpjId) {
+      setSelectedCnpjId(watchedCnpjId);
+    }
+  }, [watchedCnpjId]);
 
   const onSubmit = async (data: FuncionarioFormData) => {
     try {
@@ -83,7 +102,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
         ...data,
         email: data.email || undefined,
         data_admissao: data.data_admissao || undefined,
-        cnpj_id: cnpjId,
+        cnpj_id: data.cnpj_id,
         incluir_saude: incluirSaude,
         incluir_vida: incluirVida,
       });
@@ -91,6 +110,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       reset();
       setIncluirSaude(false);
       setIncluirVida(false);
+      setSelectedCnpjId(cnpjId || '');
       onOpenChange(false);
       onFuncionarioAdded?.();
     } catch (error) {
@@ -103,6 +123,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     reset();
     setIncluirSaude(false);
     setIncluirVida(false);
+    setSelectedCnpjId(cnpjId || '');
     onOpenChange(false);
   };
 
@@ -121,6 +142,36 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Select de CNPJ - aparece apenas quando empresaId é fornecido */}
+            {empresaId && (
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="cnpj_id">CNPJ da Empresa *</Label>
+                <Select 
+                  value={watchedCnpjId} 
+                  onValueChange={(value) => setValue('cnpj_id', value)}
+                >
+                  <SelectTrigger className={errors.cnpj_id ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Selecione o CNPJ..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cnpjsData?.map((cnpj) => (
+                      <SelectItem key={cnpj.id} value={cnpj.id}>
+                        {cnpj.razao_social} - {cnpj.cnpj}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.cnpj_id && (
+                  <p className="text-sm text-destructive">{errors.cnpj_id.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* CNPJ fixo - aparece quando cnpjId é fornecido e empresaId não */}
+            {cnpjId && !empresaId && (
+              <input type="hidden" {...register('cnpj_id')} value={cnpjId} />
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="nome">Nome Completo *</Label>
               <Input
