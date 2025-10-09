@@ -20,6 +20,11 @@ export const useAtivarFuncionarioPlano = () => {
       // Invalida as queries para forçar a atualização da lista e dos KPIs
       queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', variables.planoId] });
       queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', variables.planoId] });
+      
+      // Invalidar queries da empresa para atualizar visão geral dos funcionários
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionario-detalhes', variables.funcionarioId] });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Falha ao ativar funcionário.');
