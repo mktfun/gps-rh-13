@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 interface DependenteCardProps {
   dependente: Dependente;
   funcionarioId: string;
+  readOnly?: boolean;
 }
 
 const TIPOS_DOCUMENTO_DEPENDENTE = {
@@ -22,7 +23,7 @@ const TIPOS_DOCUMENTO_DEPENDENTE = {
   ],
 };
 
-export const DependenteCard: React.FC<DependenteCardProps> = ({ dependente, funcionarioId }) => {
+export const DependenteCard: React.FC<DependenteCardProps> = ({ dependente, funcionarioId, readOnly = false }) => {
   const { deleteDependente } = useDependentes(funcionarioId);
   const [showDocumentos, setShowDocumentos] = useState(false);
 
@@ -44,9 +45,11 @@ export const DependenteCard: React.FC<DependenteCardProps> = ({ dependente, func
             <User className="h-4 w-4" />
             {dependente.nome}
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={handleDelete} className="text-destructive">
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {!readOnly && (
+            <Button variant="ghost" size="icon" onClick={handleDelete} className="text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -62,7 +65,7 @@ export const DependenteCard: React.FC<DependenteCardProps> = ({ dependente, func
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm" className="w-full gap-2">
               <FileText className="h-4 w-4" />
-              {showDocumentos ? 'Ocultar' : 'Anexar'} Documentos
+              {showDocumentos ? 'Ocultar' : (readOnly ? 'Ver' : 'Anexar')} Documentos
               {showDocumentos ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </CollapsibleTrigger>
@@ -76,6 +79,7 @@ export const DependenteCard: React.FC<DependenteCardProps> = ({ dependente, func
                 descricao={doc.descricao}
                 funcionarioId={funcionarioId}
                 dependenteId={dependente.id}
+                readOnly={readOnly}
               />
             ))}
             <div className="text-xs font-semibold text-muted-foreground mb-2 mt-4">Documentos de Vida</div>
@@ -87,6 +91,7 @@ export const DependenteCard: React.FC<DependenteCardProps> = ({ dependente, func
                 descricao={doc.descricao}
                 funcionarioId={funcionarioId}
                 dependenteId={dependente.id}
+                readOnly={readOnly}
               />
             ))}
           </CollapsibleContent>

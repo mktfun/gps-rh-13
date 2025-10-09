@@ -348,7 +348,7 @@ export const FuncionarioDetalhesModal: React.FC<FuncionarioDetalhesModalProps> =
                   <p className="text-sm text-muted-foreground">Nenhum dependente cadastrado</p>
                 )}
                 {dependentes.map((dependente) => (
-                  <DependenteCard key={dependente.id} dependente={dependente} funcionarioId={funcionario.id} />
+                  <DependenteCard key={dependente.id} dependente={dependente} funcionarioId={funcionario.id} readOnly={readOnly} />
                 ))}
               </CardContent>
             </Card>
