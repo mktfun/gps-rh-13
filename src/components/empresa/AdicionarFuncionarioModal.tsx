@@ -18,8 +18,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useCriarFuncionarioComPlanos } from '@/hooks/useCriarFuncionarioComPlanos';
 import { usePlanosDisponiveis } from '@/hooks/usePlanosDisponiveis';
+import { useCnpjOptions } from '@/hooks/useCnpjOptions';
 import { toast } from 'sonner';
 import { Loader2, Heart, Cross } from 'lucide-react';
+import { useEffect } from 'react';
 
 const funcionarioSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -38,7 +40,8 @@ type FuncionarioFormData = z.infer<typeof funcionarioSchema>;
 interface AdicionarFuncionarioModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  cnpjId: string;
+  cnpjId?: string;
+  empresaId?: string;
   planoSeguradora: string;
   onFuncionarioAdded?: () => void;
 }
@@ -47,6 +50,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   open,
   onOpenChange,
   cnpjId,
+  empresaId,
   planoSeguradora,
   onFuncionarioAdded,
 }) => {
@@ -54,8 +58,12 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   const [incluirSaude, setIncluirSaude] = useState(false);
   const [incluirVida, setIncluirVida] = useState(false);
   const [step, setStep] = useState(1);
+  const [selectedCnpjId, setSelectedCnpjId] = useState<string>(cnpjId || '');
   
-  const { data: planosDisponiveis = [] } = usePlanosDisponiveis(cnpjId);
+  // Buscar CNPJs se empresaId for fornecido
+  const { data: cnpjsData } = empresaId ? useCnpjOptions() : { data: undefined };
+  
+  const { data: planosDisponiveis = [] } = usePlanosDisponiveis(selectedCnpjId || cnpjId);
   
   const {
     register,
@@ -71,7 +79,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       nome: '',
       cpf: '',
       data_nascimento: '',
-      cnpj_id: cnpjId,
+      cnpj_id: cnpjId || '',
       data_admissao: '',
       cargo: '',
       salario: 0,
@@ -79,6 +87,14 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       email: '',
     },
   });
+
+  // Atualizar selectedCnpjId quando o valor do formulário mudar
+  const watchCnpjId = watch('cnpj_id');
+  useEffect(() => {
+    if (watchCnpjId && watchCnpjId !== selectedCnpjId) {
+      setSelectedCnpjId(watchCnpjId);
+    }
+  }, [watchCnpjId, selectedCnpjId]);
 
   const estadoCivil = watch('estado_civil');
 
@@ -88,7 +104,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
         ...data,
         email: data.email || undefined,
         data_admissao: data.data_admissao || undefined,
-        cnpj_id: cnpjId,
+        cnpj_id: data.cnpj_id || cnpjId,
         incluir_saude: incluirSaude,
         incluir_vida: incluirVida,
       });
@@ -96,6 +112,8 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       reset();
       setIncluirSaude(false);
       setIncluirVida(false);
+      setStep(1);
+      setSelectedCnpjId(cnpjId || '');
       onOpenChange(false);
       onFuncionarioAdded?.();
     } catch (error) {
@@ -109,6 +127,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     setIncluirSaude(false);
     setIncluirVida(false);
     setStep(1);
+    setSelectedCnpjId(cnpjId || '');
     onOpenChange(false);
   };
 
@@ -210,19 +229,47 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="cnpj_id">CNPJ da Empresa *</Label>
-                      <Input
-                        id="cnpj_id"
-                        {...register('cnpj_id')}
-                        value={cnpjId}
-                        disabled
-                        className="bg-muted"
-                      />
-                      {errors.cnpj_id && (
-                        <p className="text-sm text-destructive">{errors.cnpj_id.message}</p>
-                      )}
-                    </div>
+                    {/* Se empresaId for fornecido, mostrar Select de CNPJ */}
+                    {empresaId && (
+                      <div className="space-y-2">
+                        <Label htmlFor="cnpj_id">CNPJ da Empresa *</Label>
+                        <Select 
+                          value={watch('cnpj_id')} 
+                          onValueChange={(value) => setValue('cnpj_id', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o CNPJ" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cnpjsData?.map((cnpj) => (
+                              <SelectItem key={cnpj.value} value={cnpj.value}>
+                                {cnpj.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.cnpj_id && (
+                          <p className="text-sm text-destructive">{errors.cnpj_id.message}</p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Se cnpjId fixo for fornecido, mostrar campo disabled */}
+                    {cnpjId && !empresaId && (
+                      <div className="space-y-2">
+                        <Label htmlFor="cnpj_id">CNPJ da Empresa</Label>
+                        <Input
+                          id="cnpj_id"
+                          {...register('cnpj_id')}
+                          value={cnpjId}
+                          disabled
+                          className="bg-muted"
+                        />
+                        {errors.cnpj_id && (
+                          <p className="text-sm text-destructive">{errors.cnpj_id.message}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
