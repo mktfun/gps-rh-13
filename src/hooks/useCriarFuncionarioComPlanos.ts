@@ -9,6 +9,7 @@ interface CriarFuncionarioData {
   nome: string;
   cpf: string;
   data_nascimento: string;
+  data_admissao?: string;
   cargo: string;
   salario: number;
   estado_civil: EstadoCivil;
@@ -29,6 +30,7 @@ export const useCriarFuncionarioComPlanos = () => {
         p_nome: data.nome,
         p_cpf: data.cpf,
         p_data_nascimento: data.data_nascimento,
+        p_data_admissao: data.data_admissao || null,
         p_cargo: data.cargo,
         p_salario: data.salario,
         p_estado_civil: data.estado_civil,

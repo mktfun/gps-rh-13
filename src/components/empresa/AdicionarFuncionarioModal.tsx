@@ -24,6 +24,7 @@ const funcionarioSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   cpf: z.string().min(11, 'CPF deve ter 11 dígitos').max(14, 'CPF inválido'),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
+  data_admissao: z.string().optional().or(z.literal('')),
   cargo: z.string().min(2, 'Cargo deve ter pelo menos 2 caracteres'),
   salario: z.number().min(0, 'Salário deve ser maior que zero'),
   estado_civil: z.enum(['solteiro', 'casado', 'divorciado', 'viuvo']),
@@ -66,6 +67,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       nome: '',
       cpf: '',
       data_nascimento: '',
+      data_admissao: '',
       cargo: '',
       salario: 0,
       estado_civil: 'solteiro',
@@ -80,6 +82,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       await criarFuncionario.mutateAsync({
         ...data,
         email: data.email || undefined,
+        data_admissao: data.data_admissao || undefined,
         cnpj_id: cnpjId,
         incluir_saude: incluirSaude,
         incluir_vida: incluirVida,
@@ -154,6 +157,19 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
               />
               {errors.data_nascimento && (
                 <p className="text-sm text-destructive">{errors.data_nascimento.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="data_admissao">Data de Admissão (opcional)</Label>
+              <Input
+                id="data_admissao"
+                type="date"
+                {...register('data_admissao')}
+                className={errors.data_admissao ? 'border-destructive' : ''}
+              />
+              {errors.data_admissao && (
+                <p className="text-sm text-destructive">{errors.data_admissao.message}</p>
               )}
             </div>
 
