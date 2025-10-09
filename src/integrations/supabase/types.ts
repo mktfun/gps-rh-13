@@ -1066,6 +1066,24 @@ export type Database = {
           user_email: string
         }[]
       }
+      get_cnpjs_com_metricas_por_tipo: {
+        Args: { p_empresa_id: string; p_tipo_plano_filter: string }
+        Returns: {
+          ativos_no_plano: number
+          cnpj: string
+          created_at: string
+          empresa_id: string
+          exclusao_solicitada_no_plano: number
+          id: string
+          pendentes_no_plano: number
+          plano_id: string
+          plano_seguradora: string
+          plano_valor_mensal: number
+          razao_social: string
+          status: string
+          total_funcionarios_cnpj: number
+        }[]
+      }
       get_conversas_usuario: {
         Args: Record<PropertyKey, never>
         Returns: {

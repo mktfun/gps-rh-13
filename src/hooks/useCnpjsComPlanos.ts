@@ -40,109 +40,76 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
   return useQuery({
     queryKey: ['cnpjs-com-planos', empresaId, search, filtroPlano, tipoSeguro],
     queryFn: async (): Promise<CnpjComPlano[]> => {
-      console.log('🔍 Buscando CNPJs com planos para empresa:', empresaId, 'tipo:', tipoSeguro);
-
-      // 1. Buscar CNPJs da empresa
-      let cnpjQuery = supabase
-        .from('cnpjs')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Filtrar por empresa se fornecido
-      if (empresaId) {
-        cnpjQuery = cnpjQuery.eq('empresa_id', empresaId);
-      }
-
-      if (search) {
-        cnpjQuery = cnpjQuery.or(`cnpj.ilike.%${search}%,razao_social.ilike.%${search}%`);
-      }
-
-      const { data: cnpjs, error: cnpjError } = await cnpjQuery;
-
-      if (cnpjError) {
-        console.error('❌ Erro ao buscar CNPJs:', cnpjError);
-        throw cnpjError;
-      }
-
-      if (!cnpjs || cnpjs.length === 0) {
+      if (!empresaId) {
+        console.warn('⚠️ empresaId não fornecido, retornando vazio');
         return [];
       }
 
-      const cnpjIds = cnpjs.map(c => c.id);
-
-      // 2. Buscar TODOS os planos para esses CNPJs, SEM FILTRO DE TIPO AINDA
-      const { data: todosOsPlanos, error: planosError } = await supabase
-        .from('dados_planos')
-        .select('*')
-        .in('cnpj_id', cnpjIds);
-
-      if (planosError) {
-        console.error('❌ Erro ao buscar planos:', planosError);
-        throw planosError;
+      if (!tipoSeguro) {
+        console.warn('⚠️ tipoSeguro não fornecido, usando "vida" como padrão');
       }
 
-      // 3. Buscar todos os funcionários para cada CNPJ
-      const { data: funcionarios, error: funcionariosError } = await supabase
-        .from('funcionarios')
-        .select('id, cnpj_id, status')
-        .in('cnpj_id', cnpjIds);
+      console.log('🔍 Chamando RPC get_cnpjs_com_metricas_por_tipo para empresa:', empresaId, 'tipo:', tipoSeguro);
 
-      if (funcionariosError) {
-        console.error('❌ Erro ao buscar funcionários:', funcionariosError);
-        throw funcionariosError;
-      }
-
-      // 4. Montar resultado com a lógica correta
-      const cnpjsComPlanos: CnpjComPlano[] = cnpjs.map(cnpj => {
-        // ✅ CORREÇÃO: Encontra o plano específico do tipo que estamos procurando
-        // Se tipoSeguro não for especificado, busca qualquer plano (compatibilidade)
-        const planoDoTipoEspecifico = tipoSeguro 
-          ? todosOsPlanos?.find(p => p.cnpj_id === cnpj.id && p.tipo_seguro === tipoSeguro)
-          : todosOsPlanos?.find(p => p.cnpj_id === cnpj.id);
-        
-        const funcionariosCnpj = funcionarios?.filter(f => f.cnpj_id === cnpj.id) || [];
-        
-        // Calcular pendências
-        const funcionariosPendentes = funcionariosCnpj.filter(f => f.status === 'pendente').length;
-        const funcionariosExclusaoSolicitada = funcionariosCnpj.filter(f => f.status === 'exclusao_solicitada').length;
-        const totalPendencias = funcionariosPendentes + funcionariosExclusaoSolicitada;
-
-        // Contar apenas funcionários ativos e pendentes para o total
-        // Separate counts for clarity
-        const funcionariosAtivos = funcionariosCnpj.filter(f => f.status === 'ativo').length;
-        const totalFuncionarios = funcionariosAtivos + funcionariosPendentes;
-
-        return {
-          id: cnpj.id,
-          cnpj: cnpj.cnpj,
-          razao_social: cnpj.razao_social,
-          status: cnpj.status,
-          created_at: cnpj.created_at,
-          empresa_id: cnpj.empresa_id,
-          // ✅ CORREÇÃO: "temPlano" agora significa "tem plano DO TIPO que eu pedi?"
-          temPlano: !!planoDoTipoEspecifico,
-          planoId: planoDoTipoEspecifico?.id,
-          seguradora: planoDoTipoEspecifico?.seguradora,
-          valor_mensal: planoDoTipoEspecifico?.valor_mensal,
-          funcionariosAtivos,
-          totalFuncionarios,
-          totalPendencias,
-          funcionariosPendentes,
-          funcionariosExclusaoSolicitada,
-        };
+      // Chamar a RPC que já faz todo o trabalho pesado no backend
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_cnpjs_com_metricas_por_tipo', {
+        p_empresa_id: empresaId,
+        p_tipo_plano_filter: tipoSeguro || 'vida'
       });
 
-      // Aplicar filtro de plano (agora funciona corretamente para o tipo específico)
-      let resultado = cnpjsComPlanos;
-      if (filtroPlano === 'com-plano') {
-        resultado = cnpjsComPlanos.filter(c => c.temPlano);
-      } else if (filtroPlano === 'sem-plano') {
-        resultado = cnpjsComPlanos.filter(c => !c.temPlano);
+      if (rpcError) {
+        console.error('❌ Erro ao buscar CNPJs com métricas:', rpcError);
+        throw rpcError;
       }
 
-      console.log('✅ CNPJs com planos encontrados (lógica corrigida):', resultado.length, 'tipo:', tipoSeguro);
+      if (!rpcData || rpcData.length === 0) {
+        console.log('ℹ️ Nenhum CNPJ encontrado para esta empresa');
+        return [];
+      }
+
+      console.log(`✅ RPC retornou ${rpcData.length} CNPJs`);
+
+      // Mapear o retorno da RPC para o formato esperado pelo frontend
+      const cnpjsComPlanos: CnpjComPlano[] = rpcData.map((row: any) => ({
+        id: row.id,
+        cnpj: row.cnpj,
+        razao_social: row.razao_social,
+        status: row.status,
+        created_at: row.created_at,
+        empresa_id: row.empresa_id,
+        temPlano: !!row.plano_id,
+        planoId: row.plano_id,
+        seguradora: row.plano_seguradora,
+        valor_mensal: row.plano_valor_mensal,
+        funcionariosAtivos: Number(row.ativos_no_plano) || 0,
+        funcionariosPendentes: Number(row.pendentes_no_plano) || 0,
+        funcionariosExclusaoSolicitada: Number(row.exclusao_solicitada_no_plano) || 0,
+        totalPendencias: Number(row.pendentes_no_plano || 0) + Number(row.exclusao_solicitada_no_plano || 0),
+        totalFuncionarios: Number(row.ativos_no_plano || 0) + Number(row.pendentes_no_plano || 0),
+      }));
+
+      // Aplicar filtros no frontend (search e filtroPlano)
+      let resultado = cnpjsComPlanos;
+
+      // Filtro de busca por texto
+      if (search && search.trim()) {
+        const searchLower = search.toLowerCase();
+        resultado = resultado.filter(c => 
+          c.cnpj.toLowerCase().includes(searchLower) || 
+          c.razao_social.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Filtro de plano (com/sem plano)
+      if (filtroPlano === 'com-plano') {
+        resultado = resultado.filter(c => c.temPlano);
+      } else if (filtroPlano === 'sem-plano') {
+        resultado = resultado.filter(c => !c.temPlano);
+      }
+
+      console.log(`✅ Retornando ${resultado.length} CNPJs após filtros (search: "${search}", filtroPlano: "${filtroPlano}")`);
       return resultado;
     },
-    enabled: true,
+    enabled: !!empresaId,
   });
 }
