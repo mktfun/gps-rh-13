@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Cloud, Pencil, Trash2, Check, X, Loader2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDocumentosFuncionario, DocumentoFuncionario } from '@/hooks/useDocumentosFuncionario';
+import { toast } from 'sonner';
 
 interface DocumentoUploadRowProps {
   tipoDocumento: string;
@@ -65,9 +66,21 @@ export const DocumentoUploadRow: React.FC<DocumentoUploadRowProps> = ({
     if (!documento) return;
     try {
       const url = await getDownloadUrl(documento.path_storage);
-      window.open(url, '_blank');
+      
+      // Criar um elemento <a> temporário para forçar o download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = documento.nome_arquivo;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      
+      // Adicionar ao DOM, clicar e remover
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Erro ao baixar documento:', error);
+      toast.error('Erro ao baixar documento');
     }
   };
 
