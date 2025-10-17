@@ -128,22 +128,6 @@ export const FuncionariosPlanoDataTable: React.FC<FuncionariosPlanoDataTableProp
       },
     },
     {
-      accessorKey: 'custo_individual',
-      header: 'Custo Mensal',
-      cell: ({ row }) => {
-        const custo = row.getValue('custo_individual') as number;
-        if (!custo || custo === 0) return <div className="text-muted-foreground">-</div>;
-        return (
-          <div className="font-medium text-primary">
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(custo)}
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => {

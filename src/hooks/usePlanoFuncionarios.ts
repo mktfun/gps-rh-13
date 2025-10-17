@@ -21,7 +21,6 @@ export interface PlanoFuncionario {
   created_at: string;
   matricula_id: string; // ID da matrícula na tabela planos_funcionarios
   funcionario_id: string; // ID real do funcionário
-  custo_individual?: number; // Custo mensal do funcionário baseado na faixa etária
 }
 
 interface UsePlanoFuncionariosParams {
@@ -94,8 +93,7 @@ export const usePlanoFuncionarios = ({
         idade: row.idade,
         created_at: row.created_at,
         matricula_id: row.matricula_id,
-        funcionario_id: row.funcionario_id,
-        custo_individual: row.custo_individual
+        funcionario_id: row.funcionario_id
       }));
       
       return {
