@@ -1347,7 +1347,6 @@ export type Database = {
           data_nascimento: string
           email: string
           funcionario_id: string
-          id: string
           idade: number
           matricula_id: string
           nome: string

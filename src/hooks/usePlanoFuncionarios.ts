@@ -82,7 +82,7 @@ export const usePlanoFuncionarios = ({
 
       // Transformar os dados para o formato esperado
       const funcionarios: PlanoFuncionario[] = (data || []).map((row: any) => ({
-        id: row.id,
+        id: row.funcionario_id,
         nome: row.nome,
         cpf: row.cpf,
         data_nascimento: row.data_nascimento,
@@ -95,7 +95,7 @@ export const usePlanoFuncionarios = ({
         created_at: row.created_at,
         matricula_id: row.matricula_id,
         funcionario_id: row.funcionario_id,
-        custo_individual: row.custo_individual
+        custo_individual: Number(row.custo_individual) || 0
       }));
       
       return {
