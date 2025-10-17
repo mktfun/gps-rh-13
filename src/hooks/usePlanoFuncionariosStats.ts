@@ -7,6 +7,7 @@ interface PlanoFuncionariosStats {
   pendentes: number;
   inativos: number;
   custoPorFuncionario: number;
+  salarioMedio: number;
 }
 
 export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, valorMensal: number) => {
@@ -32,7 +33,7 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
 
       if (!data) {
         console.warn('⚠️ Nenhuma estatística retornada');
-        return { total: 0, ativos: 0, pendentes: 0, inativos: 0, custoPorFuncionario: 0 };
+        return { total: 0, ativos: 0, pendentes: 0, inativos: 0, custoPorFuncionario: 0, salarioMedio: 0 };
       }
 
       const stats = {
@@ -45,9 +46,25 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
       // Calcular custo por funcionário ativo
       const custoPorFuncionario = stats.ativos > 0 ? valorMensal / stats.ativos : 0;
 
-      console.log('✅ Estatísticas de matrículas via RPC:', { ...stats, custoPorFuncionario });
+      // Buscar média de salários dos funcionários vinculados ao plano
+      const { data: salarioData, error: salarioError } = await supabase
+        .from('planos_funcionarios')
+        .select(`
+          funcionarios!inner(salario)
+        `)
+        .eq('plano_id', planoId);
 
-      return { ...stats, custoPorFuncionario };
+      let salarioMedio = 0;
+      if (!salarioError && salarioData && salarioData.length > 0) {
+        const totalSalarios = salarioData.reduce((sum, item) => {
+          return sum + (item.funcionarios?.salario || 0);
+        }, 0);
+        salarioMedio = salarioData.length > 0 ? totalSalarios / salarioData.length : 0;
+      }
+
+      console.log('✅ Estatísticas de matrículas via RPC:', { ...stats, custoPorFuncionario, salarioMedio });
+
+      return { ...stats, custoPorFuncionario, salarioMedio };
     },
     enabled: !!planoId && !!tipoSeguro,
   });
