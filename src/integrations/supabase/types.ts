@@ -948,7 +948,7 @@ export type Database = {
         Returns: Json
       }
       calcular_valor_mensal_plano_saude: {
-        Args: { plano_uuid: string }
+        Args: { p_plano_id: string }
         Returns: number
       }
       contar_total_mensagens_nao_lidas: {
@@ -1110,6 +1110,10 @@ export type Database = {
       get_corretora_dashboard_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_custo_individual_funcionario: {
+        Args: { p_funcionario_id: string; p_plano_id: string }
+        Returns: number
       }
       get_dashboard_details_corretora: {
         Args: Record<PropertyKey, never>
@@ -1339,6 +1343,7 @@ export type Database = {
           cnpj_id: string
           cpf: string
           created_at: string
+          custo_individual: number
           data_nascimento: string
           email: string
           funcionario_id: string
@@ -1464,7 +1469,6 @@ export type Database = {
           nome: string
           salario: number
           status: string
-          total_count: number
         }[]
       }
       get_relatorio_geral_funcionarios: {
