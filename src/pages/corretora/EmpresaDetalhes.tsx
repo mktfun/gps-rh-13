@@ -22,11 +22,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
 import { BulkImportModal } from '@/components/import/BulkImportModal';
-import { Upload, Download } from 'lucide-react';
+import { Upload, Download, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useExportData, ExportField } from '@/hooks/useExportData';
 import { ExportModal } from '@/components/ui/export-modal';
+import { BulkDeletionModal } from '@/components/funcionarios/BulkDeletionModal';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -71,6 +72,7 @@ const EmpresaDetalhes = () => {
   const [funcionarioModalOpen, setFuncionarioModalOpen] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedCnpjForImport, setSelectedCnpjForImport] = useState<string>('');
+  const [showBulkDeletionModal, setShowBulkDeletionModal] = useState(false);
 
   const { clearEmpresaCache, refreshEmpresa } = useEmpresaCache();
   const queryClient = useQueryClient();
@@ -332,6 +334,15 @@ const EmpresaDetalhes = () => {
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowBulkDeletionModal(true)}
+                      disabled={!funcionarios || funcionarios.length === 0}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir em Massa
+                    </Button>
                     <Button variant="outline" onClick={handleOpenImport}>
                       <Upload className="h-4 w-4 mr-2" />
                       Importar CSV
@@ -440,6 +451,25 @@ const EmpresaDetalhes = () => {
           onFuncionarioAdded={() => {
             setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
           }}
+        />
+
+        {/* Modal para exclusão em massa */}
+        <BulkDeletionModal
+          isOpen={showBulkDeletionModal}
+          onClose={() => setShowBulkDeletionModal(false)}
+          funcionarios={funcionarios?.map(f => ({
+            id: f.id,
+            nome: f.nome,
+            cpf: f.cpf,
+            cargo: f.cargo,
+            status: f.status,
+            cnpj: f.cnpj ? {
+              id: f.cnpj_id,
+              razao_social: f.cnpj.razao_social,
+              cnpj: f.cnpj.cnpj
+            } : undefined
+          })) || []}
+          empresaNome={empresa?.nome || ''}
         />
 
       {/* Modais de Importação em Massa */}
