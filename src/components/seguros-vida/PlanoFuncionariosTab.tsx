@@ -10,6 +10,7 @@ import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPla
 import { useExportData, ExportField } from '@/hooks/useExportData';
 import { ExportModal } from '@/components/ui/export-modal';
 import { useToast } from '@/hooks/use-toast';
+import { usePlanoFuncionariosExport } from '@/hooks/usePlanoFuncionariosExport';
 
 interface PlanoFuncionariosTabProps {
   planoId: string;
@@ -22,6 +23,7 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
   const { toast } = useToast();
 
   const { data: planoDetalhes } = usePlanoDetalhes(planoId);
+  const { fetchAllFuncionarios, isLoading: isLoadingExport } = usePlanoFuncionariosExport();
   
   const {
     openExportPreview,
@@ -63,27 +65,52 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
     { key: 'data_contratacao', label: 'Data de Contratação', selected: true, format: formatDate }
   ];
 
-  const handleExportFuncionarios = () => {
-    if (!funcionarios || funcionarios.length === 0) {
+  const handleExportFuncionarios = async () => {
+    try {
       toast({
-        title: 'Nenhum dado para exportar',
-        description: 'Não há funcionários para exportar.',
+        title: 'Carregando dados...',
+        description: 'Buscando todos os funcionários filtrados para exportação.',
+      });
+
+      // Buscar TODOS os funcionários com os filtros aplicados
+      const todosFuncionarios = await fetchAllFuncionarios({
+        planoId,
+        tipoSeguro: planoDetalhes?.tipo_seguro || 'vida',
+        statusFilter: statusFilter !== 'todos' ? statusFilter : undefined,
+        search: search || undefined
+      });
+
+      if (!todosFuncionarios || todosFuncionarios.length === 0) {
+        toast({
+          title: 'Nenhum dado para exportar',
+          description: 'Não há funcionários para exportar com os filtros aplicados.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Adicionar o valor mensal do plano
+      const dataParaExportar = todosFuncionarios.map(func => ({
+        ...func,
+        valor_mensal_plano: planoDetalhes?.valor_mensal || 0
+      }));
+
+      let nomeArquivo = `funcionarios_plano_${planoDetalhes?.seguradora || 'seguro'}`;
+      if (statusFilter !== 'todos') nomeArquivo += `_${statusFilter}`;
+      if (search) nomeArquivo += '_filtrado';
+      nomeArquivo = nomeArquivo.replace(/\s+/g, '_').toLowerCase();
+
+      console.log('📊 Exportando', dataParaExportar.length, 'funcionários');
+
+      openExportPreview(dataParaExportar, exportFields, nomeArquivo);
+    } catch (error) {
+      console.error('Erro ao buscar dados para exportação:', error);
+      toast({
+        title: 'Erro ao exportar',
+        description: 'Ocorreu um erro ao buscar os dados para exportação.',
         variant: 'destructive'
       });
-      return;
     }
-
-    const dataParaExportar = funcionarios.map(func => ({
-      ...func,
-      valor_mensal_plano: planoDetalhes?.valor_mensal || 0
-    }));
-
-    let nomeArquivo = `funcionarios_plano_${planoDetalhes?.seguradora || 'seguro'}`;
-    if (statusFilter !== 'todos') nomeArquivo += `_${statusFilter}`;
-    if (search) nomeArquivo += '_filtrado';
-    nomeArquivo = nomeArquivo.replace(/\s+/g, '_').toLowerCase();
-
-    openExportPreview(dataParaExportar, exportFields, nomeArquivo);
   };
 
   return (
@@ -100,10 +127,10 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
             <Button 
               variant="outline" 
               onClick={handleExportFuncionarios}
-              disabled={!funcionarios || funcionarios.length === 0 || isLoading}
+              disabled={isLoading || isLoadingExport || totalCount === 0}
             >
               <Download className="h-4 w-4 mr-2" />
-              Exportar
+              {isLoadingExport ? 'Carregando...' : 'Exportar'}
             </Button>
           </div>
         </CardHeader>
