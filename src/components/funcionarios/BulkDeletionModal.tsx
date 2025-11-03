@@ -52,9 +52,9 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
   const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [filters, setFilters] = useState({
     searchTerm: '',
-    cnpjId: '',
-    statusFilter: '',
-    cargoFilter: ''
+    cnpjId: 'all',
+    statusFilter: 'all',
+    cargoFilter: 'all'
   });
 
   const { mutate: deleteFuncionarios, isPending, data: deletionResults } = useBulkDeletion();
@@ -69,9 +69,9 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
           return false;
         }
       }
-      if (filters.cnpjId && func.cnpj?.id !== filters.cnpjId) return false;
-      if (filters.statusFilter && func.status !== filters.statusFilter) return false;
-      if (filters.cargoFilter && func.cargo !== filters.cargoFilter) return false;
+      if (filters.cnpjId !== 'all' && func.cnpj?.id !== filters.cnpjId) return false;
+      if (filters.statusFilter !== 'all' && func.status !== filters.statusFilter) return false;
+      if (filters.cargoFilter !== 'all' && func.cargo !== filters.cargoFilter) return false;
       return true;
     });
   }, [funcionarios, filters]);
@@ -117,7 +117,7 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
     setCurrentStep('selection');
     setSelectedIds(new Set());
     setConfirmationChecked(false);
-    setFilters({ searchTerm: '', cnpjId: '', statusFilter: '', cargoFilter: '' });
+    setFilters({ searchTerm: '', cnpjId: 'all', statusFilter: 'all', cargoFilter: 'all' });
   };
 
   const handleClose = () => {
@@ -209,7 +209,7 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
                       <SelectValue placeholder="Todos os CNPJs" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       {uniqueCnpjs.map(id => {
                         const cnpj = funcionarios.find(f => f.cnpj?.id === id)?.cnpj;
                         return (
@@ -225,7 +225,7 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
                       <SelectValue placeholder="Todos os status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="ativo">Ativo</SelectItem>
                       <SelectItem value="pendente">Pendente</SelectItem>
                       <SelectItem value="exclusao_solicitada">Exclusão Solicitada</SelectItem>
@@ -236,7 +236,7 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
                       <SelectValue placeholder="Todos os cargos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       {uniqueCargos.map(cargo => (
                         <SelectItem key={cargo} value={cargo}>{cargo}</SelectItem>
                       ))}
@@ -250,7 +250,7 @@ export const BulkDeletionModal: React.FC<BulkDeletionModalProps> = ({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => setFilters({ searchTerm: '', cnpjId: '', statusFilter: '', cargoFilter: '' })}
+                    onClick={() => setFilters({ searchTerm: '', cnpjId: 'all', statusFilter: 'all', cargoFilter: 'all' })}
                   >
                     Limpar Filtros
                   </Button>
