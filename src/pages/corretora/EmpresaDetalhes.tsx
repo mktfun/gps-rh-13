@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Users, FileText, Phone, Mail, User, Plus, AlertCircle, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useEmpresa } from '@/hooks/useEmpresa';
 import { useEmpresaCache } from '@/hooks/useEmpresaCache';
 import { useFuncionarios } from '@/hooks/useFuncionarios';
@@ -21,9 +22,11 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
 import { BulkImportModal } from '@/components/import/BulkImportModal';
-import { Upload } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { useExportData, ExportField } from '@/hooks/useExportData';
+import { ExportModal } from '@/components/ui/export-modal';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -71,6 +74,23 @@ const EmpresaDetalhes = () => {
 
   const { clearEmpresaCache, refreshEmpresa } = useEmpresaCache();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const {
+    openExportPreview,
+    isPreviewOpen,
+    setIsPreviewOpen,
+    exportOptions,
+    updateExportOptions,
+    toggleField,
+    selectAllFields,
+    deselectAllFields,
+    executeExport,
+    isExporting,
+    formatCurrency,
+    formatCPF,
+    formatDate
+  } = useExportData();
 
   // Atualizar o filtro quando o parâmetro da URL mudar
   useEffect(() => {
@@ -179,6 +199,41 @@ const EmpresaDetalhes = () => {
     queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa'] });
   };
 
+  const exportFields: ExportField[] = [
+    { key: 'nome', label: 'Nome do Funcionário', selected: true },
+    { key: 'cpf', label: 'CPF', selected: true, format: formatCPF },
+    { key: 'cargo', label: 'Cargo', selected: true },
+    { key: 'salario', label: 'Salário', selected: true, format: formatCurrency },
+    { key: 'status', label: 'Status', selected: true },
+    { key: 'data_contratacao', label: 'Data de Contratação', selected: true, format: formatDate },
+    { key: 'cnpj_razao_social', label: 'CNPJ (Razão Social)', selected: true },
+    { key: 'cnpj_numero', label: 'Número do CNPJ', selected: true }
+  ];
+
+  const handleExportFuncionarios = () => {
+    if (!funcionarios || funcionarios.length === 0) {
+      toast({
+        title: 'Nenhum dado para exportar',
+        description: 'Não há funcionários para exportar.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const dataParaExportar = funcionarios.map(func => ({
+      ...func,
+      cnpj_razao_social: func.cnpj?.razao_social || 'N/A',
+      cnpj_numero: func.cnpj?.cnpj || 'N/A'
+    }));
+
+    let nomeArquivo = `funcionarios_${empresa?.nome || 'empresa'}`;
+    if (statusFilter !== 'all') nomeArquivo += `_${statusFilter}`;
+    if (search) nomeArquivo += '_filtrado';
+    nomeArquivo = nomeArquivo.replace(/\s+/g, '_').toLowerCase();
+
+    openExportPreview(dataParaExportar, exportFields, nomeArquivo);
+  };
+
   const handleForceRefresh = async () => {
     if (empresaId) {
       console.log('🔄 [EmpresaDetalhes] Forçando refresh manual para empresa:', empresaId);
@@ -281,6 +336,14 @@ const EmpresaDetalhes = () => {
                       <Upload className="h-4 w-4 mr-2" />
                       Importar CSV
                     </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleExportFuncionarios}
+                      disabled={!funcionarios || funcionarios.length === 0}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Exportar
+                    </Button>
                     <Button onClick={() => setFuncionarioModalOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Funcionário
@@ -379,59 +442,73 @@ const EmpresaDetalhes = () => {
           }}
         />
 
-        {/* Modais de Importação em Massa */}
-        {cnpjs && cnpjs.length > 0 && (
-          <>
-            {/* Modal de Seleção de CNPJ (se múltiplos CNPJs) */}
-            {showImportModal && !selectedCnpjForImport && cnpjs.length > 1 && (
-              <Dialog open={showImportModal} onOpenChange={(open) => {
-                if (!open) {
-                  setShowImportModal(false);
-                }
-              }}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Selecione o CNPJ para Importação</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <p className="text-sm text-muted-foreground">
-                      Escolha o CNPJ onde os funcionários serão importados:
-                    </p>
-                    <Select onValueChange={handleCnpjSelected}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um CNPJ" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cnpjs.map((cnpj) => (
-                          <SelectItem key={cnpj.id} value={cnpj.id}>
-                            {cnpj.razao_social} ({cnpj.cnpj})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
+      {/* Modais de Importação em Massa */}
+      {cnpjs && cnpjs.length > 0 && (
+        <>
+          {/* Modal de Seleção de CNPJ (se múltiplos CNPJs) */}
+          {showImportModal && !selectedCnpjForImport && cnpjs.length > 1 && (
+            <Dialog open={showImportModal} onOpenChange={(open) => {
+              if (!open) {
+                setShowImportModal(false);
+              }
+            }}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Selecione o CNPJ para Importação</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <p className="text-sm text-muted-foreground">
+                    Escolha o CNPJ onde os funcionários serão importados:
+                  </p>
+                  <Select onValueChange={handleCnpjSelected}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um CNPJ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cnpjs.map((cnpj) => (
+                        <SelectItem key={cnpj.id} value={cnpj.id}>
+                          {cnpj.razao_social} ({cnpj.cnpj})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
-            {/* Modal de Importação (quando CNPJ já está selecionado) */}
-            {selectedCnpjForImport && (
-              <BulkImportModal
-                isOpen={showImportModal}
-                onClose={handleCloseImport}
-                cnpjId={selectedCnpjForImport}
-                plano={{
-                  id: 'corretora-import',
-                  seguradora: cnpjs.find(c => c.id === selectedCnpjForImport)?.razao_social || 'Empresa',
-                  valor_mensal: 0
-                }}
-              />
-            )}
-          </>
-        )}
-      </div>
-    );
-  }
+          {/* Modal de Importação (quando CNPJ já está selecionado) */}
+          {selectedCnpjForImport && (
+            <BulkImportModal
+              isOpen={showImportModal}
+              onClose={handleCloseImport}
+              cnpjId={selectedCnpjForImport}
+              plano={{
+                id: 'corretora-import',
+                seguradora: cnpjs.find(c => c.id === selectedCnpjForImport)?.razao_social || 'Empresa',
+                valor_mensal: 0
+              }}
+            />
+          )}
+        </>
+      )}
+
+      {/* Modal de Exportação */}
+      <ExportModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        exportOptions={exportOptions}
+        onUpdateOptions={updateExportOptions}
+        onToggleField={toggleField}
+        onSelectAll={selectAllFields}
+        onDeselectAll={deselectAllFields}
+        onExecuteExport={executeExport}
+        isExporting={isExporting}
+        dataCount={funcionarios?.length || 0}
+      />
+    </div>
+  );
+}
 
   // ESTADO 3: ERRO APENAS SE REALMENTE NÃO TEMOS DADOS
   if (erroEmpresa && !empresa) {
