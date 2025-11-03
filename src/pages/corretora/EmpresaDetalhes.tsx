@@ -20,6 +20,10 @@ import { Database } from '@/integrations/supabase/types';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { AdicionarFuncionarioModal } from '@/components/empresa/AdicionarFuncionarioModal';
+import { BulkImportModal } from '@/components/import/BulkImportModal';
+import { Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -62,8 +66,11 @@ const EmpresaDetalhes = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCnpj, setEditingCnpj] = useState<Cnpj | null>(null);
   const [funcionarioModalOpen, setFuncionarioModalOpen] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedCnpjForImport, setSelectedCnpjForImport] = useState<string>('');
 
   const { clearEmpresaCache, refreshEmpresa } = useEmpresaCache();
+  const queryClient = useQueryClient();
 
   // Atualizar o filtro quando o parâmetro da URL mudar
   useEffect(() => {
@@ -146,6 +153,31 @@ const EmpresaDetalhes = () => {
     setEditingCnpj(null);
   };
 
+  const handleOpenImport = () => {
+    // Se só tem 1 CNPJ, já seleciona automaticamente
+    if (cnpjs && cnpjs.length === 1) {
+      setSelectedCnpjForImport(cnpjs[0].id);
+      setShowImportModal(true);
+    } else if (cnpjs && cnpjs.length > 1) {
+      // Mostra modal de seleção de CNPJ
+      setShowImportModal(true);
+    } else {
+      // Sem CNPJs cadastrados
+      alert('Não há CNPJs cadastrados para esta empresa. Adicione um CNPJ antes de importar funcionários.');
+    }
+  };
+
+  const handleCnpjSelected = (cnpjId: string) => {
+    setSelectedCnpjForImport(cnpjId);
+  };
+
+  const handleCloseImport = () => {
+    setShowImportModal(false);
+    setSelectedCnpjForImport('');
+    // Invalidar queries para atualizar a lista
+    queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+    queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa'] });
+  };
 
   const handleForceRefresh = async () => {
     if (empresaId) {
@@ -244,10 +276,16 @@ const EmpresaDetalhes = () => {
                       Gerencie os funcionários desta empresa
                     </CardDescription>
                   </div>
-                  <Button onClick={() => setFuncionarioModalOpen(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Adicionar Funcionário
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleOpenImport}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Importar CSV
+                    </Button>
+                    <Button onClick={() => setFuncionarioModalOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Funcionário
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* Filtros */}
@@ -340,6 +378,57 @@ const EmpresaDetalhes = () => {
             setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
           }}
         />
+
+        {/* Modais de Importação em Massa */}
+        {cnpjs && cnpjs.length > 0 && (
+          <>
+            {/* Modal de Seleção de CNPJ (se múltiplos CNPJs) */}
+            {showImportModal && !selectedCnpjForImport && cnpjs.length > 1 && (
+              <Dialog open={showImportModal} onOpenChange={(open) => {
+                if (!open) {
+                  setShowImportModal(false);
+                }
+              }}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Selecione o CNPJ para Importação</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Escolha o CNPJ onde os funcionários serão importados:
+                    </p>
+                    <Select onValueChange={handleCnpjSelected}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um CNPJ" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cnpjs.map((cnpj) => (
+                          <SelectItem key={cnpj.id} value={cnpj.id}>
+                            {cnpj.razao_social} ({cnpj.cnpj})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* Modal de Importação (quando CNPJ já está selecionado) */}
+            {selectedCnpjForImport && (
+              <BulkImportModal
+                isOpen={showImportModal}
+                onClose={handleCloseImport}
+                cnpjId={selectedCnpjForImport}
+                plano={{
+                  id: 'corretora-import',
+                  seguradora: cnpjs.find(c => c.id === selectedCnpjForImport)?.razao_social || 'Empresa',
+                  valor_mensal: 0
+                }}
+              />
+            )}
+          </>
+        )}
       </div>
     );
   }
