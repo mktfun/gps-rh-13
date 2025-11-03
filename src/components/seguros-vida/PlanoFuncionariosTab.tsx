@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Download } from 'lucide-react';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { usePlanoDetalhes } from '@/hooks/usePlanoDetalhes';
 import { FuncionariosPlanoDataTable } from '@/components/empresa/FuncionariosPlanoDataTable';
+import { useExportData, ExportField } from '@/hooks/useExportData';
+import { ExportModal } from '@/components/ui/export-modal';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlanoFuncionariosTabProps {
   planoId: string;
@@ -15,8 +19,25 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const { toast } = useToast();
 
   const { data: planoDetalhes } = usePlanoDetalhes(planoId);
+  
+  const {
+    openExportPreview,
+    isPreviewOpen,
+    setIsPreviewOpen,
+    exportOptions,
+    updateExportOptions,
+    toggleField,
+    selectAllFields,
+    deselectAllFields,
+    executeExport,
+    isExporting,
+    formatCurrency,
+    formatCPF,
+    formatDate
+  } = useExportData();
   
   const { data, isLoading } = usePlanoFuncionarios({
     planoId,
@@ -31,6 +52,40 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
   const totalCount = data?.totalCount || 0;
   const totalPages = data?.totalPages || 0;
 
+  const exportFields: ExportField[] = [
+    { key: 'nome', label: 'Nome do Funcionário', selected: true },
+    { key: 'cpf', label: 'CPF', selected: true, format: formatCPF },
+    { key: 'cargo', label: 'Cargo', selected: true },
+    { key: 'idade', label: 'Idade', selected: true },
+    { key: 'salario', label: 'Salário', selected: true, format: formatCurrency },
+    { key: 'valor_mensal_plano', label: 'Valor Mensal do Plano', selected: true, format: formatCurrency },
+    { key: 'status', label: 'Status', selected: true },
+    { key: 'data_contratacao', label: 'Data de Contratação', selected: true, format: formatDate }
+  ];
+
+  const handleExportFuncionarios = () => {
+    if (!funcionarios || funcionarios.length === 0) {
+      toast({
+        title: 'Nenhum dado para exportar',
+        description: 'Não há funcionários para exportar.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const dataParaExportar = funcionarios.map(func => ({
+      ...func,
+      valor_mensal_plano: planoDetalhes?.valor_mensal || 0
+    }));
+
+    let nomeArquivo = `funcionarios_plano_${planoDetalhes?.seguradora || 'seguro'}`;
+    if (statusFilter !== 'todos') nomeArquivo += `_${statusFilter}`;
+    if (search) nomeArquivo += '_filtrado';
+    nomeArquivo = nomeArquivo.replace(/\s+/g, '_').toLowerCase();
+
+    openExportPreview(dataParaExportar, exportFields, nomeArquivo);
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -42,6 +97,14 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
                 {totalCount} funcionário(s) vinculado(s) a este plano
               </p>
             </div>
+            <Button 
+              variant="outline" 
+              onClick={handleExportFuncionarios}
+              disabled={!funcionarios || funcionarios.length === 0 || isLoading}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -93,6 +156,19 @@ export default function PlanoFuncionariosTab({ planoId }: PlanoFuncionariosTabPr
           )}
         </CardContent>
       </Card>
+
+      <ExportModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        exportOptions={exportOptions}
+        onUpdateOptions={updateExportOptions}
+        onToggleField={toggleField}
+        onSelectAll={selectAllFields}
+        onDeselectAll={deselectAllFields}
+        onExecuteExport={executeExport}
+        isExporting={isExporting}
+        dataCount={funcionarios?.length || 0}
+      />
     </div>
   );
 }
