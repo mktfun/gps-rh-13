@@ -1023,10 +1023,12 @@ export type Database = {
       }
       delete_plano: { Args: { p_plano_id: string }; Returns: Json }
       email_exists: { Args: { email_to_check: string }; Returns: boolean }
-      executar_exclusao_funcionario: {
-        Args: { p_funcionario_id: string }
-        Returns: Json
-      }
+      executar_exclusao_funcionario:
+        | { Args: { p_funcionario_id: string }; Returns: Json }
+        | {
+            Args: { p_funcionario_id: string; p_usuario_executor?: string }
+            Returns: Json
+          }
       find_or_create_conversation_corretora: {
         Args: { p_empresa_id: string }
         Returns: Json
@@ -1275,18 +1277,33 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_funcionarios_fora_do_plano: {
-        Args: { p_cnpj_id: string; p_plano_id: string }
-        Returns: {
-          cargo: string
-          cpf: string
-          id: string
-          idade: number
-          nome: string
-          salario: number
-          status: string
-        }[]
-      }
+      get_funcionarios_fora_do_plano:
+        | {
+            Args: { p_plano_id: string }
+            Returns: {
+              cargo: string
+              cnpj_id: string
+              cnpj_numero: string
+              cpf: string
+              id: string
+              nome: string
+              razao_social: string
+              salario: number
+              status: string
+            }[]
+          }
+        | {
+            Args: { p_cnpj_id: string; p_plano_id: string }
+            Returns: {
+              cargo: string
+              cpf: string
+              id: string
+              idade: number
+              nome: string
+              salario: number
+              status: string
+            }[]
+          }
       get_funcionarios_por_plano: {
         Args: {
           p_page_index?: number
@@ -1518,18 +1535,36 @@ export type Database = {
           pendencia_criada: boolean
         }[]
       }
-      resolver_exclusao_funcionario: {
-        Args: { p_aprovado: boolean; p_funcionario_id: string }
-        Returns: Json
-      }
+      resolver_exclusao_funcionario:
+        | {
+            Args: { p_aprovado: boolean; p_funcionario_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_aprovado: boolean
+              p_funcionario_id: string
+              p_usuario_executor?: string
+            }
+            Returns: Json
+          }
       solicitar_ativacao_plano_existente: {
         Args: { p_funcionario_id: string; p_tipo_plano: string }
         Returns: Json
       }
-      solicitar_exclusao_funcionario: {
-        Args: { p_funcionario_id: string; p_motivo?: string }
-        Returns: Json
-      }
+      solicitar_exclusao_funcionario:
+        | {
+            Args: { p_funcionario_id: string; p_motivo?: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_funcionario_id: string
+              p_motivo?: string
+              p_usuario_solicitante?: string
+            }
+            Returns: Json
+          }
       test_dashboard_connection: { Args: never; Returns: Json }
       test_simple_count: { Args: never; Returns: Json }
       toggle_corretora_status: {
