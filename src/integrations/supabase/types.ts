@@ -951,10 +951,7 @@ export type Database = {
         Args: { p_plano_id: string }
         Returns: number
       }
-      contar_total_mensagens_nao_lidas: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      contar_total_mensagens_nao_lidas: { Args: never; Returns: number }
       create_plano: {
         Args: {
           p_cnpj_id: string
@@ -980,9 +977,9 @@ export type Database = {
         }
         Returns: Json
       }
-      criar_funcionario_com_planos: {
-        Args:
-          | {
+      criar_funcionario_com_planos:
+        | {
+            Args: {
               p_cargo: string
               p_cnpj_id: string
               p_cpf: string
@@ -995,7 +992,10 @@ export type Database = {
               p_nome: string
               p_salario: number
             }
-          | {
+            Returns: Json
+          }
+        | {
+            Args: {
               p_cargo: string
               p_cnpj_id: string
               p_cpf: string
@@ -1007,24 +1007,12 @@ export type Database = {
               p_nome: string
               p_salario: number
             }
-        Returns: Json
-      }
-      debug_dashboard_data: {
-        Args: { p_empresa_id?: string }
-        Returns: Json
-      }
-      debug_receita_corretora: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      debug_table_structure: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      deletar_conversa: {
-        Args: { p_conversa_id: string }
-        Returns: undefined
-      }
+            Returns: Json
+          }
+      debug_dashboard_data: { Args: { p_empresa_id?: string }; Returns: Json }
+      debug_receita_corretora: { Args: never; Returns: Json }
+      debug_table_structure: { Args: never; Returns: Json }
+      deletar_conversa: { Args: { p_conversa_id: string }; Returns: undefined }
       delete_cnpj_with_cleanup: {
         Args: { cnpj_id_param: string }
         Returns: boolean
@@ -1033,14 +1021,8 @@ export type Database = {
         Args: { empresa_id_param: string }
         Returns: boolean
       }
-      delete_plano: {
-        Args: { p_plano_id: string }
-        Returns: Json
-      }
-      email_exists: {
-        Args: { email_to_check: string }
-        Returns: boolean
-      }
+      delete_plano: { Args: { p_plano_id: string }; Returns: Json }
+      email_exists: { Args: { email_to_check: string }; Returns: boolean }
       executar_exclusao_funcionario: {
         Args: { p_funcionario_id: string }
         Returns: Json
@@ -1049,18 +1031,9 @@ export type Database = {
         Args: { p_empresa_id: string }
         Returns: Json
       }
-      find_or_create_conversation_empresa: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      generate_protocolo: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_acoes_necessarias_corretora: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      find_or_create_conversation_empresa: { Args: never; Returns: Json }
+      generate_protocolo: { Args: never; Returns: string }
+      get_acoes_necessarias_corretora: { Args: never; Returns: Json }
       get_audit_logs: {
         Args: {
           p_action_type?: string
@@ -1099,7 +1072,7 @@ export type Database = {
         }[]
       }
       get_conversas_usuario: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           conversa_id: string
           created_at: string
@@ -1107,54 +1080,38 @@ export type Database = {
           protocolo: string
         }[]
       }
-      get_corretora_dashboard_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_corretora_dashboard_metrics: { Args: never; Returns: Json }
       get_custo_individual_funcionario: {
         Args: { p_funcionario_id: string; p_plano_id: string }
         Returns: number
       }
-      get_dashboard_details_corretora: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_dashboard_metrics_geral: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_dashboard_details_corretora: { Args: never; Returns: Json }
+      get_dashboard_metrics_geral: { Args: never; Returns: Json }
       get_detailed_costs_report: {
         Args: { p_empresa_id: string; p_end_date: string; p_start_date: string }
         Returns: Json
       }
       get_distribuicao_status_funcionarios: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           count: number
           status: string
         }[]
       }
-      get_empresa_dashboard_metrics: {
-        Args: Record<PropertyKey, never> | { p_empresa_id: string }
-        Returns: Json
-      }
-      get_empresa_dashboard_metrics_central: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_empresa_dashboard_metrics_v3: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_empresa_dashboard_metrics:
+        | { Args: never; Returns: Json }
+        | { Args: { p_empresa_id: string }; Returns: Json }
+      get_empresa_dashboard_metrics_central: { Args: never; Returns: Json }
+      get_empresa_dashboard_metrics_v3: { Args: never; Returns: Json }
       get_empresa_distribuicao_cargos: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           cargo: string
           count: number
         }[]
       }
       get_empresa_evolucao_mensal: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           mes: string
           novos_funcionarios: number
@@ -1180,7 +1137,7 @@ export type Database = {
         }[]
       }
       get_empresas_com_metricas: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           corretora_id: string
           created_at: string
@@ -1205,7 +1162,7 @@ export type Database = {
         }[]
       }
       get_empresas_unificadas: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           funcionarios_ativos: number
           funcionarios_pendentes: number
@@ -1355,18 +1312,9 @@ export type Database = {
           total_count: number
         }[]
       }
-      get_my_empresa_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_my_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_operational_metrics_corretor: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_my_empresa_id: { Args: never; Returns: string }
+      get_my_role: { Args: never; Returns: string }
+      get_operational_metrics_corretor: { Args: never; Returns: Json }
       get_pendencias_empresa: {
         Args: { p_empresa_id: string }
         Returns: {
@@ -1422,10 +1370,7 @@ export type Database = {
           valor_mensal: number
         }[]
       }
-      get_pulse_financeiro_corretor: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_pulse_financeiro_corretor: { Args: never; Returns: Json }
       get_relatorio_custos_empresa: {
         Args: {
           p_empresa_id: string
@@ -1450,26 +1395,39 @@ export type Database = {
         Args: { p_corretora_id: string }
         Returns: Json
       }
-      get_relatorio_funcionarios_empresa: {
-        Args:
-          | { p_cnpj_id?: string; p_empresa_id: string }
-          | {
+      get_relatorio_funcionarios_empresa:
+        | {
+            Args: { p_cnpj_id?: string; p_empresa_id: string }
+            Returns: {
+              cargo: string
+              cnpj_razao_social: string
+              cpf: string
+              data_contratacao: string
+              funcionario_id: string
+              nome: string
+              salario: number
+              status: string
+            }[]
+          }
+        | {
+            Args: {
               p_cnpj_id?: string
               p_empresa_id: string
               p_page_offset?: number
               p_page_size?: number
             }
-        Returns: {
-          cargo: string
-          cnpj_razao_social: string
-          cpf: string
-          data_contratacao: string
-          funcionario_id: string
-          nome: string
-          salario: number
-          status: string
-        }[]
-      }
+            Returns: {
+              cargo: string
+              cnpj_razao_social: string
+              cpf: string
+              data_contratacao: string
+              funcionario_id: string
+              nome: string
+              salario: number
+              status: string
+              total_count: number
+            }[]
+          }
       get_relatorio_geral_funcionarios: {
         Args: {
           p_corretora_id: string
@@ -1515,7 +1473,7 @@ export type Database = {
         }[]
       }
       get_security_events: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           action_type: string
           created_at: string
@@ -1526,18 +1484,9 @@ export type Database = {
           user_role: Database["public"]["Enums"]["user_role"]
         }[]
       }
-      get_smart_actions_corretor: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_top_empresas_receita: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_user_role: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
+      get_smart_actions_corretor: { Args: never; Returns: Json }
+      get_top_empresas_receita: { Args: never; Returns: Json }
+      get_user_role: { Args: { p_user_id: string }; Returns: string }
       iniciar_conversa_com_protocolo: {
         Args: { p_assunto_id: string; p_empresa_id: string }
         Returns: string
@@ -1554,18 +1503,12 @@ export type Database = {
         Args: { p_conversa_id: string }
         Returns: undefined
       }
-      mark_all_notifications_as_read: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      mark_all_notifications_as_read: { Args: never; Returns: undefined }
       mark_notification_as_read: {
         Args: { p_notification_id: string }
         Returns: undefined
       }
-      path_plano_id: {
-        Args: { _name: string }
-        Returns: string
-      }
+      path_plano_id: { Args: { _name: string }; Returns: string }
       repair_missing_pendencias_for_empresa: {
         Args: { p_empresa_id?: string }
         Returns: {
@@ -1587,14 +1530,8 @@ export type Database = {
         Args: { p_funcionario_id: string; p_motivo?: string }
         Returns: Json
       }
-      test_dashboard_connection: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      test_simple_count: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      test_dashboard_connection: { Args: never; Returns: Json }
+      test_simple_count: { Args: never; Returns: Json }
       toggle_corretora_status: {
         Args: { target_user_id: string }
         Returns: Json
@@ -1624,10 +1561,7 @@ export type Database = {
         }
         Returns: Json
       }
-      validate_cpf: {
-        Args: { cpf_input: string }
-        Returns: boolean
-      }
+      validate_cpf: { Args: { cpf_input: string }; Returns: boolean }
     }
     Enums: {
       boleto_status: "pendente" | "pago" | "vencido"
