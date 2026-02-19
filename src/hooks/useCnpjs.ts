@@ -75,6 +75,34 @@ export const useCnpjs = (params: UseCnpjsParams) => {
         .single();
 
       if (error) throw error;
+
+      // Após criar o CNPJ, tentar criar conta de acesso para a empresa
+      try {
+        const { data: accountResult, error: accountError } = await supabase.functions.invoke(
+          'create-empresa-account',
+          {
+            body: {
+              empresa_id: cnpj.empresa_id,
+              cnpj: cnpj.cnpj,
+            },
+          }
+        );
+
+        if (accountError) {
+          console.warn('⚠️ Erro ao criar conta da empresa (não crítico):', accountError);
+        } else if (accountResult?.already_exists) {
+          console.log('ℹ️ Conta já existe para esta empresa');
+        } else if (accountResult?.success) {
+          console.log('✅ Conta criada:', accountResult.message);
+          toast({
+            title: 'Conta de acesso criada',
+            description: `Login: ${accountResult.email} | Senha: primeiros 4 dígitos do CNPJ`,
+          });
+        }
+      } catch (accountErr) {
+        console.warn('⚠️ Falha ao criar conta (não crítico):', accountErr);
+      }
+
       return data;
     },
     onSuccess: () => {
