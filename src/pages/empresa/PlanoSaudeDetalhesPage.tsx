@@ -35,6 +35,7 @@ import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 
 const PlanoSaudeDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('funcionarios');
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   
