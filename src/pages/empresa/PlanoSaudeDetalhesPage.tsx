@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import PlanoFuncionariosTab from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { ValoresVidaTable } from '@/components/planos/ValoresVidaTable';
+import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import {
   Stethoscope,
   Building2,
