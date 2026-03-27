@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import PlanoFuncionariosTab from '@/components/seguros-vida/PlanoFuncionariosTab';
+import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import { 
   Shield, 
   Building2, 
@@ -30,6 +32,7 @@ import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 
 const SeguroVidaDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('funcionarios');
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   
@@ -70,8 +73,11 @@ const SeguroVidaDetalhesPage: React.FC = () => {
     setShouldOpenAddModal(true);
   };
 
-  const handleAddModalHandled = () => {
+  const handleFuncionariosAdicionados = () => {
     setShouldOpenAddModal(false);
+    queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', planoId] });
+    queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', planoId] });
+    queryClient.invalidateQueries({ queryKey: ['plano-detalhes', planoId] });
   };
 
   // Early return if no planoId
@@ -307,6 +313,16 @@ const SeguroVidaDetalhesPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {plano && (
+        <SelecionarFuncionariosModal
+          isOpen={shouldOpenAddModal}
+          onClose={() => setShouldOpenAddModal(false)}
+          planoId={plano.id}
+          cnpjId={plano.cnpj_id}
+          onFuncionariosAdicionados={handleFuncionariosAdicionados}
+        />
+      )}
     </div>
   );
 };
