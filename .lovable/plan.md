@@ -1,34 +1,31 @@
 
 
-# Fix: Ativação de funcionário pelo corretor não funciona de verdade
+# Manual do Usuário Empresa -- Arquivo Markdown
 
-## Problema
+Criar o arquivo `MANUAL_USUARIO_EMPRESA.md` na raiz do projeto, cobrindo todos os módulos acessíveis ao papel "empresa" no sistema GPS RH.
 
-Existem **3 lugares** que ativam funcionários, mas **2 deles fazem errado** -- apenas mudam `funcionarios.status` para `'ativo'` via UPDATE direto, sem:
-- Criar o vínculo em `planos_funcionarios`
-- Resolver a pendência correspondente
+## Conteúdo do Manual
 
-A RPC `ativar_funcionario_no_plano` já faz tudo corretamente (cria vínculo, resolve pendência, atualiza status). Precisa apenas fazer todos os fluxos usarem essa RPC.
+Baseado na análise das rotas e sidebar da empresa, o manual cobrirá:
 
-## Correções
+### Estrutura (seções)
 
-### 1. `src/components/funcionarios/BulkActivationModal.tsx`
-A mutation `bulkActivationMutation` (linhas 93-121) faz `supabase.from('funcionarios').update({ status: 'ativo' })`.
+1. **Primeiro Acesso** -- Login, redefinição de senha, primeiro acesso
+2. **Dashboard** -- KPIs, gráficos, ações rápidas, filtros por CNPJ
+3. **CNPJs** -- Visualizar filiais/matrizes vinculadas
+4. **Funcionários** -- Cadastrar novo, solicitar exclusão, ver status (pendente/ativo/exclusão solicitada), filtros
+5. **Seguros de Vida** -- Ver planos vinculados, coberturas, lista de funcionários no plano, adicionar funcionários ao plano
+6. **Planos de Saúde** -- Ver planos, faixas de preço por idade, adicionar funcionários, solicitar alterações de coberturas
+7. **Relatórios** -- Funcionários, Custos e Pendências (filtros, exportação)
+8. **Chat** -- Abrir conversa com a corretora, protocolo automático, anexos
+9. **Perfil e Configurações** -- Alterar dados, logo da empresa, notificações
+10. **Fluxos Práticos** -- Passo a passo de cadastro, exclusão, ativação, consulta de pendências
 
-**Corrigir para:** chamar `supabase.rpc('ativar_funcionario_no_plano', { p_funcionario_id: id, p_plano_id: plano.id })` para cada funcionário. Verificar o retorno `result.success` para detectar erros.
+Cada seção terá: o que é, como acessar (caminho no menu), passo a passo com instruções claras para leigos, e dicas.
 
-### 2. `src/components/funcionarios/AtivarFuncionarioForm.tsx`
-A mutation (linhas 63-72) faz `supabase.from('funcionarios').update({ status: 'ativo' })`.
+### Arquivo
 
-**Corrigir para:** chamar a RPC `ativar_funcionario_no_plano`. Precisa receber o `planoId` como prop ou permitir selecionar o plano. Como o componente já recebe `planos[]`, adicionar um select para o usuário escolher o plano e usar a RPC.
-
-### 3. Invalidação de queries
-Ambos os componentes devem invalidar as mesmas queries que `useAtivarFuncionarioPlano.ts` já invalida: `planoFuncionarios`, `planoFuncionariosStats`, `funcionarios`, `pendencias-corretora`.
-
-## Resumo
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `src/components/funcionarios/BulkActivationModal.tsx` | Trocar UPDATE direto pela RPC `ativar_funcionario_no_plano` |
-| `src/components/funcionarios/AtivarFuncionarioForm.tsx` | Trocar UPDATE direto pela RPC + adicionar seleção de plano |
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| `MANUAL_USUARIO_EMPRESA.md` | Criação | Manual completo para usuário empresa, ~400 linhas |
 
