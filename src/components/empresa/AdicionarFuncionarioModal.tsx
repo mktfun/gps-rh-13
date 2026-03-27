@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePlanosDisponiveis } from '@/hooks/usePlanosDisponiveis';
 import { useCnpjs } from '@/hooks/useCnpjs';
 import { toast } from 'sonner';
-import { Loader2, Heart, Cross } from 'lucide-react';
+import { Loader2, Heart, Cross, CheckCircle2 } from 'lucide-react';
 
 const funcionarioSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
