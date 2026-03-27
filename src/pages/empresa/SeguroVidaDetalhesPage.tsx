@@ -313,6 +313,16 @@ const SeguroVidaDetalhesPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {plano && (
+        <SelecionarFuncionariosModal
+          isOpen={shouldOpenAddModal}
+          onClose={() => setShouldOpenAddModal(false)}
+          planoId={plano.id}
+          cnpjId={plano.cnpj_id}
+          onFuncionariosAdicionados={handleFuncionariosAdicionados}
+        />
+      )}
     </div>
   );
 };
