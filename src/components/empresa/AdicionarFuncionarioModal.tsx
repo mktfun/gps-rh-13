@@ -340,7 +340,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
                 type="number"
                 step="0.01"
                 {...register('salario', { valueAsNumber: true })}
-                placeholder="0.00"
+                placeholder="Ex: 2500.00"
                 className={errors.salario ? 'border-destructive' : ''}
               />
               {errors.salario && (
