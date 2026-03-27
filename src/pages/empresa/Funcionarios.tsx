@@ -90,6 +90,14 @@ const Funcionarios = () => {
         .eq('id', funcionarioId);
 
       if (error) throw error;
+
+      // Resolver pendências de ativação associadas
+      await supabase
+        .from('pendencias')
+        .update({ status: 'resolvida', updated_at: new Date().toISOString() })
+        .eq('funcionario_id', funcionarioId)
+        .eq('tipo', 'ativacao')
+        .eq('status', 'pendente');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
