@@ -1,42 +1,45 @@
 
 
-# Fix: Funcionários não aparecem na tela da corretora + seguro de vida
+# Fix: Logout não funciona (só recarrega a página)
 
-## Bug Confirmado: Paginação duplicada no EmpresaDetalhes
+## Problema
 
-Em `src/pages/corretora/EmpresaDetalhes.tsx` (linha 127):
+A função `signOut` em `useAuth.tsx`:
+1. Chama `setIsLoading(true)` -- isso re-renderiza o RootLayout mostrando loading
+2. Chama `await supabase.auth.signOut()` -- pode falhar silenciosamente
+3. Chama `window.location.href = '/login'` -- faz hard reload
+
+O `window.location.href` causa um reload completo da página. Se o `signOut` do Supabase falhar ou não completar antes do reload, a sessão persiste no localStorage e o usuário é redirecionado de volta pelo `PublicLayout` (que detecta usuário autenticado e redireciona para o dashboard).
+
+## Solução
+
+### Arquivo: `src/hooks/useAuth.tsx` -- função `signOut`
+
+1. **Limpar estado local PRIMEIRO** (user, session, role, empresaId, branding) antes de chamar o Supabase
+2. **Limpar localStorage manualmente** como fallback (`localStorage.removeItem` das keys do Supabase)
+3. **NÃO usar `setIsLoading(true)`** -- evita re-render desnecessário antes do redirect
+4. **Usar `window.location.replace('/login')`** em vez de `href` para não adicionar ao histórico
+5. **Wrap tudo em try/finally** para garantir redirect mesmo se signOut falhar
+
 ```
-page: pagination.pageIndex + 1   // passa 1 quando deveria passar 0
+const signOut = async () => {
+  // 1. Limpar estado React imediatamente
+  setUser(null); setSession(null); setRole(null); ...
+  
+  // 2. Tentar signOut no Supabase
+  try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
+  
+  // 3. Fallback: limpar storage manualmente
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('sb-')) localStorage.removeItem(key);
+  });
+  
+  // 4. Redirect
+  window.location.replace('/login');
+};
 ```
-
-Depois em `useFuncionarios.ts` (linha 267):
-```
-pageNum: page + 1   // converte 1 → 2, pulando a primeira página
-```
-
-Resultado: a primeira página de resultados nunca é exibida. O RPC recebe `page_num = 2` quando deveria receber `1`, então o offset pula os primeiros 10 funcionários.
-
-## Bug no Seguro de Vida: funcionário pendente não aparece
-
-Quando `criar_funcionario_com_planos` cria um funcionário com `p_incluir_vida = true`:
-- Cria o funcionário com status `ativo`
-- Cria uma `pendência` de ativação com `tipo_plano = 'vida'`
-- **NÃO** cria registro em `planos_funcionarios`
-
-O RPC `get_funcionarios_por_plano` tem um UNION ALL que busca pendências pendentes. Porém, ele usa `SECURITY INVOKER` (padrão). A empresa precisa ter acesso via RLS para ver as pendências -- isso deveria funcionar com a policy existente. A causa provável é que a RPC `get_funcionarios_por_plano` **não** está como `SECURITY DEFINER`, e o acesso indireto às tabelas via JOINs complexos pode falhar com RLS do invoker.
-
-## Correções
-
-### 1. Arquivo: `src/pages/corretora/EmpresaDetalhes.tsx`
-- Mudar `page: pagination.pageIndex + 1` para `page: pagination.pageIndex` (remover o `+ 1`)
-
-### 2. Migration SQL: tornar `get_funcionarios_por_plano` SECURITY DEFINER
-- Recriar a função com `SECURITY DEFINER` e `SET search_path TO 'public'` para garantir que tanto corretora quanto empresa consigam ver os funcionários pendentes via pendências
-
-## Resumo
 
 | Arquivo | Tipo | Descrição |
 |---------|------|-----------|
-| `src/pages/corretora/EmpresaDetalhes.tsx` | Edição | Corrigir paginação: remover `+ 1` duplicado |
-| Nova migration SQL | Criação | `get_funcionarios_por_plano` como SECURITY DEFINER |
+| `src/hooks/useAuth.tsx` | Edição | Reescrever `signOut` para limpar estado + storage antes de redirecionar |
 
