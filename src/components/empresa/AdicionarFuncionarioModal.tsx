@@ -140,6 +140,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       }
     } catch {
       setCpfWarning(null);
+      setCpfOk(false);
     } finally {
       setIsCheckingCpf(false);
     }
