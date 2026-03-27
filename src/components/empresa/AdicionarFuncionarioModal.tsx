@@ -98,7 +98,55 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     }
   }, [watchedCnpjId]);
 
+  // Check CPF against existing employees in the same empresa
+  const checkCpfDuplicate = React.useCallback(async (cpf: string) => {
+    if (!cpf || cpf.length < 11) {
+      setCpfWarning(null);
+      return;
+    }
+    
+    const cleanCpf = cpf.replace(/\D/g, '');
+    if (cleanCpf.length < 11) {
+      setCpfWarning(null);
+      return;
+    }
+
+    setIsCheckingCpf(true);
+    try {
+      // Get all cnpj_ids for this empresa
+      const cnpjIds = cnpjsData?.map(c => c.id) || [];
+      if (cnpjIds.length === 0) {
+        setCpfWarning(null);
+        return;
+      }
+
+      const { data: existing } = await supabase
+        .from('funcionarios')
+        .select('nome, cpf, status')
+        .in('cnpj_id', cnpjIds)
+        .or(`cpf.eq.${cleanCpf},cpf.eq.${cpf}`)
+        .not('status', 'in', '("arquivado","desativado")')
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        setCpfWarning(`CPF já cadastrado: ${existing[0].nome} (${existing[0].status})`);
+      } else {
+        setCpfWarning(null);
+      }
+    } catch {
+      setCpfWarning(null);
+    } finally {
+      setIsCheckingCpf(false);
+    }
+  }, [cnpjsData]);
+
   const onSubmit = async (data: FuncionarioFormData) => {
+    // Block if CPF is duplicate
+    if (cpfWarning) {
+      toast.error('Não é possível cadastrar: ' + cpfWarning);
+      return;
+    }
+
     try {
       await criarFuncionario.mutateAsync({
         ...data,
@@ -112,12 +160,24 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       reset();
       setIncluirSaude(false);
       setIncluirVida(false);
+      setCpfWarning(null);
       setSelectedCnpjId(cnpjId || '');
       onOpenChange(false);
       onFuncionarioAdded?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao adicionar funcionário:', error);
-      toast.error('Erro ao adicionar funcionário');
+      
+      // Translate common DB errors to user-friendly messages
+      const msg = error?.message || '';
+      if (msg.includes('check_salario_positivo')) {
+        toast.error('Salário deve ser maior que zero');
+      } else if (msg.includes('duplicate key') || msg.includes('unique constraint') || msg.includes('cpf')) {
+        toast.error('CPF já cadastrado nesta empresa');
+      } else if (msg.includes('já possui um plano do tipo')) {
+        toast.error(msg);
+      } else {
+        toast.error(msg || 'Erro ao adicionar funcionário');
+      }
     }
   };
 
