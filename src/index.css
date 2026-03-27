@@ -52,7 +52,7 @@ html {
     --ring: 221 83% 53%;                 /* Primary color for focus rings */
     
     /* Radius */
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
     /* Chart Colors */
     --chart-1: 12 76% 61%;
@@ -284,4 +284,30 @@ html {
 :focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* Base utility for cards and interactive elements */
+.card-hover {
+  transition: all 0.2s ease-out;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.3), 0 2px 4px -1px rgb(0 0 0 / 0.2);
+}
+
+/* Button utility with glow and elevation */
+.btn-glow {
+  transition: all 0.15s ease-out;
+  box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+}
+.btn-glow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.35);
+}
+.btn-glow:active {
+  transform: translateY(0);
 }

@@ -101,13 +101,13 @@ const SmartBreadcrumbs = () => {
           <div key={breadcrumb.id} style={{ display: 'contents' }}>
             <BreadcrumbItem>
               {breadcrumb.isLast ? (
-                <BreadcrumbPage className="flex items-center gap-1">
+                <BreadcrumbPage className="flex items-center gap-1 font-semibold text-foreground">
                   {breadcrumb.icon}
                   {breadcrumb.name}
                 </BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>
-                  <Link to={breadcrumb.path} className="flex items-center gap-1 hover:text-foreground">
+                  <Link to={breadcrumb.path} className="flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors">
                     {breadcrumb.icon}
                     {breadcrumb.name}
                   </Link>
@@ -115,7 +115,7 @@ const SmartBreadcrumbs = () => {
               )}
             </BreadcrumbItem>
             {index < breadcrumbs.length - 1 && (
-              <BreadcrumbSeparator>
+              <BreadcrumbSeparator className="text-muted-foreground/50">
                 <ChevronRight className="h-4 w-4" />
               </BreadcrumbSeparator>
             )}

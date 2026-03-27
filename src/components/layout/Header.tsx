@@ -12,95 +12,7 @@ import { SystemStatusModal } from '@/components/system/SystemStatusModal';
 import { QuickActionsMenu } from '@/components/actions/QuickActionsMenu';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
-// Componentes de navegação mobile
-import { BarChart3, Building2, FileText, Users, Settings, User } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-
-const MobileNavigation = () => {
-  const location = useLocation();
-  
-  const isActive = (path: string) => location.pathname === path;
-  
-  // Determina qual navegação mostrar baseado na rota atual
-  const isCorretora = location.pathname.startsWith('/corretora');
-  
-  if (isCorretora) {
-    return (
-      <nav className="space-y-2 py-4">
-        <Link 
-          to="/corretora" 
-          className={cn(
-            "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-            isActive("/corretora") 
-              ? "bg-accent text-accent-foreground" 
-              : "hover:bg-accent hover:text-accent-foreground"
-          )}
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span>Dashboard</span>
-        </Link>
-        
-        <Link 
-          to="/corretora/empresas" 
-          className={cn(
-            "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-            isActive("/corretora/empresas") 
-              ? "bg-accent text-accent-foreground" 
-              : "hover:bg-accent hover:text-accent-foreground"
-          )}
-        >
-          <Building2 className="h-4 w-4" />
-          <span>Empresas</span>
-        </Link>
-        
-        <Link 
-          to="/corretora/dados-planos" 
-          className={cn(
-            "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-            isActive("/corretora/dados-planos") 
-              ? "bg-accent text-accent-foreground" 
-              : "hover:bg-accent hover:text-accent-foreground"
-          )}
-        >
-          <FileText className="h-4 w-4" />
-          <span>Dados dos Planos</span>
-        </Link>
-      </nav>
-    );
-  }
-  
-  // Navegação para empresa
-  return (
-    <nav className="space-y-2 py-4">
-      <Link 
-        to="/empresa" 
-        className={cn(
-          "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-          isActive("/empresa") 
-            ? "bg-accent text-accent-foreground" 
-            : "hover:bg-accent hover:text-accent-foreground"
-        )}
-      >
-        <BarChart3 className="h-4 w-4" />
-        <span>Dashboard</span>
-      </Link>
-      
-      <Link 
-        to="/empresa/funcionarios" 
-        className={cn(
-          "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-          isActive("/empresa/funcionarios") 
-            ? "bg-accent text-accent-foreground" 
-            : "hover:bg-accent hover:text-accent-foreground"
-        )}
-      >
-        <Users className="h-4 w-4" />
-        <span>Funcionários</span>
-      </Link>
-    </nav>
-  );
-};
+import { MobileNav } from './MobileNav';
 
 export const Header = () => {
   const isMobile = useIsMobile();
@@ -112,31 +24,10 @@ export const Header = () => {
   };
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b bg-card px-4 lg:px-6 shadow-sm">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background/80 backdrop-blur-md px-4 lg:px-6 sticky top-0 z-50">
       {/* Grupo da Esquerda: Menu Mobile + Breadcrumbs */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        {isMobile && (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64">
-              <SheetHeader>
-                <SheetTitle>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold">GPS</span>
-                  </div>
-                </SheetTitle>
-                <SheetDescription>
-                  Navegação
-                </SheetDescription>
-              </SheetHeader>
-              <MobileNavigation />
-            </SheetContent>
-          </Sheet>
-        )}
+        <MobileNav />
         
         <div className="min-w-0 flex-1">
           <SmartBreadcrumbs />

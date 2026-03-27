@@ -27,8 +27,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       "flex flex-col items-center justify-center p-8 text-center space-y-4",
       className
     )}>
-      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-        <Icon className="h-8 w-8 text-muted-foreground" />
+      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2 ring-1 ring-primary/20 shadow-sm animate-fade-in">
+        <Icon className="h-8 w-8 text-primary" />
       </div>
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>

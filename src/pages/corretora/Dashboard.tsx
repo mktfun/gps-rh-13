@@ -151,11 +151,11 @@ const CorretoraDashboard = () => {
 
   const getCardColorClasses = (color: string) => {
     const colors = {
-      blue: "border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20",
-      green: "border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20",
-      emerald: "border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20",
-      amber: "border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20",
-      red: "border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20"
+      blue: "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-900 dark:to-blue-950/30 ring-1 ring-blue-100 dark:ring-blue-900/50",
+      green: "bg-gradient-to-br from-white to-green-50/50 dark:from-slate-900 dark:to-green-950/30 ring-1 ring-green-100 dark:ring-green-900/50",
+      emerald: "bg-gradient-to-br from-white to-emerald-50/50 dark:from-slate-900 dark:to-emerald-950/30 ring-1 ring-emerald-100 dark:ring-emerald-900/50",
+      amber: "bg-gradient-to-br from-white to-amber-50/50 dark:from-slate-900 dark:to-amber-950/30 ring-1 ring-amber-100 dark:ring-amber-900/50",
+      red: "bg-gradient-to-br from-white to-red-50/50 dark:from-slate-900 dark:to-red-950/30 ring-1 ring-red-100 dark:ring-red-900/50"
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -219,7 +219,7 @@ const CorretoraDashboard = () => {
           <Card 
             key={index} 
             className={cn(
-              "border transition-all duration-200 hover:shadow-lg cursor-pointer group", 
+              "border-none rounded-2xl shadow-card transition-all duration-200 card-hover cursor-pointer group relative overflow-hidden", 
               getCardColorClasses(kpi.color)
             )}
             onClick={() => navigate(kpi.href)}
@@ -359,7 +359,7 @@ const CorretoraDashboard = () => {
             <Card 
               key={index} 
               className={cn(
-                "border transition-all duration-200 hover:shadow-lg cursor-pointer group", 
+                "border-none rounded-2xl shadow-card transition-all duration-200 card-hover cursor-pointer group relative overflow-hidden", 
                 getCardColorClasses(action.color)
               )}
               onClick={action.action}

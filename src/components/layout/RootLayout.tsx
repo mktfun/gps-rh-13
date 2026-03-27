@@ -36,8 +36,8 @@ const RootLayout = ({ children }: RootLayoutProps) => {
           <Header />
 
           {/* Main Content Area: Scrollable content with modern spacing */}
-          <main className="flex-1 overflow-y-auto bg-background">
-            <div className="container mx-auto p-6 lg:p-8 space-y-8">
+          <main className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-background">
+            <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-8">
               {children || <Outlet />}
             </div>
           </main>

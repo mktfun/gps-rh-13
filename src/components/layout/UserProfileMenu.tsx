@@ -85,16 +85,25 @@ export const UserProfileMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative h-10 w-10 rounded-full hover:bg-accent">
-          <Avatar className="h-9 w-9">
+        <Button variant="ghost" size="sm" className="relative flex items-center gap-2 h-auto px-2 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <Avatar className="h-8 w-8 border border-border shadow-sm">
             <AvatarImage 
               src={branding?.logo_url || ""} 
               alt={profile?.nome || user?.email || "Avatar"} 
             />
-            <AvatarFallback className="text-sm font-medium">
+            <AvatarFallback className="text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
               {getInitials()}
             </AvatarFallback>
           </Avatar>
+          
+          <div className="hidden md:flex flex-col items-start text-left">
+            <span className="text-sm font-medium leading-none">
+              {profile?.nome?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário'}
+            </span>
+            <span className="text-xs text-muted-foreground mt-1">
+              {getRoleLabel()}
+            </span>
+          </div>
           
           {/* Indicador de status quando há logo */}
           {branding?.logo_url && (

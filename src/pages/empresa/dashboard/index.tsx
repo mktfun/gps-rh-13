@@ -30,6 +30,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
 import { CnpjListHorizontal } from '@/components/dashboard/CnpjListHorizontal';
+import { cn } from '@/lib/utils';
 
 interface KPICardProps {
   title: string;
@@ -417,23 +418,23 @@ function KPICard({
   const getVariantStyles = () => {
     switch (variant) {
       case 'success':
-        return 'border-corporate-green/20 bg-corporate-green/5';
+        return 'ring-1 ring-corporate-green/20 bg-gradient-to-br from-white to-corporate-green/5 dark:from-slate-900 dark:to-corporate-green/10';
       case 'warning':
-        return 'border-corporate-orange/20 bg-corporate-orange/5';
+        return 'ring-1 ring-corporate-orange/20 bg-gradient-to-br from-white to-corporate-orange/5 dark:from-slate-900 dark:to-corporate-orange/10';
       case 'destructive':
-        return 'border-destructive/20 bg-destructive/5';
+        return 'ring-1 ring-destructive/20 bg-gradient-to-br from-white to-destructive/5 dark:from-slate-900 dark:to-destructive/10';
       default:
-        return 'border-border bg-card';
+        return 'ring-1 ring-border/50 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-800/50';
     }
   };
 
   return (
     <Card 
-      className={`${getVariantStyles()} transition-all duration-200 ${
-        isClickable
-          ? 'hover:shadow-lg hover:scale-[1.02] cursor-pointer hover:border-primary/50 group'
-          : 'hover:shadow-md'
-      }`} 
+      className={cn(
+        "border-none rounded-2xl shadow-card transition-all duration-200",
+        getVariantStyles(),
+        isClickable ? "card-hover cursor-pointer group" : ""
+      )}
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">

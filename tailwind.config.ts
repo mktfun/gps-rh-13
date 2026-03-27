@@ -118,15 +118,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					from: { opacity: '0', transform: 'translateY(4px)' },
+					to: { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-in-left': {
+					from: { transform: 'translateX(-100%)' },
+					to: { transform: 'translateX(0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.2s ease-out',
+				'slide-in-left': 'slide-in-left 0.25s cubic-bezier(0.32, 0.72, 0, 1)'
 			},
 			boxShadow: {
 				'corporate': '0 1px 3px 0 hsl(210 14% 83% / 0.1), 0 1px 2px -1px hsl(210 14% 83% / 0.1)',
-				'corporate-lg': '0 10px 15px -3px hsl(210 14% 83% / 0.1), 0 4px 6px -4px hsl(210 14% 83% / 0.1)'
+				'corporate-lg': '0 10px 15px -3px hsl(210 14% 83% / 0.1), 0 4px 6px -4px hsl(210 14% 83% / 0.1)',
+				'xs': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				'card': '0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+				'card-hover': '0 4px 12px 0 rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06)',
+				'elevator': '0 8px 24px 0 rgb(0 0 0 / 0.12), 0 2px 8px -2px rgb(0 0 0 / 0.08)'
 			},
 			backgroundImage: {
 				'corporate-gradient': 'linear-gradient(135deg, hsl(var(--corporate-blue)) 0%, hsl(var(--corporate-green)) 100%)',

@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { usePendenciasDaCorretora } from '@/hooks/usePendenciasDaCorretora';
 import { getDashboardRoute } from '@/utils/routePaths';
 import { 
   LayoutDashboard, 
@@ -24,6 +25,7 @@ import {
 const Sidebar = () => {
   const location = useLocation();
   const { role } = useAuth();
+  const { totalPendencias } = usePendenciasDaCorretora();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -61,6 +63,7 @@ const Sidebar = () => {
       name: 'Relatório de Pendências',
       href: '/corretora/relatorios/pendencias',
       icon: ClipboardList,
+      badge: totalPendencias > 0 ? totalPendencias.toString() : undefined,
     },
     {
       name: 'Auditoria',
@@ -169,26 +172,26 @@ const Sidebar = () => {
       key={item.href}
       to={item.href}
       className={cn(
-        'group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+        'group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-slate-800 hover:text-slate-50',
         isActive(item.href) 
-          ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm' 
-          : 'text-sidebar-foreground'
+          ? 'bg-blue-600 text-white shadow-sm' 
+          : 'text-slate-400'
       )}
     >
       <item.icon className={cn(
         "h-4 w-4 transition-all duration-200",
         isActive(item.href) 
-          ? 'text-sidebar-primary-foreground' 
-          : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'
+          ? 'text-white' 
+          : 'text-slate-400 group-hover:text-slate-50'
       )} />
       <span className="truncate">{item.name}</span>
-      {item.badge && <Badge variant="secondary" className="ml-auto">{item.badge}</Badge>}
+      {item.badge && <Badge variant="destructive" className="ml-auto">{item.badge}</Badge>}
     </Link>
   );
 
   const renderSection = (title: string, items: any[]) => (
     <div className="space-y-1">
-      <div className="px-3 py-2 text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider">
+      <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
         {title}
       </div>
       <div className="space-y-1">
@@ -198,19 +201,19 @@ const Sidebar = () => {
   );
 
   return (
-    <div className="flex h-full w-64 flex-col bg-sidebar-background border-r border-sidebar-border">
+    <div className="flex h-full w-64 flex-col bg-slate-950 text-slate-50 border-r border-slate-800">
       {/* Logo Header */}
-      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+      <div className="flex h-16 items-center border-b border-slate-800 px-6">
         <Link 
-          className="flex items-center gap-3 font-bold text-sidebar-foreground hover:text-sidebar-primary transition-colors" 
+          className="flex items-center gap-3 font-bold hover:opacity-80 transition-opacity" 
           to={getDashboardRoute(role)}
         >
-          <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-            <MapPin className="h-5 w-5 text-sidebar-primary-foreground" />
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+            <MapPin className="h-5 w-5 text-white" />
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-lg font-bold">GPS</span>
-            <span className="text-xs text-sidebar-foreground/60">Gestor Planos de Saúde</span>
+            <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">GPS</span>
+            <span className="text-xs text-slate-400">Gestor Planos de Saúde</span>
           </div>
         </Link>
       </div>
@@ -228,11 +231,8 @@ const Sidebar = () => {
           {role === 'corretora' && (
             <div className="space-y-6">
               {renderSection('Principal', corretoraNavigation)}
-              <Separator className="bg-sidebar-border" />
               {renderSection('Operacional', corretoraOperacional)}
-              <Separator className="bg-sidebar-border" />
               {renderSection('Planos', corretoraPlanos)}
-              <Separator className="bg-sidebar-border" />
               {renderSection('Relatórios', corretoraRelatorios)}
             </div>
           )}
@@ -240,16 +240,16 @@ const Sidebar = () => {
           {role === 'empresa' && (
             <div className="space-y-6">
               {renderSection('Principal', empresaNavigation)}
-              <Separator className="bg-sidebar-border" />
               {renderSection('Planos', empresaPlanos)}
-              <Separator className="bg-sidebar-border" />
               {renderSection('Relatórios', empresaRelatorios)}
             </div>
           )}
 
           {/* Shared navigation */}
-          <Separator className="bg-sidebar-border" />
-          {renderSection('Configurações', sharedNavigation)}
+          <div className="pt-2">
+            <Separator className="bg-slate-800 mb-6 hidden" />
+            {renderSection('Configurações', sharedNavigation)}
+          </div>
         </div>
       </ScrollArea>
     </div>
