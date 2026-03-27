@@ -83,7 +83,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       data_nascimento: '',
       data_admissao: '',
       cargo: '',
-      salario: 0,
+      salario: undefined as unknown as number,
       estado_civil: 'solteiro',
       email: '',
       cnpj_id: cnpjId || '',
