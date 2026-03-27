@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useCriarFuncionarioComPlanos } from '@/hooks/useCriarFuncionarioComPlanos';
+import { supabase } from '@/integrations/supabase/client';
 import { usePlanosDisponiveis } from '@/hooks/usePlanosDisponiveis';
 import { useCnpjs } from '@/hooks/useCnpjs';
 import { toast } from 'sonner';
