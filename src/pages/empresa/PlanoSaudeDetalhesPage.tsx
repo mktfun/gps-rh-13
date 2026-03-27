@@ -368,6 +368,19 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {plano && (
+        <SelecionarFuncionariosModal
+          isOpen={shouldOpenAddModal}
+          onClose={() => setShouldOpenAddModal(false)}
+          cnpjId={plano.cnpj_id}
+          planoId={plano.id}
+          onFuncionariosAdicionados={() => {
+            queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', plano.id] });
+            queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', plano.id] });
+          }}
+        />
+      )}
     </div>
   );
 };
