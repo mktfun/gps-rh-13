@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import PlanoFuncionariosTab from '@/components/seguros-vida/PlanoFuncionariosTab';
+import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import { 
   Shield, 
   Building2, 
