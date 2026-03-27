@@ -254,10 +254,14 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
                 id="cpf"
                 {...register('cpf')}
                 placeholder="000.000.000-00"
-                className={errors.cpf ? 'border-destructive' : ''}
+                className={errors.cpf || cpfWarning ? 'border-destructive' : ''}
+                onBlur={(e) => checkCpfDuplicate(e.target.value)}
               />
               {errors.cpf && (
                 <p className="text-sm text-destructive">{errors.cpf.message}</p>
+              )}
+              {cpfWarning && (
+                <p className="text-sm text-destructive font-medium">⚠️ {cpfWarning}</p>
               )}
             </div>
 
