@@ -19,9 +19,11 @@ interface FuncionarioEmpresaCompleto {
   cnpj_id: string;
   cnpj_razao_social: string;
   cnpj_numero: string;
-  plano_seguradora: string | null;
-  plano_valor_mensal: number | null;
-  plano_cobertura_morte: number | null;
+  plano_saude_seguradora: string | null;
+  plano_saude_valor: number | null;
+  plano_vida_seguradora: string | null;
+  plano_vida_valor: number | null;
+  plano_vida_cobertura_morte: number | null;
   total_count: number;
 }
 
@@ -54,14 +56,6 @@ export const useFuncionariosEmpresa = (params: UseFuncionariosEmpresaParams) => 
       if (!user?.id) throw new Error('Usuário não autenticado');
       if (!empresaId) throw new Error('ID da empresa não fornecido');
 
-      console.log('🔍 [useFuncionariosEmpresa] Buscando funcionários via RPC:', { 
-        empresaId, 
-        search, 
-        statusFilter, 
-        pageSize, 
-        pageNum 
-      });
-
       const { data, error } = await supabase.rpc('get_funcionarios_empresa_completo', {
         p_empresa_id: empresaId,
         p_search_term: search || null,
@@ -78,13 +72,6 @@ export const useFuncionariosEmpresa = (params: UseFuncionariosEmpresaParams) => 
       const funcionarios = (data || []) as FuncionarioEmpresaCompleto[];
       const totalCount = funcionarios.length > 0 ? funcionarios[0].total_count : 0;
       const totalPages = Math.ceil(totalCount / pageSize);
-
-      console.log('✅ [useFuncionariosEmpresa] Resultado:', {
-        funcionarios: funcionarios.length,
-        totalCount,
-        totalPages,
-        currentPage: pageNum
-      });
 
       return {
         funcionarios,
