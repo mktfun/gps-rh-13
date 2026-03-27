@@ -451,7 +451,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isCreating}>
+            <Button type="submit" disabled={isCreating || isCheckingCpf}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Adicionar Funcionário
             </Button>
