@@ -2,11 +2,14 @@
 import React from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash2, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { usePlanoFuncionarios } from '@/hooks/usePlanoFuncionarios';
 import { PlanoFuncionario } from '@/hooks/usePlanoFuncionarios';
 import { useAuth } from '@/hooks/useAuth';
 import { useAtivarFuncionarioPlano } from '@/hooks/useAtivarFuncionarioPlano';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface FuncionarioActionsMenuProps {
   funcionario: PlanoFuncionario;
@@ -24,6 +27,7 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
   onViewDetails
 }) => {
   const { role } = useAuth();
+  const queryClient = useQueryClient();
   const { updateFuncionario, deleteFuncionario } = usePlanoFuncionarios({
     planoId,
     tipoSeguro,
@@ -44,9 +48,124 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
     });
   };
 
-  const handleRemove = () => {
-    if (window.confirm('Tem certeza que deseja remover este funcionário do plano?')) {
-      deleteFuncionario.mutate(funcionario.funcionario_id);
+  const handleAprovarExclusao = async () => {
+    if (!window.confirm('Tem certeza que deseja aprovar a exclusão deste funcionário?')) return;
+
+    try {
+      // 1. Atualizar funcionário: status inativo + data_exclusao
+      const { error: updateError } = await supabase
+        .from('funcionarios')
+        .update({
+          status: 'desativado',
+          data_exclusao: new Date().toISOString(),
+          motivo_exclusao: 'Exclusão aprovada pela corretora'
+        })
+        .eq('id', funcionario.funcionario_id);
+
+      if (updateError) throw updateError;
+
+      // 2. Registrar no histórico
+      const { error: historicoError } = await supabase
+        .from('historico_funcionarios')
+        .insert({
+          funcionario_id: funcionario.funcionario_id,
+          cnpj_id: funcionario.cnpj_id,
+          nome: funcionario.nome,
+          cpf: funcionario.cpf,
+          data_nascimento: funcionario.data_nascimento,
+          cargo: funcionario.cargo,
+          salario: funcionario.salario,
+          email: funcionario.email || '',
+          idade: funcionario.idade,
+          estado_civil: 'solteiro',
+          motivo_saida: 'Exclusão aprovada pela corretora',
+          data_saida: new Date().toISOString()
+        });
+
+      if (historicoError) {
+        console.warn('Erro ao registrar histórico (não crítico):', historicoError);
+      }
+
+      // 3. Remover vínculo do plano
+      const { error: deleteError } = await supabase
+        .from('planos_funcionarios')
+        .delete()
+        .match({
+          plano_id: planoId,
+          funcionario_id: funcionario.funcionario_id
+        });
+
+      if (deleteError) throw deleteError;
+
+      toast.success('Exclusão aprovada com sucesso');
+
+      // 4. Invalidar todas as queries relevantes
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
+      queryClient.invalidateQueries({ queryKey: ['relatorioMovimentacao'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+    } catch (error: any) {
+      console.error('Erro ao aprovar exclusão:', error);
+      toast.error(error?.message || 'Erro ao aprovar exclusão');
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!window.confirm('Tem certeza que deseja excluir definitivamente este funcionário do plano?')) return;
+
+    try {
+      // 1. Atualizar funcionário
+      const { error: updateError } = await supabase
+        .from('funcionarios')
+        .update({
+          status: 'desativado',
+          data_exclusao: new Date().toISOString(),
+          motivo_exclusao: 'Exclusão direta pela corretora'
+        })
+        .eq('id', funcionario.funcionario_id);
+
+      if (updateError) throw updateError;
+
+      // 2. Registrar no histórico
+      await supabase
+        .from('historico_funcionarios')
+        .insert({
+          funcionario_id: funcionario.funcionario_id,
+          cnpj_id: funcionario.cnpj_id,
+          nome: funcionario.nome,
+          cpf: funcionario.cpf,
+          data_nascimento: funcionario.data_nascimento,
+          cargo: funcionario.cargo,
+          salario: funcionario.salario,
+          email: funcionario.email || '',
+          idade: funcionario.idade,
+          estado_civil: 'solteiro',
+          motivo_saida: 'Exclusão direta pela corretora',
+          data_saida: new Date().toISOString()
+        });
+
+      // 3. Remover vínculo
+      const { error: deleteError } = await supabase
+        .from('planos_funcionarios')
+        .delete()
+        .match({
+          plano_id: planoId,
+          funcionario_id: funcionario.funcionario_id
+        });
+
+      if (deleteError) throw deleteError;
+
+      toast.success('Funcionário excluído com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
+      queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+    } catch (error: any) {
+      console.error('Erro ao excluir funcionário:', error);
+      toast.error(error?.message || 'Erro ao excluir funcionário');
     }
   };
 
@@ -84,35 +203,36 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
           <>
             {funcionario.status === 'pendente' && (
               <DropdownMenuItem onClick={handleAtivarPendente}>
-                <Edit className="mr-2 h-4 w-4" />
+                <CheckCircle className="mr-2 h-4 w-4" />
                 Ativar
               </DropdownMenuItem>
             )}
             
             {funcionario.status === 'ativo' && (
-              <DropdownMenuItem onClick={() => handleStatusChange('inativo')}>
-                <Edit className="mr-2 h-4 w-4" />
-                Desativar
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem onClick={() => handleStatusChange('inativo')}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Desativar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleRemove} className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir definitivamente
+                </DropdownMenuItem>
+              </>
             )}
             
             {funcionario.status === 'exclusao_solicitada' && (
               <>
                 <DropdownMenuItem onClick={() => handleStatusChange('ativo')} className="text-green-600">
-                  <Edit className="mr-2 h-4 w-4" />
+                  <XCircle className="mr-2 h-4 w-4" />
                   Negar exclusão (Reativar)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleRemove} className="text-red-600">
+                <DropdownMenuItem onClick={handleAprovarExclusao} className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Aprovar exclusão
                 </DropdownMenuItem>
               </>
             )}
-            
-            <DropdownMenuItem onClick={handleRemove} className="text-red-600">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Excluir definitivamente
-            </DropdownMenuItem>
           </>
         )}
 

@@ -108,17 +108,19 @@ export const useCorretoraDashboardMetrics = () => {
             : [];
         }
 
+        // Mapear dados reais da RPC
+        const dd = dashboardDetails as any;
         return {
-          totalEmpresas: 0,
-          totalCnpjs: 0,
-          totalFuncionarios: 0,
-          funcionariosPendentes: 0,
-          receitaMensalEstimada: 0,
+          totalEmpresas: Number(dd?.total_empresas) || 0,
+          totalCnpjs: Number(dd?.total_cnpjs) || 0,
+          totalFuncionarios: Number(dd?.total_funcionarios) || 0,
+          funcionariosPendentes: Number(dd?.funcionarios_pendentes) || 0,
+          receitaMensalEstimada: Number(dd?.receita_mensal_estimada) || 0,
           empresasRecentes,
           estatisticasMensais,
-          distribuicaoPorStatus: [],
-          receitaPorSeguradora: [],
-          rankingEmpresas: []
+          distribuicaoPorStatus: Array.isArray(dd?.distribuicao_status) ? dd.distribuicao_status : [],
+          receitaPorSeguradora: Array.isArray(dd?.receita_por_seguradora) ? dd.receita_por_seguradora : [],
+          rankingEmpresas: Array.isArray(dd?.ranking_empresas) ? dd.ranking_empresas : []
         };
       } catch (error) {
         console.error('❌ [useCorretoraDashboardMetrics] Erro na execução:', error);
