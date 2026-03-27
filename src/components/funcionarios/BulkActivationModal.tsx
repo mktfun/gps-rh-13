@@ -94,15 +94,18 @@ export const BulkActivationModal: React.FC<BulkActivationModalProps> = ({
     mutationFn: async (funcionarioIds: string[]) => {
       const promises = funcionarioIds.map(async (id) => {
         try {
-          const { error } = await supabase
-            .from('funcionarios')
-            .update({
-              status: 'ativo',
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', id);
+          const { data, error } = await supabase.rpc('ativar_funcionario_no_plano', {
+            p_funcionario_id: id,
+            p_plano_id: plano.id,
+          });
 
           if (error) throw error;
+          
+          const result = data as any;
+          if (result && !result.success) {
+            throw new Error(result.error || 'Erro ao ativar funcionário');
+          }
+          
           return { id, success: true };
         } catch (error: any) {
           return { id, success: false, error: error.message };
@@ -126,11 +129,12 @@ export const BulkActivationModal: React.FC<BulkActivationModalProps> = ({
       if (results.success.length > 0) {
         toast.success(`${results.success.length} funcionário(s) ativado(s) com sucesso!`);
         
-        // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-        queryClient.invalidateQueries({ queryKey: ['plano-detalhes'] });
         queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+        queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', plano.id] });
+        queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', plano.id] });
         queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+        queryClient.invalidateQueries({ queryKey: ['corretora-dashboard'] });
       }
       
       if (results.errors.length > 0) {
