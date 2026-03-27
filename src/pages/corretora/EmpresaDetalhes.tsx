@@ -124,7 +124,7 @@ const EmpresaDetalhes = () => {
   } = useFuncionarios({
     empresaId: empresaId,
     search,
-    page: pagination.pageIndex + 1,
+    page: pagination.pageIndex,
     pageSize: pagination.pageSize,
     // Aplicar filtro apenas se não for 'all'
     ...(statusFilter !== 'all' && { statusFilter })
