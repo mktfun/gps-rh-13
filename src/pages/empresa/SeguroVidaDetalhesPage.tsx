@@ -73,8 +73,11 @@ const SeguroVidaDetalhesPage: React.FC = () => {
     setShouldOpenAddModal(true);
   };
 
-  const handleAddModalHandled = () => {
+  const handleFuncionariosAdicionados = () => {
     setShouldOpenAddModal(false);
+    queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', planoId] });
+    queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', planoId] });
+    queryClient.invalidateQueries({ queryKey: ['plano-detalhes', planoId] });
   };
 
   // Early return if no planoId
