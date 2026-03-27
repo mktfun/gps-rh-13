@@ -287,6 +287,11 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
               {cpfWarning && (
                 <p className="text-sm text-destructive font-medium">⚠️ {cpfWarning}</p>
               )}
+              {cpfOk && !cpfWarning && (
+                <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> CPF disponível
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
