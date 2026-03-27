@@ -1268,9 +1268,11 @@ export type Database = {
           funcionario_id: string
           idade: number
           nome: string
-          plano_cobertura_morte: number
-          plano_seguradora: string
-          plano_valor_mensal: number
+          plano_saude_seguradora: string
+          plano_saude_valor: number
+          plano_vida_cobertura_morte: number
+          plano_vida_seguradora: string
+          plano_vida_valor: number
           salario: number
           status: string
           total_count: number

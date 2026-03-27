@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, User, Briefcase, DollarSign, Shield, MoreHorizontal, AlertTriangle, Trash2 } from 'lucide-react';
+import { Eye, User, Briefcase, DollarSign, Heart, Shield, MoreHorizontal, AlertTriangle, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatCurrency } from '@/lib/utils';
 
@@ -18,6 +18,16 @@ interface FuncionarioEmpresa {
     razao_social: string;
     cnpj: string;
   };
+  planoSaude?: {
+    seguradora: string;
+    valor_mensal: number;
+  };
+  planoVida?: {
+    seguradora: string;
+    valor_mensal: number;
+    cobertura_morte: number;
+  };
+  // Keep legacy field for backward compat
   plano?: {
     seguradora: string;
     valor_mensal: number;
@@ -70,21 +80,15 @@ export const createFuncionariosEmpresaTableColumns = (
     header: 'Status',
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
-      const getStatusVariant = (status: string) => {
-        switch (status) {
-          case 'ativo':
-            return 'default';
-          case 'pendente':
-            return 'secondary';
+      const getStatusVariant = (s: string) => {
+        switch (s) {
+          case 'ativo': return 'default';
+          case 'pendente': return 'secondary';
           case 'desativado':
-            return 'destructive';
-          case 'exclusao_solicitada':
-            return 'destructive';
-          default:
-            return 'outline';
+          case 'exclusao_solicitada': return 'destructive';
+          default: return 'outline';
         }
       };
-
       return (
         <Badge variant={getStatusVariant(status)}>
           {status === 'exclusao_solicitada' ? 'Exclusão Solicitada' : status}
@@ -103,7 +107,30 @@ export const createFuncionariosEmpresaTableColumns = (
     ),
   },
   {
-    accessorKey: 'plano',
+    id: 'planoSaude',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="h-8 p-0 hover:bg-transparent"
+      >
+        <Heart className="h-4 w-4 mr-2" />
+        Saúde
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const ps = row.original.planoSaude;
+      if (!ps) return <span className="text-muted-foreground text-xs">—</span>;
+      return (
+        <div className="space-y-0.5">
+          <div className="text-sm font-medium">{ps.seguradora}</div>
+          <div className="text-xs text-muted-foreground">{formatCurrency(ps.valor_mensal)}/mês</div>
+        </div>
+      );
+    },
+  },
+  {
+    id: 'planoVida',
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -111,28 +138,16 @@ export const createFuncionariosEmpresaTableColumns = (
         className="h-8 p-0 hover:bg-transparent"
       >
         <Shield className="h-4 w-4 mr-2" />
-        Plano
+        Vida
       </Button>
     ),
     cell: ({ row }) => {
-      console.log('🔍 Dados do funcionário na célula:', {
-        nome: row.original.nome,
-        plano: row.original.plano,
-        cnpj: row.original.cnpj
-      });
-      
+      const pv = row.original.planoVida;
+      if (!pv) return <span className="text-muted-foreground text-xs">—</span>;
       return (
-        <div className="space-y-1">
-          {row.original.plano ? (
-            <>
-              <div className="text-sm font-medium">{row.original.plano.seguradora}</div>
-              <div className="text-xs text-muted-foreground">
-                {formatCurrency(row.original.plano.valor_mensal)}/mês
-              </div>
-            </>
-          ) : (
-            <span className="text-muted-foreground text-sm">Sem plano</span>
-          )}
+        <div className="space-y-0.5">
+          <div className="text-sm font-medium">{pv.seguradora}</div>
+          <div className="text-xs text-muted-foreground">{formatCurrency(pv.valor_mensal)}/mês</div>
         </div>
       );
     },
@@ -178,7 +193,6 @@ export const createFuncionariosEmpresaTableColumns = (
               Ver Detalhes
             </DropdownMenuItem>
 
-            {/* Ações para EMPRESA */}
             {isEmpresa && canSolicitarExclusao && (
               <DropdownMenuItem
                 onClick={() => onSolicitarExclusao!(funcionario)}
@@ -189,18 +203,14 @@ export const createFuncionariosEmpresaTableColumns = (
               </DropdownMenuItem>
             )}
 
-            {/* Ações para CORRETORA */}
             {isCorretora && (
               <>
-                {/* Ativar funcionário pendente */}
                 {funcionario.status === 'pendente' && onAtivarFuncionario && (
                   <DropdownMenuItem onClick={() => onAtivarFuncionario(funcionario)}>
                     <Shield className="mr-2 h-4 w-4" />
                     Ativar Funcionário
                   </DropdownMenuItem>
                 )}
-
-                {/* Excluir funcionário ativo */}
                 {funcionario.status === 'ativo' && onExcluirFuncionario && (
                   <DropdownMenuItem
                     onClick={() => onExcluirFuncionario(funcionario)}
