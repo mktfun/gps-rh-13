@@ -258,13 +258,29 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
             <div className="space-y-2">
               <Label htmlFor="cpf">CPF *</Label>
-              <Input
-                id="cpf"
-                {...register('cpf')}
-                placeholder="000.000.000-00"
-                className={errors.cpf || cpfWarning ? 'border-destructive' : ''}
-                onBlur={(e) => checkCpfDuplicate(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="cpf"
+                  {...register('cpf', {
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+                      if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                      else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                      else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                      e.target.value = v;
+                      setCpfOk(false);
+                      setCpfWarning(null);
+                    },
+                  })}
+                  placeholder="000.000.000-00"
+                  maxLength={14}
+                  className={errors.cpf || cpfWarning ? 'border-destructive' : cpfOk ? 'border-green-500' : ''}
+                  onBlur={(e) => checkCpfDuplicate(e.target.value)}
+                />
+                {isCheckingCpf && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
               {errors.cpf && (
                 <p className="text-sm text-destructive">{errors.cpf.message}</p>
               )}
