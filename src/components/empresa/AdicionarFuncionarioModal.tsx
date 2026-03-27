@@ -92,6 +92,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
   const estadoCivil = watch('estado_civil');
   const watchedCnpjId = watch('cnpj_id');
+  const [cpfOk, setCpfOk] = React.useState(false);
 
   React.useEffect(() => {
     if (watchedCnpjId) {
