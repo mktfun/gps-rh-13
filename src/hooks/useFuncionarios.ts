@@ -19,6 +19,15 @@ interface FuncionarioWithCnpj extends Funcionario {
     valor_mensal: number;
     cobertura_morte: number;
   };
+  planoSaude?: {
+    seguradora: string;
+    valor_mensal: number;
+  };
+  planoVida?: {
+    seguradora: string;
+    valor_mensal: number;
+    cobertura_morte: number;
+  };
 }
 
 interface UseFuncionariosParams {
