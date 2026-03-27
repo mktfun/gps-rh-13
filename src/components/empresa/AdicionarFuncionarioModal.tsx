@@ -56,6 +56,8 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
   const [incluirSaude, setIncluirSaude] = React.useState(false);
   const [incluirVida, setIncluirVida] = React.useState(false);
   const [selectedCnpjId, setSelectedCnpjId] = React.useState(cnpjId || '');
+  const [cpfWarning, setCpfWarning] = React.useState<string | null>(null);
+  const [isCheckingCpf, setIsCheckingCpf] = React.useState(false);
   
   const { data: planosDisponiveis = [] } = usePlanosDisponiveis(selectedCnpjId || null);
   
