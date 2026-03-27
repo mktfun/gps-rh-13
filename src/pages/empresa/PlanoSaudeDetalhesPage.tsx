@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { InformacoesGeraisTab } from '@/components/planos/InformacoesGeraisTab';
 import PlanoFuncionariosTab from '@/components/seguros-vida/PlanoFuncionariosTab';
 import { ValoresVidaTable } from '@/components/planos/ValoresVidaTable';
+import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import {
   Stethoscope,
   Building2,
@@ -33,6 +35,7 @@ import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 
 const PlanoSaudeDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('funcionarios');
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   
@@ -365,6 +368,19 @@ const PlanoSaudeDetalhesPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {plano && (
+        <SelecionarFuncionariosModal
+          isOpen={shouldOpenAddModal}
+          onClose={() => setShouldOpenAddModal(false)}
+          cnpjId={plano.cnpj_id}
+          planoId={plano.id}
+          onFuncionariosAdicionados={() => {
+            queryClient.invalidateQueries({ queryKey: ['planoFuncionarios', plano.id] });
+            queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', plano.id] });
+          }}
+        />
+      )}
     </div>
   );
 };
