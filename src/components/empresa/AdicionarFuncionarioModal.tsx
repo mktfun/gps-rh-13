@@ -110,6 +110,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     const cleanCpf = cpf.replace(/\D/g, '');
     if (cleanCpf.length < 11) {
       setCpfWarning(null);
+      setCpfOk(false);
       return;
     }
 
