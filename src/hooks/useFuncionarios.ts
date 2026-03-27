@@ -263,10 +263,14 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
         razao_social: f.cnpj_razao_social,
         cnpj: f.cnpj_numero,
       },
-      plano: f.plano_seguradora ? {
-        seguradora: f.plano_seguradora,
-        valor_mensal: f.plano_valor_mensal || 0,
-        cobertura_morte: f.plano_cobertura_morte || 0
+      planoSaude: f.plano_saude_seguradora ? {
+        seguradora: f.plano_saude_seguradora,
+        valor_mensal: f.plano_saude_valor || 0,
+      } : undefined,
+      planoVida: f.plano_vida_seguradora ? {
+        seguradora: f.plano_vida_seguradora,
+        valor_mensal: f.plano_vida_valor || 0,
+        cobertura_morte: f.plano_vida_cobertura_morte || 0,
       } : undefined
     })) as FuncionarioWithCnpj[],
     totalCount: empresaQuery.data.totalCount,
