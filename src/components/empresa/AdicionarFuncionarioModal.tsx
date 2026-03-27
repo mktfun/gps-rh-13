@@ -22,12 +22,12 @@ import { toast } from 'sonner';
 import { Loader2, Heart, Cross } from 'lucide-react';
 
 const funcionarioSchema = z.object({
-  nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
   cpf: z.string().min(11, 'CPF deve ter 11 dígitos').max(14, 'CPF inválido'),
   data_nascimento: z.string().min(1, 'Data de nascimento é obrigatória'),
   data_admissao: z.string().optional().or(z.literal('')),
-  cargo: z.string().min(2, 'Cargo deve ter pelo menos 2 caracteres'),
-  salario: z.number().min(0, 'Salário deve ser maior que zero'),
+  cargo: z.string().min(2, 'Cargo deve ter pelo menos 2 caracteres').max(100, 'Cargo muito longo'),
+  salario: z.number().min(0.01, 'Salário deve ser maior que zero'),
   estado_civil: z.enum(['solteiro', 'casado', 'divorciado', 'viuvo']),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   cnpj_id: z.string().min(1, 'CNPJ é obrigatório'),
