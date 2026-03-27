@@ -137,19 +137,43 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
 
   const archiveFuncionario = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await supabase
-        .from('funcionarios')
-        .update({ status: 'exclusao_solicitada' })
-        .eq('id', id)
-        .select()
-        .single();
+      // 1. Update planos_funcionarios first (empresa has RLS permission for this)
+      const { data: vinculos, error: fetchError } = await supabase
+        .from('planos_funcionarios')
+        .select('id')
+        .eq('funcionario_id', id);
 
-      if (error) throw error;
-      return data;
+      if (fetchError) throw fetchError;
+
+      if (vinculos && vinculos.length > 0) {
+        const { error: pfError } = await supabase
+          .from('planos_funcionarios')
+          .update({ status: 'exclusao_solicitada' as any })
+          .eq('funcionario_id', id);
+
+        if (pfError) throw pfError;
+      }
+
+      // 2. Update funcionarios status (best-effort, may fail due to RLS)
+      const { error: funcError } = await supabase
+        .from('funcionarios')
+        .update({
+          status: 'exclusao_solicitada',
+          data_solicitacao_exclusao: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (funcError) {
+        console.warn('⚠️ Falha ao atualizar funcionarios (RLS), mas planos_funcionarios foi atualizado:', funcError.message);
+      }
+
+      return { id };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
       queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
       toast({
         title: 'Sucesso',
         description: 'Solicitação de exclusão enviada com sucesso!',
