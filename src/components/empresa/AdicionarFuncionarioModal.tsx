@@ -133,8 +133,10 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
       if (existing && existing.length > 0) {
         setCpfWarning(`CPF já cadastrado: ${existing[0].nome} (${existing[0].status})`);
+        setCpfOk(false);
       } else {
         setCpfWarning(null);
+        setCpfOk(true);
       }
     } catch {
       setCpfWarning(null);
