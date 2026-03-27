@@ -253,6 +253,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       cnpj_id: f.cnpj_id,
       // Propriedades obrigatórias que faltavam
       dados_pendentes: null,
+      data_admissao: null,
       data_exclusao: null,
       data_solicitacao_exclusao: null,
       motivo_exclusao: null,
