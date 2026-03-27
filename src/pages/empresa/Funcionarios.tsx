@@ -63,7 +63,7 @@ const Funcionarios = () => {
     page: currentPage,
     pageSize,
     empresaId: empresaId || undefined,
-    cnpjId: cnpjIdFromUrl,
+    cnpj_id: cnpjIdFromUrl,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
   });
 
