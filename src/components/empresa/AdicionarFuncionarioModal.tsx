@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePlanosDisponiveis } from '@/hooks/usePlanosDisponiveis';
 import { useCnpjs } from '@/hooks/useCnpjs';
 import { toast } from 'sonner';
-import { Loader2, Heart, Cross } from 'lucide-react';
+import { Loader2, Heart, Cross, CheckCircle2 } from 'lucide-react';
 
 const funcionarioSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
@@ -83,7 +83,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       data_nascimento: '',
       data_admissao: '',
       cargo: '',
-      salario: 0,
+      salario: undefined as unknown as number,
       estado_civil: 'solteiro',
       email: '',
       cnpj_id: cnpjId || '',
@@ -92,6 +92,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
   const estadoCivil = watch('estado_civil');
   const watchedCnpjId = watch('cnpj_id');
+  const [cpfOk, setCpfOk] = React.useState(false);
 
   React.useEffect(() => {
     if (watchedCnpjId) {
@@ -109,6 +110,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     const cleanCpf = cpf.replace(/\D/g, '');
     if (cleanCpf.length < 11) {
       setCpfWarning(null);
+      setCpfOk(false);
       return;
     }
 
@@ -131,11 +133,14 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
       if (existing && existing.length > 0) {
         setCpfWarning(`CPF já cadastrado: ${existing[0].nome} (${existing[0].status})`);
+        setCpfOk(false);
       } else {
         setCpfWarning(null);
+        setCpfOk(true);
       }
     } catch {
       setCpfWarning(null);
+      setCpfOk(false);
     } finally {
       setIsCheckingCpf(false);
     }
@@ -162,6 +167,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
       setIncluirSaude(false);
       setIncluirVida(false);
       setCpfWarning(null);
+      setCpfOk(false);
       setSelectedCnpjId(cnpjId || '');
       onOpenChange(false);
       onFuncionarioAdded?.();
@@ -187,6 +193,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     setIncluirSaude(false);
     setIncluirVida(false);
     setCpfWarning(null);
+    setCpfOk(false);
     setSelectedCnpjId(cnpjId || '');
     onOpenChange(false);
   };
@@ -251,18 +258,39 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
 
             <div className="space-y-2">
               <Label htmlFor="cpf">CPF *</Label>
-              <Input
-                id="cpf"
-                {...register('cpf')}
-                placeholder="000.000.000-00"
-                className={errors.cpf || cpfWarning ? 'border-destructive' : ''}
-                onBlur={(e) => checkCpfDuplicate(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="cpf"
+                  {...register('cpf', {
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+                      if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                      else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                      else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                      e.target.value = v;
+                      setCpfOk(false);
+                      setCpfWarning(null);
+                    },
+                  })}
+                  placeholder="000.000.000-00"
+                  maxLength={14}
+                  className={errors.cpf || cpfWarning ? 'border-destructive' : cpfOk ? 'border-green-500' : ''}
+                  onBlur={(e) => checkCpfDuplicate(e.target.value)}
+                />
+                {isCheckingCpf && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
               {errors.cpf && (
                 <p className="text-sm text-destructive">{errors.cpf.message}</p>
               )}
               {cpfWarning && (
                 <p className="text-sm text-destructive font-medium">⚠️ {cpfWarning}</p>
+              )}
+              {cpfOk && !cpfWarning && (
+                <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> CPF disponível
+                </p>
               )}
             </div>
 
@@ -312,7 +340,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
                 type="number"
                 step="0.01"
                 {...register('salario', { valueAsNumber: true })}
-                placeholder="0.00"
+                placeholder="Ex: 2500.00"
                 className={errors.salario ? 'border-destructive' : ''}
               />
               {errors.salario && (
@@ -423,7 +451,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isCreating}>
+            <Button type="submit" disabled={isCreating || isCheckingCpf}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Adicionar Funcionário
             </Button>
