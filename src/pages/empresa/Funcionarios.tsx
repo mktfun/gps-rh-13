@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Users, Plus, Search, Filter, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +37,8 @@ interface FuncionarioEmpresa {
 }
 
 const Funcionarios = () => {
+  const [searchParams] = useSearchParams();
+  const cnpjIdFromUrl = searchParams.get('cnpj') || undefined;
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [selectedFuncionario, setSelectedFuncionario] = useState<FuncionarioEmpresa | null>(null);
@@ -60,6 +63,7 @@ const Funcionarios = () => {
     page: currentPage,
     pageSize,
     empresaId: empresaId || undefined,
+    cnpj_id: cnpjIdFromUrl,
     statusFilter: statusFilter === 'todos' ? undefined : statusFilter,
   });
 
@@ -86,6 +90,14 @@ const Funcionarios = () => {
         .eq('id', funcionarioId);
 
       if (error) throw error;
+
+      // Resolver pendências de ativação associadas
+      await supabase
+        .from('pendencias')
+        .update({ status: 'resolvida', updated_at: new Date().toISOString() })
+        .eq('funcionario_id', funcionarioId)
+        .eq('tipo', 'ativacao')
+        .eq('status', 'pendente');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
