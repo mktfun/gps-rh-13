@@ -1,45 +1,34 @@
 
 
-# Fix: Logout não funciona (só recarrega a página)
+# Fix: Ativação de funcionário pelo corretor não funciona de verdade
 
 ## Problema
 
-A função `signOut` em `useAuth.tsx`:
-1. Chama `setIsLoading(true)` -- isso re-renderiza o RootLayout mostrando loading
-2. Chama `await supabase.auth.signOut()` -- pode falhar silenciosamente
-3. Chama `window.location.href = '/login'` -- faz hard reload
+Existem **3 lugares** que ativam funcionários, mas **2 deles fazem errado** -- apenas mudam `funcionarios.status` para `'ativo'` via UPDATE direto, sem:
+- Criar o vínculo em `planos_funcionarios`
+- Resolver a pendência correspondente
 
-O `window.location.href` causa um reload completo da página. Se o `signOut` do Supabase falhar ou não completar antes do reload, a sessão persiste no localStorage e o usuário é redirecionado de volta pelo `PublicLayout` (que detecta usuário autenticado e redireciona para o dashboard).
+A RPC `ativar_funcionario_no_plano` já faz tudo corretamente (cria vínculo, resolve pendência, atualiza status). Precisa apenas fazer todos os fluxos usarem essa RPC.
 
-## Solução
+## Correções
 
-### Arquivo: `src/hooks/useAuth.tsx` -- função `signOut`
+### 1. `src/components/funcionarios/BulkActivationModal.tsx`
+A mutation `bulkActivationMutation` (linhas 93-121) faz `supabase.from('funcionarios').update({ status: 'ativo' })`.
 
-1. **Limpar estado local PRIMEIRO** (user, session, role, empresaId, branding) antes de chamar o Supabase
-2. **Limpar localStorage manualmente** como fallback (`localStorage.removeItem` das keys do Supabase)
-3. **NÃO usar `setIsLoading(true)`** -- evita re-render desnecessário antes do redirect
-4. **Usar `window.location.replace('/login')`** em vez de `href` para não adicionar ao histórico
-5. **Wrap tudo em try/finally** para garantir redirect mesmo se signOut falhar
+**Corrigir para:** chamar `supabase.rpc('ativar_funcionario_no_plano', { p_funcionario_id: id, p_plano_id: plano.id })` para cada funcionário. Verificar o retorno `result.success` para detectar erros.
 
-```
-const signOut = async () => {
-  // 1. Limpar estado React imediatamente
-  setUser(null); setSession(null); setRole(null); ...
-  
-  // 2. Tentar signOut no Supabase
-  try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
-  
-  // 3. Fallback: limpar storage manualmente
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('sb-')) localStorage.removeItem(key);
-  });
-  
-  // 4. Redirect
-  window.location.replace('/login');
-};
-```
+### 2. `src/components/funcionarios/AtivarFuncionarioForm.tsx`
+A mutation (linhas 63-72) faz `supabase.from('funcionarios').update({ status: 'ativo' })`.
 
-| Arquivo | Tipo | Descrição |
-|---------|------|-----------|
-| `src/hooks/useAuth.tsx` | Edição | Reescrever `signOut` para limpar estado + storage antes de redirecionar |
+**Corrigir para:** chamar a RPC `ativar_funcionario_no_plano`. Precisa receber o `planoId` como prop ou permitir selecionar o plano. Como o componente já recebe `planos[]`, adicionar um select para o usuário escolher o plano e usar a RPC.
+
+### 3. Invalidação de queries
+Ambos os componentes devem invalidar as mesmas queries que `useAtivarFuncionarioPlano.ts` já invalida: `planoFuncionarios`, `planoFuncionariosStats`, `funcionarios`, `pendencias-corretora`.
+
+## Resumo
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/funcionarios/BulkActivationModal.tsx` | Trocar UPDATE direto pela RPC `ativar_funcionario_no_plano` |
+| `src/components/funcionarios/AtivarFuncionarioForm.tsx` | Trocar UPDATE direto pela RPC + adicionar seleção de plano |
 
