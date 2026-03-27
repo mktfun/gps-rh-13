@@ -250,18 +250,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     console.log('[AUTH] Fazendo logout...');
-    setIsLoading(true);
     
+    // 1. Limpar estado React imediatamente
+    setUser(null);
+    setSession(null);
+    setRole(null);
+    setEmpresaId(null);
+    setBranding(null);
+    
+    // 2. Tentar signOut no Supabase (best effort)
     try {
       await supabase.auth.signOut();
-      // onAuthStateChange vai limpar o estado
-      // Force redirect to login
-      window.location.href = '/login';
     } catch (error) {
-      console.error('[AUTH] Erro no logout:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('[AUTH] Erro no signOut (ignorando):', error);
     }
+    
+    // 3. Fallback: limpar storage manualmente
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) localStorage.removeItem(key);
+      });
+    } catch (e) {
+      // ignore storage errors
+    }
+    
+    // 4. Redirect sem adicionar ao histórico
+    window.location.replace('/login');
   };
 
   const signUp = async (email: string, password: string) => {
