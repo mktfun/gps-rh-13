@@ -69,7 +69,17 @@ export const useCriarFuncionarioComPlanos = () => {
     },
     onError: (error: any) => {
       console.error('💥 Erro ao criar funcionário:', error);
-      toast.error(error?.message || 'Erro ao cadastrar funcionário');
+      const msg = error?.message || '';
+      
+      if (msg.includes('check_salario_positivo')) {
+        toast.error('Salário deve ser maior que zero. Verifique o valor informado.');
+      } else if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
+        toast.error('Este CPF já está cadastrado nesta empresa.');
+      } else if (msg.includes('já possui um plano do tipo')) {
+        toast.error(msg);
+      } else {
+        toast.error(msg || 'Erro ao cadastrar funcionário. Tente novamente.');
+      }
     },
   });
 
