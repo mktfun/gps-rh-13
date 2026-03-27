@@ -186,6 +186,7 @@ export const AdicionarFuncionarioModal: React.FC<AdicionarFuncionarioModalProps>
     reset();
     setIncluirSaude(false);
     setIncluirVida(false);
+    setCpfWarning(null);
     setSelectedCnpjId(cnpjId || '');
     onOpenChange(false);
   };
