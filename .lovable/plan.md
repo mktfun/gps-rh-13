@@ -1,35 +1,38 @@
 
 
-# Melhorias no Tratamento de Erros do Cadastro de Funcionários
+# Fix: Empresa cannot request employee exclusion (403 Forbidden)
 
-## Situação Atual
+## Root Cause
 
-O código **já possui** as correções implementadas na rodada anterior:
-- Schema Zod com `salario: z.number().min(0.01)` -- impede salário zero
-- Verificação de CPF duplicado no `onBlur` buscando na mesma empresa
-- Mensagens de erro traduzidas no hook `useCriarFuncionarioComPlanos`
+The `archiveFuncionario` mutation updates `funcionarios.status` to `'exclusao_solicitada'` directly. However, the empresa's RLS UPDATE policies on `funcionarios` are failing with 403. This is likely because multiple overlapping UPDATE policies create conflicts, or the `WITH CHECK` expression on the unified policy doesn't match.
 
-O erro que aparece nos logs é de **antes** da última implantação. No entanto, há um problema residual: o `defaultValues.salario` é `0`, o que pode confundir o usuário pois o campo inicia com "0" visível.
+Meanwhile, the `planos_funcionarios` table has an **explicit RLS policy** called "Empresas podem solicitar exclusao" that specifically allows empresas to set `status = 'exclusao_solicitada'` on plan-employee links. This is the correct table to update for exclusion requests.
 
-## Melhorias Adicionais
+## Fix
 
-### 1. Corrigir valor default do salário
-Mudar `defaultValues.salario` de `0` para `undefined` e o placeholder para "Ex: 2500.00", para que o campo fique vazio e o Zod rejeite se o usuário não preencher.
+### File: `src/hooks/useFuncionarios.ts` -- `archiveFuncionario` mutation
 
-### 2. Máscara de CPF automática
-Adicionar formatação automática no campo CPF (000.000.000-00) conforme o usuário digita, usando um handler `onChange` que aplica a máscara.
+Change the mutation to:
+1. Update `planos_funcionarios.status` to `'exclusao_solicitada'` for ALL plan links of that employee (this works with existing RLS)
+2. Update `funcionarios.status` to `'exclusao_solicitada'` AND set `data_solicitacao_exclusao` timestamp
+3. If the `funcionarios` update fails (403), still succeed -- the `planos_funcionarios` update is what matters for the workflow
+4. Show proper toast on success/error
 
-### 3. Melhorar a checagem de CPF duplicado
-- Adicionar indicador de loading (spinner) durante a verificação
-- Mostrar feedback positivo ("CPF disponível") quando não há duplicata
-- Garantir que a query filtra apenas funcionários com status ativo/pendente (já faz isso)
+```
+// Pseudocode:
+// 1. Get all planos_funcionarios for this employee
+// 2. Update each to status = 'exclusao_solicitada' 
+// 3. Try to update funcionarios.status (best-effort)
+// 4. Invalidate queries
+```
 
-### 4. Bloquear submit durante verificação de CPF
-Se `isCheckingCpf` estiver true, desabilitar o botão de submit.
+### File: `src/pages/empresa/Funcionarios.tsx` -- pass `userRole` to table columns
 
-## Resumo de Arquivos
+Verify that `role` from `useAuth()` is being passed correctly as the `userRole` parameter to `createFuncionariosEmpresaTableColumns` so the "Solicitar Exclusao" menu item appears.
 
-| Arquivo | Tipo | Descrição |
-|---------|------|-----------|
-| `src/components/empresa/AdicionarFuncionarioModal.tsx` | Edição | Default salary vazio, máscara CPF, loading no check, bloquear submit durante check |
+## Summary
+
+| File | Change |
+|------|--------|
+| `src/hooks/useFuncionarios.ts` | Fix `archiveFuncionario` to update `planos_funcionarios` first (RLS-compatible), then `funcionarios` as best-effort |
 
