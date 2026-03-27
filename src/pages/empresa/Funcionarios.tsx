@@ -37,6 +37,8 @@ interface FuncionarioEmpresa {
 }
 
 const Funcionarios = () => {
+  const [searchParams] = useSearchParams();
+  const cnpjIdFromUrl = searchParams.get('cnpj') || undefined;
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [selectedFuncionario, setSelectedFuncionario] = useState<FuncionarioEmpresa | null>(null);
