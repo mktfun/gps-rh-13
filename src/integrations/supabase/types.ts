@@ -1155,14 +1155,24 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_empresas_com_planos_por_tipo: {
-        Args: { p_corretora_id: string; p_tipo_seguro: string }
-        Returns: {
-          id: string
-          nome: string
-          total_planos_ativos: number
-        }[]
-      }
+      get_empresas_com_planos_por_tipo:
+        | {
+            Args: { p_corretora_id: string; p_tipo_seguro: string }
+            Returns: {
+              id: string
+              nome: string
+              total_pendencias: number
+              total_planos_ativos: number
+            }[]
+          }
+        | {
+            Args: { p_corretora_id: string; p_tipo_seguro: string }
+            Returns: {
+              id: string
+              nome: string
+              total_planos_ativos: number
+            }[]
+          }
       get_empresas_unificadas: {
         Args: never
         Returns: {

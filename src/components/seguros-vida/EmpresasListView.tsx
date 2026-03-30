@@ -54,6 +54,12 @@ export const EmpresasListView: React.FC<EmpresasListViewProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
+            {empresa.total_pendencias > 0 && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                {empresa.total_pendencias} pendência(s)
+              </Badge>
+            )}
             <Badge variant="secondary">
               {empresa.total_planos_ativos} planos
             </Badge>
