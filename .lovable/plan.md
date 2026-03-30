@@ -1,30 +1,39 @@
 
 
-# Two tasks: Build error fix + PDF manual for empresa
+# Fix: `useAdicionarFuncionariosPlano` bypasses RPC, fails to activate employees
 
-## 1. Fix build error in Sidebar.tsx
+## Problem
 
-**Problem**: Line 28 destructures `{ totalPendencias }` from `usePendenciasDaCorretora()`, but the hook returns a standard `useQuery` result (`{ data, isLoading, ... }`). There is no `totalPendencias` property.
+`useAdicionarFuncionariosPlano` (used by `SelecionarFuncionariosModal` -- the "Add employees to plan" flow on the corretora side) does:
 
-**Fix**: Change line 28 to destructure `data` and derive totalPendencias from it:
-```ts
-const { data: pendencias } = usePendenciasDaCorretora();
-const totalPendencias = pendencias?.length ?? 0;
-```
+1. Direct INSERT into `planos_funcionarios` -- creates the link but doesn't resolve pendencias
+2. Direct UPDATE on `funcionarios` setting `status = 'ativo'` -- silently fails/ignored because error is swallowed
+
+This violates the centralized activation rule: all activation MUST go through the RPC `ativar_funcionario_no_plano` which atomically:
+- Creates/updates the `planos_funcionarios` link
+- Resolves matching pendencias
+- Updates the employee status
+
+The toast shows success because the INSERT succeeds, but the employee status doesn't actually change.
+
+## Fix
+
+Rewrite `useAdicionarFuncionariosPlano` to call the RPC `ativar_funcionario_no_plano` for each employee (same pattern as `BulkActivationModal`), instead of doing direct INSERT + UPDATE.
 
 | File | Change |
-|------|--------|
-| `src/components/layout/Sidebar.tsx` | Fix destructuring of `usePendenciasDaCorretora` |
+|---------|-----------|
+| `src/hooks/useAdicionarFuncionariosPlano.ts` | Replace direct INSERT/UPDATE with loop calling `ativar_funcionario_no_plano` RPC per employee. Report errors properly instead of swallowing them. Invalidate `pendencias-corretora` query too. |
 
-## 2. Generate PDF manual for empresa users
+## Implementation detail
 
-Create a professional PDF using ReportLab based on the content already in `MANUAL_USUARIO_EMPRESA.md`. The PDF will include:
+```typescript
+// For each funcionarioId, call RPC:
+const { data, error } = await supabase.rpc('ativar_funcionario_no_plano', {
+  p_funcionario_id: funcionarioId,
+  p_plano_id: planoId,
+});
+// Check result.success === false as error
+```
 
-- Cover page with "GPS RH -- Manual do Usuario Empresa"
-- Table of contents
-- All 10 sections from the markdown manual, formatted with headings, tables, bullet lists, and tip/warning callout boxes
-- FAQ and support sections
-- Clean, professional formatting suitable for sending to HR staff
-
-Output: `/mnt/documents/Manual_Usuario_Empresa_GPS_RH.pdf`
+Collect successes/failures and report aggregated result. Show error toast if any fail.
 
