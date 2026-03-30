@@ -506,8 +506,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Erro geral na importação:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Erro interno do servidor',
-      details: error.stack
+      error: (error instanceof Error ? error.message : 'Erro interno do servidor'),
+      details: (error instanceof Error ? error.stack : undefined)
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
