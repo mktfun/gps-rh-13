@@ -464,7 +464,7 @@ serve(async (req) => {
             results.detailed_results.ignored.push({
               row: rowNumber,
               data: funcionarioData,
-              reason: error.message || 'Erro desconhecido'
+              reason: (error instanceof Error ? error.message : 'Erro desconhecido')
             });
           } else {
             results.failed_imports++;
