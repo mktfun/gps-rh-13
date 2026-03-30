@@ -5,7 +5,7 @@ import { useEmpresaId } from '@/hooks/useEmpresaId';
 import { createGetPendenciasEmpresaFunction, testGetPendenciasEmpresaFunction } from '@/utils/createMissingFunction';
 import { logger } from '@/lib/logger';
 
-interface PendenciaEmpresa {
+export interface PendenciaEmpresa {
   id: string;
   protocolo: string;
   tipo: string;
@@ -21,6 +21,7 @@ interface PendenciaEmpresa {
   comentarios_count: number;
   prioridade: number;
   corretora_id: string;
+  tipo_plano: string | null;
 }
 
 export const usePendenciasEmpresa = () => {

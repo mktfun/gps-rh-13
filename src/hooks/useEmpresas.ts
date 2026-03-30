@@ -37,12 +37,37 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
     data: result,
     isLoading,
     error
+  } = useQuery({
+    queryKey: ['empresas-com-metricas', search, page, pageSize, orderBy, orderDirection],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_empresas_com_metricas');
+      if (error) throw error;
+
+      let filtered = data || [];
+      if (search) {
+        const s = search.toLowerCase();
+        filtered = filtered.filter(e => e.nome?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s) || e.responsavel?.toLowerCase().includes(s));
+      }
+
+      if (orderBy) {
+        filtered.sort((a: any, b: any) => {
+          const va = a[orderBy] ?? '';
+          const vb = b[orderBy] ?? '';
+          return orderDirection === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+        });
+      }
+
+      const totalCount = filtered.length;
+      const totalPages = Math.ceil(totalCount / pageSize);
+      const start = (page - 1) * pageSize;
+      const empresas = filtered.slice(start, start + pageSize);
+
+      return { empresas, totalCount, totalPages };
     },
-    enabled: !!user?.id, // Só executa se o usuário estiver autenticado
-    // Configurações de cache otimizadas para performance
-    staleTime: 1000 * 60 * 5, // 5 minutos - dados considerados frescos
-    gcTime: 1000 * 60 * 10, // 10 minutos - cache mantido na memória
-    refetchOnWindowFocus: false, // Não revalidar ao focar na janela
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 
   // Mutações para CRUD

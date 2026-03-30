@@ -464,7 +464,7 @@ serve(async (req) => {
             results.detailed_results.ignored.push({
               row: rowNumber,
               data: funcionarioData,
-              reason: error.message || 'Erro desconhecido'
+              reason: (error instanceof Error ? error.message : 'Erro desconhecido')
             });
           } else {
             results.failed_imports++;
@@ -474,7 +474,7 @@ serve(async (req) => {
               errors: [{ 
                 field: 'general', 
                 severity: 'error', 
-                message: error.message || 'Erro desconhecido' 
+                message: (error instanceof Error ? error.message : 'Erro desconhecido') 
               }]
             });
           }
@@ -506,8 +506,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Erro geral na importação:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Erro interno do servidor',
-      details: error.stack
+      error: (error instanceof Error ? error.message : 'Erro interno do servidor'),
+      details: (error instanceof Error ? error.stack : undefined)
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
