@@ -79,6 +79,7 @@ export const usePendenciasDaCorretora = (filters: PendenciasCorretoraFilters = {
           data_criacao,
           data_vencimento,
           comentarios_count,
+          tipo_plano,
           funcionarios (
             id,
             nome
