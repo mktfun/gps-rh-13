@@ -76,9 +76,9 @@ const EmpresaPlanosSaudePage = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {planos.map((plano) => {
             const funcionariosAtivos = plano.total_funcionarios || 0;
-            // Usar o valor calculado se disponível, senão usar o valor original
             const valorReal = plano.valor_mensal_calculado ?? plano.valor_mensal;
             const custoPorFuncionario = funcionariosAtivos > 0 ? valorReal / funcionariosAtivos : 0;
+            const pendenciasPlano = (pendencias || []).filter(p => p.cnpj_id === plano.cnpj_id);
             
             return (
               <Card key={plano.id} className="relative">
