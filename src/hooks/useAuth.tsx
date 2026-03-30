@@ -27,53 +27,49 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getUserData = async (user: User): Promise<{ role: string | null; empresaId: string | null; branding: BrandingData | null }> => {
   try {
-    logger.info(`[AUTH] Buscando dados unificados para usuário:`, user.email);
+    logger.info(`[AUTH] Buscando dados para usuário:`, user.email);
     
-    const { data, error } = await supabase
+    // Step 1: Get profile (no joins)
+    const { data: profile, error } = await supabase
       .from('profiles')
-      .select(`
-        role, 
-        empresa_id, 
-        corretora_branding!corretora_branding_corretora_id_fkey(logo_url, cor_primaria), 
-        empresa_branding!empresa_branding_empresa_id_fkey(logo_url)
-      `)
+      .select('role, empresa_id')
       .eq('id', user.id)
       .single();
     
-    if (error) {
-      logger.error('[AUTH] Erro ao buscar dados unificados:', error);
+    if (error || !profile) {
+      logger.error('[AUTH] Erro ao buscar perfil:', error);
       return { role: null, empresaId: null, branding: null };
     }
-    
+
+    // Step 2: Get branding based on role
     let branding: BrandingData | null = null;
-    
-    if (data.role === 'corretora') {
-      const cb = Array.isArray(data.corretora_branding) ? data.corretora_branding[0] : data.corretora_branding;
-      if (cb) {
-        branding = {
-          logo_url: cb.logo_url || undefined,
-          cor_primaria: cb.cor_primaria || undefined
-        };
-      }
-    } else if (data.role === 'empresa') {
-      const eb = Array.isArray(data.empresa_branding) ? data.empresa_branding[0] : data.empresa_branding;
-      if (eb) {
-        branding = {
-          logo_url: eb.logo_url || undefined
-        };
-      }
+
+    if (profile.role === 'corretora') {
+      const { data: cb } = await supabase
+        .from('corretora_branding')
+        .select('logo_url, cor_primaria')
+        .eq('corretora_id', user.id)
+        .maybeSingle();
+      if (cb) branding = { logo_url: cb.logo_url || undefined, cor_primaria: cb.cor_primaria || undefined };
+    } else if (profile.role === 'empresa' && profile.empresa_id) {
+      const { data: eb } = await supabase
+        .from('empresa_branding')
+        .select('logo_url')
+        .eq('empresa_id', profile.empresa_id)
+        .maybeSingle();
+      if (eb) branding = { logo_url: eb.logo_url || undefined };
     }
 
-    logger.info('[AUTH] Dados unificados obtidos:', { role: data.role, empresa_id: data.empresa_id, branding });
+    logger.info('[AUTH] Dados obtidos:', { role: profile.role, empresa_id: profile.empresa_id, branding });
     
     return { 
-      role: data.role || null, 
-      empresaId: data.empresa_id || null,
+      role: profile.role || null, 
+      empresaId: profile.empresa_id || null,
       branding
     };
     
   } catch (error) {
-    logger.error('[AUTH] Erro crítico na busca unificada de dados:', error);
+    logger.error('[AUTH] Erro crítico na busca de dados:', error);
     return { role: null, empresaId: null, branding: null };
   }
 };
