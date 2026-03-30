@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.get_empresas_com_planos_por_tipo(text, uuid);

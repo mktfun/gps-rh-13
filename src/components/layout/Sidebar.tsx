@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendenciasDaCorretora } from '@/hooks/usePendenciasDaCorretora';
+import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { getDashboardRoute } from '@/utils/routePaths';
 import { 
   LayoutDashboard, 
@@ -25,8 +26,18 @@ import {
 const Sidebar = () => {
   const location = useLocation();
   const { role } = useAuth();
-  const { data: pendencias } = usePendenciasDaCorretora();
-  const totalPendencias = pendencias?.length ?? 0;
+  const { data: pendenciasCorretora } = usePendenciasDaCorretora();
+  const { data: pendenciasEmpresa } = usePendenciasEmpresa();
+  
+  const totalPendencias = pendenciasCorretora?.length ?? 0;
+  
+  // Corretora: count by tipo_plano
+  const vidaCountCorretora = pendenciasCorretora?.filter(p => p.status_db === 'pendente' && p.tipo_plano === 'vida').length ?? 0;
+  const saudeCountCorretora = pendenciasCorretora?.filter(p => p.status_db === 'pendente' && p.tipo_plano === 'saude').length ?? 0;
+  
+  // Empresa: count by tipo_plano
+  const vidaCountEmpresa = pendenciasEmpresa?.filter(p => p.status === 'pendente' && p.tipo_plano === 'vida').length ?? 0;
+  const saudeCountEmpresa = pendenciasEmpresa?.filter(p => p.status === 'pendente' && p.tipo_plano === 'saude').length ?? 0;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -78,11 +89,13 @@ const Sidebar = () => {
       name: 'Seguros de Vida',
       href: '/corretora/seguros-de-vida/empresas',
       icon: Activity,
+      badge: vidaCountCorretora > 0 ? vidaCountCorretora.toString() : undefined,
     },
     {
       name: 'Planos de Saúde',
       href: '/corretora/planos-de-saude/empresas',
       icon: Stethoscope,
+      badge: saudeCountCorretora > 0 ? saudeCountCorretora.toString() : undefined,
     },
   ];
 
@@ -128,11 +141,13 @@ const Sidebar = () => {
       name: 'Seguros de Vida',
       href: '/empresa/seguros-de-vida',
       icon: Activity,
+      badge: vidaCountEmpresa > 0 ? vidaCountEmpresa.toString() : undefined,
     },
     {
       name: 'Planos de Saúde',
       href: '/empresa/planos-de-saude',
       icon: Stethoscope,
+      badge: saudeCountEmpresa > 0 ? saudeCountEmpresa.toString() : undefined,
     },
   ];
 

@@ -25,6 +25,7 @@ export interface PendenciaItem {
   cnpj_razao_social?: string;
   prioridade?: PendenciaPrioridade;
   dias_em_aberto?: number;
+  tipo_plano?: string | null;
 }
 
 export interface PendenciasCorretoraFilters {
@@ -78,6 +79,7 @@ export const usePendenciasDaCorretora = (filters: PendenciasCorretoraFilters = {
           data_criacao,
           data_vencimento,
           comentarios_count,
+          tipo_plano,
           funcionarios (
             id,
             nome
@@ -151,6 +153,7 @@ export const usePendenciasDaCorretora = (filters: PendenciasCorretoraFilters = {
           cnpj_razao_social: razaoSocial,
           prioridade,
           dias_em_aberto: diasAberto,
+          tipo_plano: row.tipo_plano || null,
         };
         return item;
       }) as PendenciaItem[];
