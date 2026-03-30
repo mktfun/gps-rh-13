@@ -12,8 +12,10 @@ import {
   Plus
 } from 'lucide-react';
 import { useEmpresaPlanosPorTipo } from '@/hooks/useEmpresaPlanosPorTipo';
+import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AlertTriangle } from 'lucide-react';
 
 const EmpresaPlanosSaudePage = () => {
   console.log('🩺 EmpresaPlanosSaudePage: Componente carregado');
