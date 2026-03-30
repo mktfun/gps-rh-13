@@ -12,13 +12,15 @@ import {
   Plus
 } from 'lucide-react';
 import { useEmpresaPlanosPorTipo } from '@/hooks/useEmpresaPlanosPorTipo';
+import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AlertTriangle } from 'lucide-react';
 
 const EmpresaPlanosSaudePage = () => {
   console.log('🩺 EmpresaPlanosSaudePage: Componente carregado');
   const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('saude');
-  console.log('🩺 EmpresaPlanosSaudePage: Estado dos dados', { planos: planos?.length, isLoading, error });
+  const { data: pendencias } = usePendenciasEmpresa();
 
   const formatCurrency = (value: number, precise = false) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -74,9 +76,9 @@ const EmpresaPlanosSaudePage = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {planos.map((plano) => {
             const funcionariosAtivos = plano.total_funcionarios || 0;
-            // Usar o valor calculado se disponível, senão usar o valor original
             const valorReal = plano.valor_mensal_calculado ?? plano.valor_mensal;
             const custoPorFuncionario = funcionariosAtivos > 0 ? valorReal / funcionariosAtivos : 0;
+            const pendenciasPlano = (pendencias || []).filter(p => p.cnpj_id === plano.cnpj_id);
             
             return (
               <Card key={plano.id} className="relative">
@@ -86,9 +88,15 @@ const EmpresaPlanosSaudePage = () => {
                       <Stethoscope className="h-5 w-5" />
                       {plano.seguradora}
                     </CardTitle>
-                    <Badge variant="outline">
-                      Plano de Saúde
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">Plano de Saúde</Badge>
+                      {pendenciasPlano.length > 0 && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          {pendenciasPlano.length}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
