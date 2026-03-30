@@ -26,8 +26,18 @@ import {
 const Sidebar = () => {
   const location = useLocation();
   const { role } = useAuth();
-  const { data: pendencias } = usePendenciasDaCorretora();
-  const totalPendencias = pendencias?.length ?? 0;
+  const { data: pendenciasCorretora } = usePendenciasDaCorretora();
+  const { data: pendenciasEmpresa } = usePendenciasEmpresa();
+  
+  const totalPendencias = pendenciasCorretora?.length ?? 0;
+  
+  // Corretora: count by tipo_plano
+  const vidaCountCorretora = pendenciasCorretora?.filter(p => p.status_db === 'pendente' && (p as any).tipo_plano === 'vida').length ?? 0;
+  const saudeCountCorretora = pendenciasCorretora?.filter(p => p.status_db === 'pendente' && (p as any).tipo_plano === 'saude').length ?? 0;
+  
+  // Empresa: count by tipo_plano
+  const vidaCountEmpresa = pendenciasEmpresa?.filter(p => p.status === 'pendente' && p.tipo_plano === 'vida').length ?? 0;
+  const saudeCountEmpresa = pendenciasEmpresa?.filter(p => p.status === 'pendente' && p.tipo_plano === 'saude').length ?? 0;
 
   const isActive = (path: string) => location.pathname === path;
 
