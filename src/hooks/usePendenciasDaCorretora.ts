@@ -153,6 +153,7 @@ export const usePendenciasDaCorretora = (filters: PendenciasCorretoraFilters = {
           cnpj_razao_social: razaoSocial,
           prioridade,
           dias_em_aberto: diasAberto,
+          tipo_plano: row.tipo_plano || null,
         };
         return item;
       }) as PendenciaItem[];
