@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface PendenciasKPIs {
   total_pendencias: number;
@@ -79,7 +80,7 @@ export const usePendenciasReport = (
     queryFn: async (): Promise<PendenciasReportData> => {
       if (!user?.id) throw new Error('Usuário não encontrado');
 
-      console.log('Buscando relatório de pendências:', {
+      logger.info('Buscando relatório de pendências:', {
         userId: user.id,
         role,
         startDate,
@@ -118,7 +119,7 @@ export const usePendenciasReport = (
       const { data: pendenciasRaw, error } = await query;
 
       if (error) {
-        console.error('Erro ao buscar pendências:', error);
+        logger.error('Erro ao buscar pendências:', error);
         throw error;
       }
 
@@ -207,7 +208,7 @@ export const usePendenciasReport = (
         urgentes: item.urgentes
       }));
 
-      console.log('✅ Relatório de pendências processado:', { 
+      logger.info('✅ Relatório de pendências processado:', { 
         total: pendenciasFiltradas.length, 
         kpis,
         tipos: pendencias_por_tipo.length,

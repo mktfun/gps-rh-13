@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 type CnpjInsert = Database['public']['Tables']['cnpjs']['Insert'];
@@ -89,18 +90,18 @@ export const useCnpjs = (params: UseCnpjsParams) => {
         );
 
         if (accountError) {
-          console.warn('⚠️ Erro ao criar conta da empresa (não crítico):', accountError);
+          logger.warn('⚠️ Erro ao criar conta da empresa (não crítico):', accountError);
         } else if (accountResult?.already_exists) {
-          console.log('ℹ️ Conta já existe para esta empresa');
+          logger.info('ℹ️ Conta já existe para esta empresa');
         } else if (accountResult?.success) {
-          console.log('✅ Conta criada:', accountResult.message);
+          logger.info('✅ Conta criada:', accountResult.message);
           toast({
             title: 'Conta de acesso criada',
             description: `Login: ${accountResult.email} | Senha: primeiros 4 dígitos do CNPJ`,
           });
         }
       } catch (accountErr) {
-        console.warn('⚠️ Falha ao criar conta (não crítico):', accountErr);
+        logger.warn('⚠️ Falha ao criar conta (não crítico):', accountErr);
       }
 
       return data;

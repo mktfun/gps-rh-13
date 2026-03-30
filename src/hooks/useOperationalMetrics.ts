@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface OperationalMetrics {
   produtividade_carteira: number;
@@ -30,7 +31,7 @@ export const useOperationalMetrics = () => {
       const { data, error } = await supabase.rpc('get_operational_metrics_corretor');
 
       if (error) {
-        console.error('Erro ao buscar métricas operacionais:', error);
+        logger.error('Erro ao buscar métricas operacionais:', error);
         throw error;
       }
 

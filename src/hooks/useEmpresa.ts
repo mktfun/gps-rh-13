@@ -2,6 +2,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type Empresa = Database['public']['Tables']['empresas']['Row'];
 
@@ -9,14 +10,14 @@ export const useEmpresa = (empresaId: string | undefined) => {
   return useQuery({
     queryKey: ['empresa', empresaId],
     queryFn: async () => {
-      console.log(`🔍 [useEmpresa] Iniciando busca da empresa: ${empresaId}`);
+      logger.info(`🔍 [useEmpresa] Iniciando busca da empresa: ${empresaId}`);
       
       if (!empresaId) {
-        console.error('❌ [useEmpresa] ID da empresa não fornecido');
+        logger.error('❌ [useEmpresa] ID da empresa não fornecido');
         throw new Error('ID da empresa não fornecido');
       }
 
-      console.log(`📡 [useEmpresa] Fazendo query no Supabase para empresa: ${empresaId}`);
+      logger.info(`📡 [useEmpresa] Fazendo query no Supabase para empresa: ${empresaId}`);
       
       const { data, error } = await supabase
         .from('empresas')
@@ -24,19 +25,19 @@ export const useEmpresa = (empresaId: string | undefined) => {
         .eq('id', empresaId)
         .maybeSingle();
 
-      console.log(`📊 [useEmpresa] Resultado da query:`, { data, error });
+      logger.info(`📊 [useEmpresa] Resultado da query:`, { data, error });
 
       if (error) {
-        console.error('❌ [useEmpresa] Erro na query:', error);
+        logger.error('❌ [useEmpresa] Erro na query:', error);
         throw error;
       }
       
       if (!data) {
-        console.error('❌ [useEmpresa] Nenhum dado retornado (empresa não encontrada)');
+        logger.error('❌ [useEmpresa] Nenhum dado retornado (empresa não encontrada)');
         return null;
       }
 
-      console.log('✅ [useEmpresa] Empresa encontrada com sucesso:', data.nome);
+      logger.info('✅ [useEmpresa] Empresa encontrada com sucesso:', data.nome);
       return data;
     },
     enabled: !!empresaId,
@@ -52,7 +53,7 @@ export const useInvalidateEmpresa = () => {
   const queryClient = useQueryClient();
   
   return (empresaId: string) => {
-    console.log(`🗑️ [useInvalidateEmpresa] Invalidando cache da empresa: ${empresaId}`);
+    logger.info(`🗑️ [useInvalidateEmpresa] Invalidando cache da empresa: ${empresaId}`);
     queryClient.invalidateQueries({ queryKey: ['empresa', empresaId] });
     queryClient.removeQueries({ queryKey: ['empresa', empresaId] });
   };

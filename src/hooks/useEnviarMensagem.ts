@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface MensagemOtimista {
   id: string;
@@ -43,7 +44,7 @@ export const useEnviarMensagem = (conversaId: string) => {
         throw new Error('Conteúdo da mensagem muito longo (máximo 5000 caracteres)');
       }
 
-      console.log('📤 Enviando mensagem:', { conversaId, tipo, conteudo: conteudoLimpo.substring(0, 50) + '...' });
+      logger.info('📤 Enviando mensagem:', { conversaId, tipo, conteudo: conteudoLimpo.substring(0, 50) + '...' });
 
       const mensagemData: any = {
         conversa_id: conversaId,
@@ -63,11 +64,11 @@ export const useEnviarMensagem = (conversaId: string) => {
         .single();
 
       if (error) {
-        console.error('❌ Erro ao enviar mensagem:', error);
+        logger.error('❌ Erro ao enviar mensagem:', error);
         throw error;
       }
 
-      console.log('✅ Mensagem enviada:', data);
+      logger.info('✅ Mensagem enviada:', data);
       return data;
     },
     onMutate: async ({ conteudo, tipo = 'texto', metadata }) => {
@@ -103,7 +104,7 @@ export const useEnviarMensagem = (conversaId: string) => {
         return [...(old || []), mensagemOtimista];
       });
 
-      console.log('⚡ Mensagem otimista adicionada:', mensagemOtimista);
+      logger.info('⚡ Mensagem otimista adicionada:', mensagemOtimista);
 
       return { previousMensagens, mensagemOtimista };
     },
@@ -119,10 +120,10 @@ export const useEnviarMensagem = (conversaId: string) => {
         );
       });
 
-      console.log('✅ Mensagem otimista atualizada com dados reais');
+      logger.info('✅ Mensagem otimista atualizada com dados reais');
     },
     onError: (error, variables, context) => {
-      console.error('❌ Erro ao enviar mensagem:', error);
+      logger.error('❌ Erro ao enviar mensagem:', error);
       
       // Reverter para estado anterior
       if (context?.previousMensagens) {
@@ -130,7 +131,7 @@ export const useEnviarMensagem = (conversaId: string) => {
       }
       
       // Mostrar erro discreto (não toast que sobrepõe UI)
-      console.error('Falha ao enviar mensagem:', error.message);
+      logger.error('Falha ao enviar mensagem:', error.message);
     },
     retry: 2, // Tentar novamente 2 vezes
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)

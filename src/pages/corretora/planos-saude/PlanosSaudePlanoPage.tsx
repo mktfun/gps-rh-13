@@ -21,6 +21,7 @@ import { ConfigurarPlanoSaudeModal } from '@/components/planos/ConfigurarPlanoSa
 import { EditarPlanoSaudeModal } from '@/components/planos/EditarPlanoSaudeModal';
 import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import { useQueryClient } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 
 interface PlanoDetalhes {
   id: string;
@@ -62,7 +63,7 @@ const PlanosSaudePlanoPage = () => {
   const [showConfigurarModal, setShowConfigurarModal] = useState(false);
   const [showEditarModal, setShowEditarModal] = useState(false);
 
-  console.log('🔍 PlanosSaudePlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
+  logger.info('🔍 PlanosSaudePlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
   const { data: autocorrectCheck } = useQuery({
     queryKey: ['autocorrect-check-empresa', empresaId],
@@ -82,7 +83,7 @@ const PlanosSaudePlanoPage = () => {
         .maybeSingle();
 
       if (cnpjData && cnpjData.empresas) {
-        console.log('🔄 Autocorrect: EmpresaId is actually a CNPJ, redirecting...');
+        logger.info('🔄 Autocorrect: EmpresaId is actually a CNPJ, redirecting...');
         return {
           needsRedirect: true,
           correctEmpresaId: cnpjData.empresa_id,
@@ -111,7 +112,7 @@ const PlanosSaudePlanoPage = () => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      console.log('🔍 Buscando plano de saúde para CNPJ:', cnpjId);
+      logger.info('🔍 Buscando plano de saúde para CNPJ:', cnpjId);
 
       const { data, error } = await supabase
         .from('dados_planos')
@@ -132,16 +133,16 @@ const PlanosSaudePlanoPage = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Erro ao buscar detalhes do plano de saúde:', error);
+        logger.error('❌ Erro ao buscar detalhes do plano de saúde:', error);
         throw new Error('Erro ao buscar detalhes do plano de saúde');
       }
 
       if (!data) {
-        console.error('❌ Plano de saúde não encontrado para CNPJ:', cnpjId);
+        logger.error('❌ Plano de saúde não encontrado para CNPJ:', cnpjId);
         throw new Error('Plano de saúde não encontrado para este CNPJ');
       }
 
-      console.log('✅ Plano de saúde encontrado:', data);
+      logger.info('✅ Plano de saúde encontrado:', data);
 
       return {
         id: data.id,
@@ -173,7 +174,7 @@ const PlanosSaudePlanoPage = () => {
         .eq('cnpj_id', cnpjId);
 
       if (error) {
-        console.error('Erro ao buscar funcionários:', error);
+        logger.error('Erro ao buscar funcionários:', error);
         throw new Error('Erro ao buscar funcionários');
       }
 
@@ -207,12 +208,12 @@ const PlanosSaudePlanoPage = () => {
   };
 
   const handleConfigurarPlano = () => {
-    console.log('🔧 Abrindo modal de configuração de plano de saúde para CNPJ:', cnpjId);
+    logger.info('🔧 Abrindo modal de configuração de plano de saúde para CNPJ:', cnpjId);
     setShowConfigurarModal(true);
   };
 
   const handleEditarPlano = () => {
-    console.log('🔧 Abrindo modal de edição de plano de saúde para CNPJ:', cnpjId);
+    logger.info('🔧 Abrindo modal de edição de plano de saúde para CNPJ:', cnpjId);
     setShowEditarModal(true);
   };
 

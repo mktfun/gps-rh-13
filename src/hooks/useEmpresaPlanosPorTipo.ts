@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface PlanoEmpresaPorTipo {
   id: string;
@@ -25,11 +26,11 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
     queryKey: ['planos-empresa-por-tipo', empresaId, tipo],
     queryFn: async (): Promise<PlanoEmpresaPorTipo[]> => {
       if (!empresaId) {
-        console.log('🔍 useEmpresaPlanosPorTipo - Empresa ID não encontrado');
+        logger.info('🔍 useEmpresaPlanosPorTipo - Empresa ID não encontrado');
         return [];
       }
 
-      console.log('🔍 useEmpresaPlanosPorTipo - Buscando planos tipo', tipo, 'para empresa:', empresaId);
+      logger.info('🔍 useEmpresaPlanosPorTipo - Buscando planos tipo', tipo, 'para empresa:', empresaId);
 
       // Buscar planos do tipo específico para a empresa
       const { data: planos, error: planosError } = await supabase
@@ -47,12 +48,12 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
         .eq('tipo_seguro', tipo);
 
       if (planosError) {
-        console.error('❌ useEmpresaPlanosPorTipo - Erro ao buscar planos:', planosError);
+        logger.error('❌ useEmpresaPlanosPorTipo - Erro ao buscar planos:', planosError);
         throw planosError;
       }
 
       if (!planos || planos.length === 0) {
-        console.log('✅ useEmpresaPlanosPorTipo - Nenhum plano encontrado para tipo:', tipo);
+        logger.info('✅ useEmpresaPlanosPorTipo - Nenhum plano encontrado para tipo:', tipo);
         return [];
       }
 
@@ -66,18 +67,18 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
             .eq('status', 'ativo'); // Apenas funcionários ativos NO PLANO
 
           if (funcionariosError) {
-            console.error('❌ Erro ao buscar funcionários do plano:', funcionariosError);
+            logger.error('❌ Erro ao buscar funcionários do plano:', funcionariosError);
           }
 
           const totalFuncionariosNoPlano = funcionariosData?.length || 0;
-          console.log(`📊 Plano ${plano.seguradora} (${tipo}): ${totalFuncionariosNoPlano} funcionários vinculados`);
+          logger.info(`📊 Plano ${plano.seguradora} (${tipo}): ${totalFuncionariosNoPlano} funcionários vinculados`);
 
           // Para planos de saúde, vamos calcular um valor estimado baseado no número de funcionários NO PLANO
           let valorCalculado = plano.valor_mensal;
           if (tipo === 'saude') {
             // Estimativa simples: R$ 200 por funcionário ativo NO PLANO
             valorCalculado = totalFuncionariosNoPlano * 200;
-            console.log('🔍 Valor estimado para plano de saúde:', valorCalculado, 'funcionários no plano:', totalFuncionariosNoPlano);
+            logger.info('🔍 Valor estimado para plano de saúde:', valorCalculado, 'funcionários no plano:', totalFuncionariosNoPlano);
           }
 
           return {
@@ -98,7 +99,7 @@ export const useEmpresaPlanosPorTipo = (tipo: 'vida' | 'saude') => {
         })
       );
 
-      console.log('✅ useEmpresaPlanosPorTipo - Planos encontrados:', planosComFuncionarios.length, 'tipo:', tipo);
+      logger.info('✅ useEmpresaPlanosPorTipo - Planos encontrados:', planosComFuncionarios.length, 'tipo:', tipo);
       return planosComFuncionarios;
     },
     enabled: !!empresaId,

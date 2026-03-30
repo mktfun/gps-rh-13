@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 interface RelatorioCustoEmpresaCompleto {
   cnpj_razao_social: string;
@@ -33,7 +34,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Buscando relatório de custos completo (vida + saúde):', {
+      logger.info('🔍 Buscando relatório de custos completo (vida + saúde):', {
         empresaId,
         pageSize,
         pageOffset: pageIndex * pageSize,
@@ -59,7 +60,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         .in('tipo_seguro', ['vida', 'saude']);
 
       if (planosError) {
-        console.error('❌ Erro ao buscar planos:', planosError);
+        logger.error('❌ Erro ao buscar planos:', planosError);
         throw planosError;
       }
 
@@ -82,16 +83,16 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         .eq('cnpjs.empresa_id', empresaId);
 
       if (funcionariosError) {
-        console.error('❌ Erro ao buscar funcionários:', funcionariosError);
+        logger.error('❌ Erro ao buscar funcionários:', funcionariosError);
         throw funcionariosError;
       }
 
-      console.log('🔍 Debug - Planos encontrados:', planosData?.length);
-      console.log('🔍 Debug - Planos por tipo:', planosData?.reduce((acc, p) => {
+      logger.info('🔍 Debug - Planos encontrados:', planosData?.length);
+      logger.info('🔍 Debug - Planos por tipo:', planosData?.reduce((acc, p) => {
         acc[p.tipo_seguro] = (acc[p.tipo_seguro] || 0) + 1;
         return acc;
       }, {}));
-      console.log('🔍 Debug - Valores dos planos:', planosData?.map(p => ({
+      logger.info('🔍 Debug - Valores dos planos:', planosData?.map(p => ({
         tipo: p.tipo_seguro,
         valor: p.valor_mensal,
         cnpj: p.cnpjs.razao_social
@@ -121,7 +122,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         .eq('status', 'ativo');
 
       if (funcionariosVinculados.error) {
-        console.error('❌ Erro ao buscar funcionários vinculados:', funcionariosVinculados.error);
+        logger.error('❌ Erro ao buscar funcionários vinculados:', funcionariosVinculados.error);
       }
 
       // Criar mapa de contagem de funcionários por plano
@@ -151,7 +152,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
           if (valorReal === 0) {
             const funcionariosNoPlano = funcionariosPorPlano.get(plano.id) || 0;
             valorReal = funcionariosNoPlano * 200; // R$ 200 por funcionário ativo no plano
-            console.log(`🔍 Debug - Plano de saúde calculado: ${funcionariosNoPlano} funcionários × R$ 200 = R$ ${valorReal}`);
+            logger.info(`🔍 Debug - Plano de saúde calculado: ${funcionariosNoPlano} funcionários × R$ 200 = R$ ${valorReal}`);
           }
         }
 
@@ -160,7 +161,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
           valor: valorReal
         });
 
-        console.log(`🔍 Debug - Plano adicionado para CNPJ ${plano.cnpjs.razao_social}:`, {
+        logger.info(`🔍 Debug - Plano adicionado para CNPJ ${plano.cnpjs.razao_social}:`, {
           tipo: plano.tipo_seguro,
           valor_original: plano.valor_mensal,
           valor_real: valorReal,
@@ -197,7 +198,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
         // Calcular valor total do CNPJ (soma de todos os planos)
         const valorTotalCnpj = dadosCnpj.planos.reduce((sum, plano) => sum + plano.valor, 0);
 
-        console.log(`🔍 Debug - Valor total calculado para CNPJ ${dadosCnpj.cnpj_razao_social}:`, {
+        logger.info(`🔍 Debug - Valor total calculado para CNPJ ${dadosCnpj.cnpj_razao_social}:`, {
           planos: dadosCnpj.planos,
           valorTotal: valorTotalCnpj,
           funcionariosAtivos: funcionariosAtivosCnpj
@@ -305,7 +306,7 @@ export const useRelatorioCustosEmpresaComSaude = (params: UseRelatorioCustosEmpr
       const endIndex = startIndex + pageSize;
       const paginatedResults = filteredResults.slice(startIndex, endIndex);
 
-      console.log('📊 Resultados completos (vida + saúde):', {
+      logger.info('📊 Resultados completos (vida + saúde):', {
         total_original: relatorioCompleto.length,
         total_filtered: filteredResults.length,
         paginated_count: paginatedResults.length,

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface EmpresaCorretora {
   id: string;
@@ -30,7 +31,7 @@ export const useEmpresasCorretora = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('🔍 Buscando empresas da corretora...');
+      logger.info('🔍 Buscando empresas da corretora...');
 
       try {
         // SECURITY: Call without parameters - function uses auth.uid() internally
@@ -38,7 +39,7 @@ export const useEmpresasCorretora = () => {
           .rpc('get_empresas_unificadas');
 
         if (!rpcError && empresasRpc) {
-          console.log('✅ Empresas carregadas via RPC (seguro):', empresasRpc);
+          logger.info('✅ Empresas carregadas via RPC (seguro):', empresasRpc);
           return empresasRpc.map((empresa: any) => ({
             id: empresa.id,
             nome: empresa.nome,
@@ -55,7 +56,7 @@ export const useEmpresasCorretora = () => {
         }
 
         // Fallback: buscar via query direta simples
-        console.log('📊 Buscando empresas via query direta...');
+        logger.info('📊 Buscando empresas via query direta...');
         
         const { data: empresas, error: empresasError } = await supabase
           .from('empresas')
@@ -64,12 +65,12 @@ export const useEmpresasCorretora = () => {
           .order('created_at', { ascending: false });
 
         if (empresasError) {
-          console.error('❌ Erro ao buscar empresas:', empresasError);
+          logger.error('❌ Erro ao buscar empresas:', empresasError);
           throw empresasError;
         }
 
         if (!empresas || empresas.length === 0) {
-          console.log('📋 Nenhuma empresa encontrada');
+          logger.info('📋 Nenhuma empresa encontrada');
           return [];
         }
 
@@ -115,11 +116,11 @@ export const useEmpresasCorretora = () => {
           })
         );
 
-        console.log('✅ Empresas carregadas com métricas:', empresasComMetricas);
+        logger.info('✅ Empresas carregadas com métricas:', empresasComMetricas);
         return empresasComMetricas;
 
       } catch (error) {
-        console.error('❌ Erro ao buscar empresas da corretora:', error);
+        logger.error('❌ Erro ao buscar empresas da corretora:', error);
         // Retornar array vazio em caso de erro para não quebrar o build
         return [];
       }

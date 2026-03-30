@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface Profile {
   id: string;
@@ -54,7 +55,7 @@ export const useProfile = () => {
       toast.success('Perfil atualizado com sucesso!');
     },
     onError: (error) => {
-      console.error('Erro ao atualizar perfil:', error);
+      logger.error('Erro ao atualizar perfil:', error);
       toast.error('Erro ao atualizar perfil. Tente novamente.');
     },
   });

@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface CnpjWithEmpresa {
   id: string;
@@ -20,7 +21,7 @@ interface UseAllCnpjsParams {
 export const useAllCnpjs = (params: UseAllCnpjsParams = {}) => {
   const { search = '' } = params;
 
-  console.log('🔍 useAllCnpjs - Iniciando busca com parâmetros:', { search });
+  logger.info('🔍 useAllCnpjs - Iniciando busca com parâmetros:', { search });
 
   const {
     data: cnpjs,
@@ -29,7 +30,7 @@ export const useAllCnpjs = (params: UseAllCnpjsParams = {}) => {
   } = useQuery({
     queryKey: ['all-cnpjs', search],
     queryFn: async (): Promise<CnpjWithEmpresa[]> => {
-      console.log('🔍 useAllCnpjs - Executando query no Supabase...');
+      logger.info('🔍 useAllCnpjs - Executando query no Supabase...');
       
       let query = supabase
         .from('cnpjs')
@@ -48,19 +49,19 @@ export const useAllCnpjs = (params: UseAllCnpjsParams = {}) => {
         .order('razao_social', { ascending: true });
 
       if (search) {
-        console.log('🔍 useAllCnpjs - Aplicando filtro de busca:', search);
+        logger.info('🔍 useAllCnpjs - Aplicando filtro de busca:', search);
         query = query.or(`cnpj.ilike.%${search}%,razao_social.ilike.%${search}%`);
       }
 
       const { data, error } = await query;
 
-      console.log('🔍 useAllCnpjs - Resultado da query:', { 
+      logger.info('🔍 useAllCnpjs - Resultado da query:', { 
         data: data?.length || 0, 
         error: error?.message || null 
       });
 
       if (error) {
-        console.error('🔍 useAllCnpjs - Erro na query:', error);
+        logger.error('🔍 useAllCnpjs - Erro na query:', error);
         throw error;
       }
 
@@ -98,13 +99,13 @@ export const useAllCnpjs = (params: UseAllCnpjsParams = {}) => {
         };
       });
 
-      console.log('🔍 useAllCnpjs - Retornando dados processados:', result.length, 'CNPJs');
+      logger.info('🔍 useAllCnpjs - Retornando dados processados:', result.length, 'CNPJs');
       
       return result;
     }
   });
 
-  console.log('🔍 useAllCnpjs - Estado atual:', { 
+  logger.info('🔍 useAllCnpjs - Estado atual:', { 
     isLoading, 
     hasError: !!error, 
     dataCount: cnpjs?.length || 0 

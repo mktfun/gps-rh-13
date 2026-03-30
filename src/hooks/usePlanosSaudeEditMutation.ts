@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export interface UpdatePlanoSaudeData {
   plano_id: string;
@@ -34,7 +35,7 @@ export const usePlanosSaudeEditMutation = () => {
 
   return useMutation({
     mutationFn: async (data: UpdatePlanoSaudeData) => {
-      console.log('🔄 Atualizando plano de saúde:', data);
+      logger.info('🔄 Atualizando plano de saúde:', data);
       
       // 1. Atualizar informações básicas do plano
       const { error: updateError } = await supabase
@@ -46,7 +47,7 @@ export const usePlanosSaudeEditMutation = () => {
         .eq('id', data.plano_id);
 
       if (updateError) {
-        console.error('❌ Erro ao atualizar plano:', updateError);
+        logger.error('❌ Erro ao atualizar plano:', updateError);
         throw updateError;
       }
 
@@ -57,7 +58,7 @@ export const usePlanosSaudeEditMutation = () => {
         .eq('plano_id', data.plano_id);
 
       if (deleteError) {
-        console.error('❌ Erro ao deletar faixas antigas:', deleteError);
+        logger.error('❌ Erro ao deletar faixas antigas:', deleteError);
         throw deleteError;
       }
 
@@ -77,12 +78,12 @@ export const usePlanosSaudeEditMutation = () => {
           .insert(faixasToInsert);
 
         if (insertError) {
-          console.error('❌ Erro ao inserir novas faixas:', insertError);
+          logger.error('❌ Erro ao inserir novas faixas:', insertError);
           throw insertError;
         }
       }
 
-      console.log('✅ Plano de saúde atualizado com sucesso');
+      logger.info('✅ Plano de saúde atualizado com sucesso');
       return { success: true, message: 'Plano atualizado com sucesso!' } as PlanoSaudeResponse;
     },
     onSuccess: () => {
@@ -95,7 +96,7 @@ export const usePlanosSaudeEditMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['cnpjs-com-planos'] });
     },
     onError: (error: any) => {
-      console.error('❌ Erro na atualização do plano:', error);
+      logger.error('❌ Erro na atualização do plano:', error);
       toast.error(error?.message || 'Erro ao atualizar plano de saúde');
     },
   });

@@ -11,6 +11,7 @@ import {
   ESTADO_CIVIL_OPTIONS 
 } from '@/types/import';
 import { isValidCPF, formatCPF, getCPFValidationMessage } from '@/utils/cpfValidator';
+import { logger } from '@/lib/logger';
 
 interface UseBulkImportReturn {
   validateData: (
@@ -122,7 +123,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
     mapping: ColumnMapping
   ): Promise<ValidationResult[]> => {
     setIsValidating(true);
-    console.log('🔍 Iniciando validação com detecção de duplicatas e validação robusta...');
+    logger.info('🔍 Iniciando validação com detecção de duplicatas e validação robusta...');
     
     try {
       const results: ValidationResult[] = [];
@@ -141,9 +142,9 @@ export const useBulkImport = (): UseBulkImportReturn => {
           existingFuncionarios.set(cleanCPF, func);
         });
         
-        console.log(`📊 Encontrados ${existingFuncionarios.size} funcionários existentes no CNPJ`);
+        logger.info(`📊 Encontrados ${existingFuncionarios.size} funcionários existentes no CNPJ`);
       } catch (error) {
-        console.error('❌ Erro ao buscar funcionários existentes:', error);
+        logger.error('❌ Erro ao buscar funcionários existentes:', error);
       }
 
       data.forEach((row, index) => {
@@ -182,7 +183,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
           const cpfLimpo = formatCPF(cpfOriginal);
           validation.data.cpf = cpfLimpo; // Normalizar CPF
           
-          console.log(`🔍 Validando CPF linha ${index + 1}: "${cpfOriginal}" → "${cpfLimpo}"`);
+          logger.info(`🔍 Validando CPF linha ${index + 1}: "${cpfOriginal}" → "${cpfLimpo}"`);
           
           const cpfValidationMessage = getCPFValidationMessage(cpfOriginal);
           if (cpfValidationMessage) {
@@ -192,9 +193,9 @@ export const useBulkImport = (): UseBulkImportReturn => {
               message: cpfValidationMessage,
               suggestion: 'Verifique se o CPF está correto'
             });
-            console.log(`❌ CPF inválido linha ${index + 1}: ${cpfValidationMessage}`);
+            logger.info(`❌ CPF inválido linha ${index + 1}: ${cpfValidationMessage}`);
           } else {
-            console.log(`✅ CPF válido linha ${index + 1}: ${cpfLimpo}`);
+            logger.info(`✅ CPF válido linha ${index + 1}: ${cpfLimpo}`);
             
             // Verificar duplicata interna no CSV
             if (cpfsInternos.has(cpfLimpo)) {
@@ -208,7 +209,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
                 message: 'CPF duplicado no arquivo CSV',
                 suggestion: 'Verifique se este CPF não se repete no arquivo'
               });
-              console.log(`⚠️ CPF duplicado no CSV linha ${index + 1}: ${cpfLimpo}`);
+              logger.info(`⚠️ CPF duplicado no CSV linha ${index + 1}: ${cpfLimpo}`);
             } else {
               cpfsInternos.add(cpfLimpo);
             }
@@ -228,7 +229,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
                 message: `CPF já existe: ${existingFunc.nome}`,
                 suggestion: 'Funcionário já cadastrado no sistema'
               });
-              console.log(`⚠️ CPF duplicado no banco linha ${index + 1}: ${cpfLimpo} (${existingFunc.nome})`);
+              logger.info(`⚠️ CPF duplicado no banco linha ${index + 1}: ${cpfLimpo} (${existingFunc.nome})`);
             }
           }
         }
@@ -259,7 +260,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
 
         // Validação aprimorada de salário
         if (validation.data.salario) {
-          console.log(`💰 Validando salário linha ${index + 1}: "${validation.data.salario}"`);
+          logger.info(`💰 Validando salário linha ${index + 1}: "${validation.data.salario}"`);
           const salaryValidation = validateBrazilianSalary(validation.data.salario);
           
           if (!salaryValidation.isValid) {
@@ -269,9 +270,9 @@ export const useBulkImport = (): UseBulkImportReturn => {
               message: salaryValidation.message || 'Salário inválido',
               suggestion: 'Use formato brasileiro (ex: 2.500,50) ou apenas números'
             });
-            console.log(`❌ Salário inválido linha ${index + 1}: ${salaryValidation.message}`);
+            logger.info(`❌ Salário inválido linha ${index + 1}: ${salaryValidation.message}`);
           } else {
-            console.log(`✅ Salário válido linha ${index + 1}: "${validation.data.salario}" → R$ ${salaryValidation.value?.toFixed(2)}`);
+            logger.info(`✅ Salário válido linha ${index + 1}: "${validation.data.salario}" → R$ ${salaryValidation.value?.toFixed(2)}`);
           }
         }
 
@@ -300,13 +301,13 @@ export const useBulkImport = (): UseBulkImportReturn => {
         results.push(validation);
       });
 
-      console.log(`✅ Validação concluída: ${results.length} linhas processadas`);
-      console.log(`📊 Estatísticas: ${results.filter(r => r.status === 'valid').length} válidas, ${results.filter(r => r.status === 'warning').length} com avisos, ${results.filter(r => r.status === 'error').length} com erro`);
+      logger.info(`✅ Validação concluída: ${results.length} linhas processadas`);
+      logger.info(`📊 Estatísticas: ${results.filter(r => r.status === 'valid').length} válidas, ${results.filter(r => r.status === 'warning').length} com avisos, ${results.filter(r => r.status === 'error').length} com erro`);
       
       return results;
       
     } catch (error) {
-      console.error('❌ Erro na validação:', error);
+      logger.error('❌ Erro na validação:', error);
       throw error;
     } finally {
       setIsValidating(false);
@@ -343,7 +344,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
         return mapped;
       });
 
-      console.log('🚀 Iniciando importação com dados normalizados:', {
+      logger.info('🚀 Iniciando importação com dados normalizados:', {
         cnpjId,
         totalRows: mappedData.length,
         options,
@@ -360,7 +361,7 @@ export const useBulkImport = (): UseBulkImportReturn => {
       });
 
       if (error) {
-        console.error('❌ Erro na edge function:', error);
+        logger.error('❌ Erro na edge function:', error);
         throw error;
       }
 
@@ -375,12 +376,12 @@ export const useBulkImport = (): UseBulkImportReturn => {
         toast.success(`Importação concluída: ${result.successful_imports} funcionários processados`);
       }
       
-      console.log('✅ Resultado da importação:', result);
+      logger.info('✅ Resultado da importação:', result);
       
       return result as ImportResults;
 
     } catch (error) {
-      console.error('❌ Erro na importação:', error);
+      logger.error('❌ Erro na importação:', error);
       toast.error('Erro ao importar funcionários');
       throw error;
     } finally {

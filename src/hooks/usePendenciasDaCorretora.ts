@@ -117,9 +117,23 @@ export const usePendenciasDaCorretora = (filters: PendenciasCorretoraFilters = {
         query = query.eq('cnpjs.empresa_id', filters.empresaId as any);
       }
 
+      // Filtros server-side para prioridade (status)
+      if (filters?.status && filters.status !== 'todas') {
+        const hoje = startOfDay(new Date()).toISOString();
+        const dataLimiteUrgente = startOfDay(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)).toISOString();
+        
+        if (filters.status === 'critico') {
+          query = query.lt('data_vencimento', hoje);
+        } else if (filters.status === 'urgente') {
+          query = query.gte('data_vencimento', hoje).lte('data_vencimento', dataLimiteUrgente);
+        } else if (filters.status === 'normal') {
+          query = query.or(`data_vencimento.gt.${dataLimiteUrgente},data_vencimento.is.null`);
+        }
+      }
+
       const { data, error } = await query;
       if (error) {
-        console.error('Erro ao buscar pendências da corretora:', error);
+        logger.error('Erro ao buscar pendências da corretora:', error);
         throw error;
       }
 
@@ -155,12 +169,8 @@ export const usePendenciasDaCorretora = (filters: PendenciasCorretoraFilters = {
         return item;
       }) as PendenciaItem[];
 
-      // Filtros client-side (status/prioridade e busca)
+      // Filtros client-side (busca de texto)
       let filtrados = itens;
-
-      if (filters?.status && filters.status !== 'todas') {
-        filtrados = filtrados.filter(p => p.prioridade === filters.status);
-      }
 
       if (filters?.search && filters.search.trim()) {
         const s = filters.search.trim().toLowerCase();

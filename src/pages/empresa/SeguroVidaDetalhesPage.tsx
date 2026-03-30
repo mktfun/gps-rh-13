@@ -29,6 +29,7 @@ import {
 import { toast } from 'sonner';
 import { ContratoTab } from '@/components/planos/ContratoTab';
 import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
+import { logger } from '@/lib/logger';
 
 const SeguroVidaDetalhesPage: React.FC = () => {
   const { planoId } = useParams<{ planoId: string }>();
@@ -48,7 +49,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
   );
 
   // Debugging específico para seguro de vida
-  console.log('🏠 DEBUGGING SeguroVidaDetalhesPage:', {
+  logger.info('🏠 DEBUGGING SeguroVidaDetalhesPage:', {
     planoId,
     isLoading,
     error: error?.message,
@@ -82,7 +83,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
   // Early return if no planoId
   if (!planoId) {
-    console.log('�� Nenhum planoId fornecido na URL');
+    logger.info('�� Nenhum planoId fornecido na URL');
     return (
       <div className="container mx-auto py-6">
         <Link to="/empresa/seguros-de-vida">
@@ -102,13 +103,13 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
   // Loading state - mostrar enquanto está carregando
   if (isLoading) {
-    console.log('🔄 Mostrando loading state...');
+    logger.info('🔄 Mostrando loading state...');
     return <DashboardLoadingState />;
   }
 
   // Error state - só mostrar se houve erro E não está carregando
   if (error && !isLoading) {
-    console.log('❌ Mostrando error state:', error.message);
+    logger.info('❌ Mostrando error state:', error.message);
     return (
       <div className="container mx-auto py-6">
         <Link to="/empresa/seguros-de-vida">
@@ -128,7 +129,7 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
   // Not found state - só mostrar se NÃO está carregando E NÃO há plano E NÃO há erro
   if (!isLoading && !plano && !error) {
-    console.log('🔍 Mostrando not found state...');
+    logger.info('🔍 Mostrando not found state...');
     return (
       <div className="container mx-auto py-6">
         <Link to="/empresa/seguros-de-vida">
@@ -148,11 +149,11 @@ const SeguroVidaDetalhesPage: React.FC = () => {
 
   // Success state - só renderizar se temos plano
   if (!plano) {
-    console.log('⚠️ Plano ainda é null/undefined, aguardando...');
+    logger.info('⚠️ Plano ainda é null/undefined, aguardando...');
     return <DashboardLoadingState />;
   }
 
-  console.log('✅ Renderizando seguro de vida com sucesso!', plano.seguradora);
+  logger.info('✅ Renderizando seguro de vida com sucesso!', plano.seguradora);
 
   return (
     <div className="container mx-auto py-6">

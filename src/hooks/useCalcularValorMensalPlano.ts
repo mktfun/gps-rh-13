@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export const useCalcularValorMensalPlano = (planoId: string | undefined) => {
   return useQuery({
@@ -9,7 +10,7 @@ export const useCalcularValorMensalPlano = (planoId: string | undefined) => {
         return 0;
       }
 
-      console.log('🔍 Calculando valor mensal baseado nas faixas etárias:', planoId);
+      logger.info('🔍 Calculando valor mensal baseado nas faixas etárias:', planoId);
 
       // Chamar RPC que calcula baseado nas faixas etárias cadastradas
       const { data, error } = await supabase
@@ -18,11 +19,11 @@ export const useCalcularValorMensalPlano = (planoId: string | undefined) => {
         });
 
       if (error) {
-        console.error('❌ Erro ao calcular valor:', error);
+        logger.error('❌ Erro ao calcular valor:', error);
         return 0;
       }
 
-      console.log('✅ Valor calculado:', data);
+      logger.info('✅ Valor calculado:', data);
       return data || 0;
     },
     enabled: !!planoId,

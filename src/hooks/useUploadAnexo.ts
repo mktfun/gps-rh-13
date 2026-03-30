@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEnviarMensagem } from './useEnviarMensagem';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 // Função para sanitizar nomes de arquivo
 const sanitizeFileName = (name: string) => {
@@ -18,14 +19,14 @@ export const useUploadAnexo = (conversaId: string) => {
     mutationFn: async (file: File) => {
       if (!conversaId) throw new Error('ID da conversa é necessário');
 
-      console.log('📎 Iniciando upload de arquivo:', file.name);
+      logger.info('📎 Iniciando upload de arquivo:', file.name);
 
       // 1. Sanitiza o nome do arquivo para evitar caracteres inválidos
       const sanitizedFileName = sanitizeFileName(file.name);
       const filePath = `${conversaId}/${Date.now()}_${sanitizedFileName}`;
 
-      console.log('📎 Nome sanitizado:', sanitizedFileName);
-      console.log('📎 Caminho do arquivo:', filePath);
+      logger.info('📎 Nome sanitizado:', sanitizedFileName);
+      logger.info('📎 Caminho do arquivo:', filePath);
 
       // 2. Faz o upload para o Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -33,11 +34,11 @@ export const useUploadAnexo = (conversaId: string) => {
         .upload(filePath, file);
 
       if (uploadError) {
-        console.error('❌ Erro no upload:', uploadError);
+        logger.error('❌ Erro no upload:', uploadError);
         throw uploadError;
       }
 
-      console.log('📎 Upload realizado com sucesso');
+      logger.info('📎 Upload realizado com sucesso');
 
       // 3. Determina o tipo e cria os metadados
       const tipo = file.type.startsWith('image/') ? 'imagem' : 'arquivo';
@@ -58,11 +59,11 @@ export const useUploadAnexo = (conversaId: string) => {
       });
     },
     onSuccess: (data) => {
-      console.log('✅ Upload realizado com sucesso:', data);
+      logger.info('✅ Upload realizado com sucesso:', data);
       toast.success('Arquivo enviado com sucesso!');
     },
     onError: (error) => {
-      console.error('❌ Erro no upload:', error);
+      logger.error('❌ Erro no upload:', error);
       toast.error('Erro ao enviar arquivo. Tente novamente.');
     }
   });

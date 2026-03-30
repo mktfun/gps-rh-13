@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getDashboardRoute } from '@/utils/routePaths';
 import SignInCard from '@/components/ui/SignInCard';
+import { logger } from '@/lib/logger';
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,10 +15,10 @@ const Login = () => {
   // Redirecionamento automático após autenticação
   useEffect(() => {
     if (!authLoading && isAuthenticated && role) {
-      console.log('[LOGIN] Usuário autenticado detectado, redirecionando...', { role });
+      logger.info('[LOGIN] Usuário autenticado detectado, redirecionando...', { role });
       
       const dashboardRoute = getDashboardRoute(role);
-      console.log('[LOGIN] Redirecionando para:', dashboardRoute);
+      logger.info('[LOGIN] Redirecionando para:', dashboardRoute);
       navigate(dashboardRoute, { replace: true });
     }
   }, [isAuthenticated, role, authLoading, navigate]);
@@ -37,7 +38,7 @@ const Login = () => {
       // Se chegou aqui, o login foi bem-sucedido
       // O useAuth já vai lidar com o redirecionamento através do useEffect acima
     } catch (err) {
-      console.error('Erro inesperado no login:', err);
+      logger.error('Erro inesperado no login:', err);
       setError('Erro inesperado. Tente novamente.');
     } finally {
       setIsLoading(false);

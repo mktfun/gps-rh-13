@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 
 interface Mensagem {
   id: number;
@@ -28,7 +29,7 @@ export const useMensagens = (conversaId: string | null) => {
     queryFn: async (): Promise<Mensagem[]> => {
       if (!conversaId) return [];
 
-      console.log('🔍 Buscando mensagens para conversa:', conversaId);
+      logger.info('🔍 Buscando mensagens para conversa:', conversaId);
 
       const { data, error } = await supabase
         .from('mensagens')
@@ -37,11 +38,11 @@ export const useMensagens = (conversaId: string | null) => {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('❌ Erro ao buscar mensagens:', error);
+        logger.error('❌ Erro ao buscar mensagens:', error);
         throw error;
       }
 
-      console.log('✅ Mensagens encontradas:', data?.length || 0);
+      logger.info('✅ Mensagens encontradas:', data?.length || 0);
       return data || [];
     },
     enabled: !!conversaId,
@@ -53,13 +54,13 @@ export const useMensagens = (conversaId: string | null) => {
   useEffect(() => {
     if (!conversaId || !user?.id) return;
 
-    console.log('🔄 Configurando realtime e presence para conversa:', conversaId);
+    logger.info('🔄 Configurando realtime e presence para conversa:', conversaId);
 
     const channel = supabase.channel(`conversa-${conversaId}`);
 
     // Configurar presence
     channel.on('presence', { event: 'sync' }, () => {
-      console.log('👥 Sync presence state');
+      logger.info('👥 Sync presence state');
       const userIds: string[] = [];
       const state = channel.presenceState();
       
@@ -71,16 +72,16 @@ export const useMensagens = (conversaId: string | null) => {
         }
       }
       
-      console.log('👥 Usuários online:', userIds);
+      logger.info('👥 Usuários online:', userIds);
       setOnlineUsers(userIds);
     });
 
     channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-      console.log('👋 Usuário entrou:', key, newPresences);
+      logger.info('👋 Usuário entrou:', key, newPresences);
     });
 
     channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-      console.log('👋 Usuário saiu:', key, leftPresences);
+      logger.info('👋 Usuário saiu:', key, leftPresences);
     });
 
     // Configurar postgres changes
@@ -93,7 +94,7 @@ export const useMensagens = (conversaId: string | null) => {
         filter: `conversa_id=eq.${conversaId}`
       },
       (payload) => {
-        console.log('📨 Nova mensagem em tempo real:', payload);
+        logger.info('📨 Nova mensagem em tempo real:', payload);
         
         queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
           const novaMensagem = payload.new as Mensagem;
@@ -120,7 +121,7 @@ export const useMensagens = (conversaId: string | null) => {
         filter: `conversa_id=eq.${conversaId}`
       },
       (payload) => {
-        console.log('📝 Mensagem atualizada em tempo real:', payload);
+        logger.info('📝 Mensagem atualizada em tempo real:', payload);
         
         queryClient.setQueryData(['mensagens', conversaId], (old: Mensagem[]) => {
           return old?.map(msg => 
@@ -135,7 +136,7 @@ export const useMensagens = (conversaId: string | null) => {
     // Subscribe e track presence
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('✅ Canal subscrito, enviando presence...');
+        logger.info('✅ Canal subscrito, enviando presence...');
         await channel.track({
           user_id: user.id,
           online_at: new Date().toISOString()
@@ -144,7 +145,7 @@ export const useMensagens = (conversaId: string | null) => {
     });
 
     return () => {
-      console.log('🔌 Desconectando realtime e presence para conversa:', conversaId);
+      logger.info('🔌 Desconectando realtime e presence para conversa:', conversaId);
       supabase.removeChannel(channel);
       setOnlineUsers([]);
     };
@@ -154,18 +155,18 @@ export const useMensagens = (conversaId: string | null) => {
     mutationFn: async () => {
       if (!conversaId) return;
       
-      console.log('👁️ Marcando mensagens como lidas para conversa:', conversaId);
+      logger.info('👁️ Marcando mensagens como lidas para conversa:', conversaId);
 
       const { error } = await supabase.rpc('marcar_mensagens_como_lidas', {
         p_conversa_id: conversaId
       });
 
       if (error) {
-        console.error('❌ Erro ao marcar mensagens como lidas:', error);
+        logger.error('❌ Erro ao marcar mensagens como lidas:', error);
         throw error;
       }
 
-      console.log('✅ Mensagens marcadas como lidas');
+      logger.info('✅ Mensagens marcadas como lidas');
     },
     onSuccess: () => {
       // Invalidar queries relacionadas para atualizar contadores

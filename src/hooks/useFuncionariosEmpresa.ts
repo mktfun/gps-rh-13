@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface FuncionarioEmpresaCompleto {
   funcionario_id: string;
@@ -65,7 +66,7 @@ export const useFuncionariosEmpresa = (params: UseFuncionariosEmpresaParams) => 
       });
 
       if (error) {
-        console.error('❌ [useFuncionariosEmpresa] Erro na RPC:', error);
+        logger.error('❌ [useFuncionariosEmpresa] Erro na RPC:', error);
         throw error;
       }
 

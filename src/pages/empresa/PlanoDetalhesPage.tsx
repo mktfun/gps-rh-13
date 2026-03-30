@@ -13,6 +13,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdicionarFuncionariosModal from '@/components/planos/AdicionarFuncionariosModal';
+import { logger } from '@/lib/logger';
 
 export default function PlanoDetalhesPage() {
   const { planoId } = useParams<{ planoId: string }>();
@@ -58,7 +59,7 @@ export default function PlanoDetalhesPage() {
       toast.success('Plano excluído com sucesso!');
       navigate('/empresa/planos');
     } catch (error) {
-      console.error('Erro ao excluir plano:', error);
+      logger.error('Erro ao excluir plano:', error);
       toast.error('Erro ao excluir plano.');
     } finally {
       setIsDeleteAlertOpen(false);

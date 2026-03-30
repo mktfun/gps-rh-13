@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export interface DocumentoFuncionario {
   id: string;
@@ -87,7 +88,7 @@ export const useDocumentosFuncionario = (funcionarioId: string | null, dependent
       toast.success('Documento enviado com sucesso!');
     },
     onError: (error: Error) => {
-      console.error('Erro ao fazer upload:', error);
+      logger.error('Erro ao fazer upload:', error);
       toast.error('Erro ao enviar documento');
     },
   });
@@ -114,7 +115,7 @@ export const useDocumentosFuncionario = (funcionarioId: string | null, dependent
       toast.success('Documento excluído com sucesso!');
     },
     onError: (error: Error) => {
-      console.error('Erro ao deletar documento:', error);
+      logger.error('Erro ao deletar documento:', error);
       toast.error('Erro ao excluir documento');
     },
   });

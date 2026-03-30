@@ -2,6 +2,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface PasswordChangeData {
   currentPassword: string;
@@ -23,7 +24,7 @@ export const useSettings = () => {
       toast.success('Senha alterada com sucesso!');
     },
     onError: (error) => {
-      console.error('Erro ao alterar senha:', error);
+      logger.error('Erro ao alterar senha:', error);
       toast.error('Erro ao alterar senha. Tente novamente.');
     },
   });

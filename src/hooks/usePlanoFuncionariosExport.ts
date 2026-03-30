@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PlanoFuncionario } from './usePlanoFuncionarios';
+import { logger } from '@/lib/logger';
 
 interface UsePlanoFuncionariosExportParams {
   planoId: string;
@@ -23,7 +24,7 @@ export const usePlanoFuncionariosExport = () => {
     setError(null);
 
     try {
-      console.log('📥 Buscando TODOS os funcionários para exportação:', {
+      logger.info('📥 Buscando TODOS os funcionários para exportação:', {
         planoId,
         tipoSeguro,
         statusFilter,
@@ -40,7 +41,7 @@ export const usePlanoFuncionariosExport = () => {
       });
 
       if (rpcError) {
-        console.error('❌ Erro ao buscar funcionários para exportação:', rpcError);
+        logger.error('❌ Erro ao buscar funcionários para exportação:', rpcError);
         throw rpcError;
       }
 
@@ -61,7 +62,7 @@ export const usePlanoFuncionariosExport = () => {
         custo_individual: Number(row.custo_individual) || 0
       }));
 
-      console.log('✅ Total de funcionários carregados para exportação:', funcionarios.length);
+      logger.info('✅ Total de funcionários carregados para exportação:', funcionarios.length);
       
       setIsLoading(false);
       return funcionarios;

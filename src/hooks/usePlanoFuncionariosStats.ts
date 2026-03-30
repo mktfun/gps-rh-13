@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface PlanoFuncionariosStats {
   total: number;
@@ -14,7 +15,7 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
   return useQuery({
     queryKey: ['planoFuncionariosStats', tipoSeguro, planoId],
     queryFn: async (): Promise<PlanoFuncionariosStats> => {
-      console.log('🔍 Buscando estatísticas via RPC SECURITY INVOKER para planoId:', planoId, 'tipo:', tipoSeguro);
+      logger.info('🔍 Buscando estatísticas via RPC SECURITY INVOKER para planoId:', planoId, 'tipo:', tipoSeguro);
 
       // Usar a nova função RPC com SECURITY INVOKER (aplica RLS corretamente)
       const { data, error } = await (supabase as any).rpc('get_plano_funcionarios_stats', {
@@ -22,17 +23,17 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
       });
 
       if (error) {
-        console.error('❌ Erro ao buscar estatísticas de matrículas:', error);
-        console.error('❌ Código do erro:', error.code);
-        console.error('❌ Mensagem:', error.message);
-        console.error('❌ Detalhes:', error.details);
+        logger.error('❌ Erro ao buscar estatísticas de matrículas:', error);
+        logger.error('❌ Código do erro:', error.code);
+        logger.error('❌ Mensagem:', error.message);
+        logger.error('❌ Detalhes:', error.details);
 
         const errorMessage = error.message || 'Erro ao buscar estatísticas de matrículas';
         throw new Error(`Erro ao buscar estatísticas: ${errorMessage}`);
       }
 
       if (!data) {
-        console.warn('⚠️ Nenhuma estatística retornada');
+        logger.warn('⚠️ Nenhuma estatística retornada');
         return { total: 0, ativos: 0, pendentes: 0, inativos: 0, custoPorFuncionario: 0, salarioMedio: 0 };
       }
 
@@ -62,7 +63,7 @@ export const usePlanoFuncionariosStats = (planoId: string, tipoSeguro: string, v
         salarioMedio = salarioData.length > 0 ? totalSalarios / salarioData.length : 0;
       }
 
-      console.log('✅ Estatísticas de matrículas via RPC:', { ...stats, custoPorFuncionario, salarioMedio });
+      logger.info('✅ Estatísticas de matrículas via RPC:', { ...stats, custoPorFuncionario, salarioMedio });
 
       return { ...stats, custoPorFuncionario, salarioMedio };
     },

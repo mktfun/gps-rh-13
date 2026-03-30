@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface CnpjComPlano {
   id: string;
@@ -41,15 +42,15 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
     queryKey: ['cnpjs-com-planos', empresaId, search, filtroPlano, tipoSeguro],
     queryFn: async (): Promise<CnpjComPlano[]> => {
       if (!empresaId) {
-        console.warn('⚠️ empresaId não fornecido, retornando vazio');
+        logger.warn('⚠️ empresaId não fornecido, retornando vazio');
         return [];
       }
 
       if (!tipoSeguro) {
-        console.warn('⚠️ tipoSeguro não fornecido, usando "vida" como padrão');
+        logger.warn('⚠️ tipoSeguro não fornecido, usando "vida" como padrão');
       }
 
-      console.log('🔍 Chamando RPC get_cnpjs_com_metricas_por_tipo para empresa:', empresaId, 'tipo:', tipoSeguro);
+      logger.info('🔍 Chamando RPC get_cnpjs_com_metricas_por_tipo para empresa:', empresaId, 'tipo:', tipoSeguro);
 
       // Chamar a RPC que já faz todo o trabalho pesado no backend
       const { data: rpcData, error: rpcError } = await supabase.rpc('get_cnpjs_com_metricas_por_tipo', {
@@ -58,16 +59,16 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
       });
 
       if (rpcError) {
-        console.error('❌ Erro ao buscar CNPJs com métricas:', rpcError);
+        logger.error('❌ Erro ao buscar CNPJs com métricas:', rpcError);
         throw rpcError;
       }
 
       if (!rpcData || rpcData.length === 0) {
-        console.log('ℹ️ Nenhum CNPJ encontrado para esta empresa');
+        logger.info('ℹ️ Nenhum CNPJ encontrado para esta empresa');
         return [];
       }
 
-      console.log(`✅ RPC retornou ${rpcData.length} CNPJs`);
+      logger.info(`✅ RPC retornou ${rpcData.length} CNPJs`);
 
       // Mapear o retorno da RPC para o formato esperado pelo frontend
       const cnpjsComPlanos: CnpjComPlano[] = rpcData.map((row: any) => ({
@@ -107,7 +108,7 @@ export function useCnpjsComPlanos(paramsOrSearch: string | UseCnpjsComPlanosPara
         resultado = resultado.filter(c => !c.temPlano);
       }
 
-      console.log(`✅ Retornando ${resultado.length} CNPJs após filtros (search: "${search}", filtroPlano: "${filtroPlano}")`);
+      logger.info(`✅ Retornando ${resultado.length} CNPJs após filtros (search: "${search}", filtroPlano: "${filtroPlano}")`);
       return resultado;
     },
     enabled: !!empresaId,

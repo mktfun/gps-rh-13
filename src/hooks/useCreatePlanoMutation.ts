@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export interface CreatePlanoData {
   cnpj_id: string;
@@ -19,7 +20,7 @@ export const useCreatePlanoMutation = () => {
 
   return useMutation({
     mutationFn: async (data: CreatePlanoData) => {
-      console.log('🔄 Criando novo plano:', data);
+      logger.info('🔄 Criando novo plano:', data);
       
       // Verificar se já existe um plano com o mesmo cnpj_id e tipo_seguro
       const { data: existingPlano, error: checkError } = await supabase
@@ -30,7 +31,7 @@ export const useCreatePlanoMutation = () => {
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('❌ Erro ao verificar plano existente:', checkError);
+        logger.error('❌ Erro ao verificar plano existente:', checkError);
         throw checkError;
       }
 
@@ -55,11 +56,11 @@ export const useCreatePlanoMutation = () => {
         .single();
 
       if (insertError) {
-        console.error('❌ Erro ao criar plano:', insertError);
+        logger.error('❌ Erro ao criar plano:', insertError);
         throw insertError;
       }
 
-      console.log('✅ Plano criado com sucesso:', newPlano);
+      logger.info('✅ Plano criado com sucesso:', newPlano);
       return newPlano;
     },
     onSuccess: () => {
@@ -71,7 +72,7 @@ export const useCreatePlanoMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['dados-planos-cards'] });
     },
     onError: (error: any) => {
-      console.error('❌ Erro na criação do plano:', error);
+      logger.error('❌ Erro na criação do plano:', error);
       toast.error(error?.message || 'Erro ao configurar plano');
     },
   });

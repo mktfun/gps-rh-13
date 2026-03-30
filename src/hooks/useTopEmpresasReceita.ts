@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface TopEmpresaData {
   id: string;
@@ -21,21 +22,21 @@ export const useTopEmpresasReceita = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('🔍 Buscando top empresas por receita...');
+      logger.info('🔍 Buscando top empresas por receita...');
 
       // Compatível com a função consolidada que retorna JSONB (array)
       const { data, error } = await (supabase as any).rpc('get_top_empresas_receita');
 
       if (error) {
-        console.error('❌ Erro ao buscar top empresas:', error);
+        logger.error('❌ Erro ao buscar top empresas:', error);
         throw error;
       }
 
-      console.log('✅ Dados retornados pela RPC:', data);
+      logger.info('✅ Dados retornados pela RPC:', data);
 
       // A função RPC retorna um array JSON diretamente
       if (!data || !Array.isArray(data)) {
-        console.warn('⚠️ Dados não são um array válido:', data);
+        logger.warn('⚠️ Dados não são um array válido:', data);
         return [];
       }
 
@@ -48,7 +49,7 @@ export const useTopEmpresasReceita = () => {
         pendencias: isNaN(Number(item.pendencias)) ? 0 : Number(item.pendencias),
       }));
 
-      console.log('✅ Dados processados:', processedData);
+      logger.info('✅ Dados processados:', processedData);
       return processedData;
     },
     enabled: !!user?.id,

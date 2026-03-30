@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
@@ -40,7 +41,7 @@ export const useCorretoras = () => {
   } = useQuery({
     queryKey: ['corretoras'],
     queryFn: async (): Promise<Corretora[]> => {
-      console.log('Buscando corretoras...');
+      logger.info('Buscando corretoras...');
       
       const { data, error } = await supabase
         .from('profiles')
@@ -56,7 +57,7 @@ export const useCorretoras = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao buscar corretoras:', error);
+        logger.error('Erro ao buscar corretoras:', error);
         throw error;
       }
 
@@ -93,18 +94,18 @@ export const useCorretoras = () => {
 
   const toggleStatus = useMutation({
     mutationFn: async (correctoraId: string) => {
-      console.log('🔄 Alterando status da corretora:', correctoraId);
+      logger.info('🔄 Alterando status da corretora:', correctoraId);
       
       const { data, error } = await supabase.rpc('toggle_corretora_status', {
         target_user_id: correctoraId
       });
 
       if (error) {
-        console.error('❌ Erro ao alterar status:', error);
+        logger.error('❌ Erro ao alterar status:', error);
         throw error;
       }
 
-      console.log('✅ Status alterado com sucesso:', data);
+      logger.info('✅ Status alterado com sucesso:', data);
       return data as unknown as ToggleStatusResponse;
     },
     onSuccess: (data) => {
@@ -117,7 +118,7 @@ export const useCorretoras = () => {
       }
     },
     onError: (error) => {
-      console.error('❌ Erro na mutação:', error);
+      logger.error('❌ Erro na mutação:', error);
       toast.error('Erro ao alterar status da corretora');
     }
   });
@@ -135,7 +136,7 @@ export const useCreateCorretora = () => {
 
   return useMutation({
     mutationFn: async (corretoraData: CreateCorretoraData) => {
-      console.log('Criando nova corretora:', corretoraData);
+      logger.info('Criando nova corretora:', corretoraData);
 
       // Generate a simple UUID using crypto
       const newId = crypto.randomUUID();
@@ -152,11 +153,11 @@ export const useCreateCorretora = () => {
         .single();
 
       if (error) {
-        console.error('Erro ao criar corretora:', error);
+        logger.error('Erro ao criar corretora:', error);
         throw error;
       }
 
-      console.log('Corretora criada com sucesso');
+      logger.info('Corretora criada com sucesso');
       return data;
     },
     onSuccess: () => {
@@ -164,7 +165,7 @@ export const useCreateCorretora = () => {
       toast.success('Corretora criada com sucesso');
     },
     onError: (error) => {
-      console.error('Erro ao criar corretora:', error);
+      logger.error('Erro ao criar corretora:', error);
       toast.error('Erro ao criar corretora');
     }
   });

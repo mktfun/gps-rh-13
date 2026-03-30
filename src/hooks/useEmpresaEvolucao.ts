@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface EvolucaoMensal {
   mes: string;
@@ -14,21 +15,21 @@ export const useEmpresaEvolucao = () => {
   return useQuery({
     queryKey: ['empresa-evolucao-mensal', user?.id],
     queryFn: async (): Promise<EvolucaoMensal[]> => {
-      console.log('🔍 Buscando evolução mensal da empresa...');
+      logger.info('🔍 Buscando evolução mensal da empresa...');
 
       if (!user?.id) {
-        console.error('❌ Usuário não autenticado');
+        logger.error('❌ Usuário não autenticado');
         throw new Error('Usuário não autenticado');
       }
 
       const { data, error } = await supabase.rpc('get_empresa_evolucao_mensal');
 
       if (error) {
-        console.error('❌ Erro ao buscar evolução mensal:', error);
+        logger.error('❌ Erro ao buscar evolução mensal:', error);
         throw new Error(`Erro ao buscar evolução mensal: ${error.message}`);
       }
 
-      console.log('✅ Evolução mensal carregada:', data);
+      logger.info('✅ Evolução mensal carregada:', data);
 
       return data || [];
     },

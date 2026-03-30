@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface EmpresaBrandingData {
   logo_url?: string;
@@ -35,7 +36,7 @@ export const useEmpresaBranding = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Erro ao buscar branding da empresa:', error);
+        logger.error('Erro ao buscar branding da empresa:', error);
         throw error;
       }
       
@@ -83,7 +84,7 @@ export const useEmpresaBranding = () => {
       toast.success('Logo da empresa atualizada com sucesso!');
     },
     onError: (error) => {
-      console.error('Erro ao atualizar logo da empresa:', error);
+      logger.error('Erro ao atualizar logo da empresa:', error);
       toast.error('Erro ao atualizar logo da empresa');
     },
   });
@@ -119,7 +120,7 @@ export const useEmpresaBranding = () => {
       updateBranding.mutate({ logo_url: logoUrl });
     },
     onError: (error) => {
-      console.error('Erro ao fazer upload do logo:', error);
+      logger.error('Erro ao fazer upload do logo:', error);
       toast.error('Erro ao fazer upload do logo');
     },
   });
@@ -142,7 +143,7 @@ export const useEmpresaBranding = () => {
               .remove([fileName]);
           }
         } catch (error) {
-          console.error('Erro ao extrair nome do arquivo:', error);
+          logger.error('Erro ao extrair nome do arquivo:', error);
         }
       }
 
@@ -153,7 +154,7 @@ export const useEmpresaBranding = () => {
       toast.success('Logo removida com sucesso!');
     },
     onError: (error) => {
-      console.error('Erro ao remover logo:', error);
+      logger.error('Erro ao remover logo:', error);
       toast.error('Erro ao remover logo');
     },
   });

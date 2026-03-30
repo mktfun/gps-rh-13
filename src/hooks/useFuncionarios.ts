@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useFuncionariosEmpresa } from '@/hooks/useFuncionariosEmpresa';
+import { logger } from '@/lib/logger';
 
 type Funcionario = Tables<'funcionarios'>;
 type FuncionarioInsert = TablesInsert<'funcionarios'>;
@@ -58,7 +59,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
   const queryClient = useQueryClient();
   const { search = '', page = 0, pageSize = 10, cnpj_id, empresaId: paramEmpresaId, statusFilter } = params;
 
-  console.log('🔍 [useFuncionarios] Hook called with params:', params);
+  logger.info('🔍 [useFuncionarios] Hook called with params:', params);
 
   // Determinar qual empresa_id usar: parâmetro passado ou do AuthContext
   const targetEmpresaId = paramEmpresaId || empresaId;
@@ -164,7 +165,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
         .eq('id', id);
 
       if (funcError) {
-        console.warn('⚠️ Falha ao atualizar funcionarios (RLS), mas planos_funcionarios foi atualizado:', funcError.message);
+        logger.warn('⚠️ Falha ao atualizar funcionarios (RLS), mas planos_funcionarios foi atualizado:', funcError.message);
       }
 
       return { id };
@@ -250,7 +251,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
 
   // Decidir se deve usar RPC da empresa ou query padrão
   const shouldUseEmpresaQuery = targetEmpresaId && !cnpj_id;
-  console.log('🎯 [useFuncionarios] Query strategy:', {
+  logger.info('🎯 [useFuncionarios] Query strategy:', {
     shouldUseEmpresaQuery,
     targetEmpresaId,
     cnpj_id,
@@ -318,10 +319,10 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
     queryFn: async () => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      console.log('🔍 [useFuncionarios] Busca por CNPJ específico:', { cnpj_id, statusFilter, search });
+      logger.info('🔍 [useFuncionarios] Busca por CNPJ específico:', { cnpj_id, statusFilter, search });
 
       if (!cnpj_id) {
-        console.warn('⚠️ [useFuncionarios] Sem cnpj_id ou empresaId');
+        logger.warn('⚠️ [useFuncionarios] Sem cnpj_id ou empresaId');
         return { funcionarios: [], totalCount: 0, totalPages: 0, currentPage: 0 };
       }
 
@@ -361,7 +362,7 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       const { data, error, count } = await baseQuery.range(start, end);
 
       if (error) {
-        console.error('❌ [useFuncionarios] Erro na query:', error);
+        logger.error('❌ [useFuncionarios] Erro na query:', error);
         throw error;
       }
 

@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface FuncionarioRelatorio {
   funcionario_id: string;
@@ -39,13 +40,13 @@ export const useRelatorioGeralFuncionarios = (params: UseRelatorioGeralFuncionar
       });
 
       if (error) {
-        console.error('Erro ao buscar relatório geral de funcionários:', error);
+        logger.error('Erro ao buscar relatório geral de funcionários:', error);
         throw error;
       }
 
       // Verificação manual da estrutura dos dados para debug
       if (data && data.length > 0) {
-        console.log('ESTRUTURA DO RELATÓRIO:', data[0]);
+        logger.info('ESTRUTURA DO RELATÓRIO:', data[0]);
       }
 
       // Type assertion for the return data from our custom RPC function

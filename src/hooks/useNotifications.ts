@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 export type Notification = {
   id: string;
@@ -29,11 +30,11 @@ export const useNotifications = (showAll: boolean = false) => {
     queryKey: ['notifications', user?.id, showAll],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('Usuário não encontrado, retornando array vazio');
+        logger.info('Usuário não encontrado, retornando array vazio');
         return [];
       }
 
-      console.log('🔍 Buscando notificações do Supabase para usuário:', user.id, 'showAll:', showAll);
+      logger.info('🔍 Buscando notificações do Supabase para usuário:', user.id, 'showAll:', showAll);
       
       let query = supabase
         .from('notifications')
@@ -49,11 +50,11 @@ export const useNotifications = (showAll: boolean = false) => {
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ Erro ao buscar notificações:', error);
+        logger.error('❌ Erro ao buscar notificações:', error);
         throw error;
       }
 
-      console.log('✅ Notificações encontradas no banco:', data);
+      logger.info('✅ Notificações encontradas no banco:', data);
       return (data || []) as Notification[];
     },
     enabled: !!user?.id,
@@ -62,22 +63,22 @@ export const useNotifications = (showAll: boolean = false) => {
   // Mutation para marcar uma notificação específica como lida usando RPC
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      console.log('📝 Marcando notificação como lida via RPC:', notificationId);
+      logger.info('📝 Marcando notificação como lida via RPC:', notificationId);
       
       const { error } = await supabase.rpc('mark_notification_as_read', {
         p_notification_id: notificationId
       });
 
       if (error) {
-        console.error('❌ Erro ao marcar notificação como lida:', error);
+        logger.error('❌ Erro ao marcar notificação como lida:', error);
         throw error;
       }
 
-      console.log('✅ Notificação marcada como lida com sucesso');
+      logger.info('✅ Notificação marcada como lida com sucesso');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      console.log('🔄 Cache de notificações invalidado');
+      logger.info('🔄 Cache de notificações invalidado');
     },
     onError: (error) => {
       toast({
@@ -85,23 +86,23 @@ export const useNotifications = (showAll: boolean = false) => {
         description: "Falha ao marcar notificação como lida",
         variant: "destructive",
       });
-      console.error('❌ Erro na mutation markAsRead:', error);
+      logger.error('❌ Erro na mutation markAsRead:', error);
     }
   });
 
   // Mutation para marcar todas as notificações como lidas usando RPC
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      console.log('📝 Marcando todas as notificações como lidas via RPC...');
+      logger.info('📝 Marcando todas as notificações como lidas via RPC...');
       
       const { error } = await supabase.rpc('mark_all_notifications_as_read');
 
       if (error) {
-        console.error('❌ Erro ao marcar todas as notificações como lidas:', error);
+        logger.error('❌ Erro ao marcar todas as notificações como lidas:', error);
         throw error;
       }
 
-      console.log('✅ Todas as notificações marcadas como lidas');
+      logger.info('✅ Todas as notificações marcadas como lidas');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -109,7 +110,7 @@ export const useNotifications = (showAll: boolean = false) => {
         title: "Sucesso",
         description: "Todas as notificações foram marcadas como lidas",
       });
-      console.log('🔄 Cache de notificações invalidado após marcar todas');
+      logger.info('🔄 Cache de notificações invalidado após marcar todas');
     },
     onError: (error) => {
       toast({
@@ -117,7 +118,7 @@ export const useNotifications = (showAll: boolean = false) => {
         description: "Falha ao marcar todas as notificações como lidas",
         variant: "destructive",
       });
-      console.error('❌ Erro na mutation markAllAsRead:', error);
+      logger.error('❌ Erro na mutation markAllAsRead:', error);
     }
   });
 

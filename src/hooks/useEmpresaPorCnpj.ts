@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type Empresa = Database['public']['Tables']['empresas']['Row'];
 
@@ -9,14 +10,14 @@ export const useEmpresaPorCnpj = (cnpjId: string | undefined) => {
   return useQuery({
     queryKey: ['empresa-por-cnpj', cnpjId],
     queryFn: async () => {
-      console.log(`🔍 [useEmpresaPorCnpj] Iniciando busca da empresa via CNPJ: ${cnpjId}`);
+      logger.info(`🔍 [useEmpresaPorCnpj] Iniciando busca da empresa via CNPJ: ${cnpjId}`);
       
       if (!cnpjId) {
-        console.error('❌ [useEmpresaPorCnpj] ID do CNPJ não fornecido');
+        logger.error('❌ [useEmpresaPorCnpj] ID do CNPJ não fornecido');
         throw new Error('ID do CNPJ não fornecido');
       }
 
-      console.log(`📡 [useEmpresaPorCnpj] Fazendo query no Supabase para CNPJ: ${cnpjId}`);
+      logger.info(`📡 [useEmpresaPorCnpj] Fazendo query no Supabase para CNPJ: ${cnpjId}`);
       
       const { data, error } = await supabase
         .from('cnpjs')
@@ -37,19 +38,19 @@ export const useEmpresaPorCnpj = (cnpjId: string | undefined) => {
         .eq('id', cnpjId)
         .maybeSingle();
 
-      console.log(`📊 [useEmpresaPorCnpj] Resultado da query:`, { data, error });
+      logger.info(`📊 [useEmpresaPorCnpj] Resultado da query:`, { data, error });
 
       if (error) {
-        console.error('❌ [useEmpresaPorCnpj] Erro na query:', error);
+        logger.error('❌ [useEmpresaPorCnpj] Erro na query:', error);
         throw error;
       }
       
       if (!data || !data.empresas) {
-        console.error('❌ [useEmpresaPorCnpj] CNPJ ou empresa não encontrada');
+        logger.error('❌ [useEmpresaPorCnpj] CNPJ ou empresa não encontrada');
         return null;
       }
 
-      console.log('✅ [useEmpresaPorCnpj] Empresa encontrada via CNPJ:', data.empresas.nome);
+      logger.info('✅ [useEmpresaPorCnpj] Empresa encontrada via CNPJ:', data.empresas.nome);
       return {
         cnpj: data,
         empresa: data.empresas

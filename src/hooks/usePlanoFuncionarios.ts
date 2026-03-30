@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type StatusMatricula = Database['public']['Enums']['status_matricula'];
 
@@ -46,7 +47,7 @@ export const usePlanoFuncionarios = ({
   const query = useQuery({
     queryKey: ['planoFuncionarios', tipoSeguro, planoId, statusFilter, search, pageIndex, pageSize],
     queryFn: async () => {
-      console.log('🔍 usePlanoFuncionarios - Buscando funcionários via RPC:', {
+      logger.info('🔍 usePlanoFuncionarios - Buscando funcionários via RPC:', {
         planoId,
         tipoSeguro,
         statusFilter,
@@ -65,11 +66,11 @@ export const usePlanoFuncionarios = ({
       });
 
       if (error) {
-        console.error('❌ usePlanoFuncionarios - Erro ao buscar funcionários via RPC:', error);
+        logger.error('❌ usePlanoFuncionarios - Erro ao buscar funcionários via RPC:', error);
         throw error;
       }
 
-      console.log('✅ usePlanoFuncionarios - Funcionários encontrados via RPC:', {
+      logger.info('✅ usePlanoFuncionarios - Funcionários encontrados via RPC:', {
         totalRegistros: data?.[0]?.total_count || 0,
         paginaAtual: pageIndex + 1,
         funcionarios: data?.length || 0,
@@ -122,7 +123,7 @@ export const usePlanoFuncionarios = ({
       status: StatusMatricula;
       dados_pendentes?: any;
     }) => {
-      console.log('🔄 Atualizando matrícula:', { funcionario_id, status, planoId, tipoSeguro });
+      logger.info('🔄 Atualizando matrícula:', { funcionario_id, status, planoId, tipoSeguro });
 
       // Atualizar na tabela planos_funcionarios usando planoId diretamente
       const { data, error } = await supabase
@@ -145,7 +146,7 @@ export const usePlanoFuncionarios = ({
           .eq('id', funcionario_id);
 
         if (funcionarioError) {
-          console.warn('Erro ao atualizar dados pendentes:', funcionarioError);
+          logger.warn('Erro ao atualizar dados pendentes:', funcionarioError);
         }
       }
 
@@ -156,13 +157,13 @@ export const usePlanoFuncionarios = ({
       queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats', tipoSeguro, planoId] });
     },
     onError: (error: any) => {
-      console.error('Erro ao atualizar matrícula:', error);
+      logger.error('Erro ao atualizar matrícula:', error);
     },
   });
 
   const deleteFuncionario = useMutation({
     mutationFn: async (funcionarioId: string) => {
-      console.log('🗑️ Removendo matrícula:', funcionarioId, 'do plano:', planoId, tipoSeguro);
+      logger.info('🗑️ Removendo matrícula:', funcionarioId, 'do plano:', planoId, tipoSeguro);
 
       // Remover da tabela planos_funcionarios usando planoId diretamente
       const { data, error } = await supabase

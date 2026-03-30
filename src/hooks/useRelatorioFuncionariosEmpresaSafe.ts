@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 interface RelatorioFuncionarioEmpresaSafe {
   funcionario_id: string;
@@ -32,7 +33,7 @@ export const useRelatorioFuncionariosEmpresaSafe = (params: UseRelatorioFunciona
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Buscando relatório de funcionários (safe):', { 
+      logger.info('🔍 Buscando relatório de funcionários (safe):', { 
         empresaId, 
         cnpjId,
         pageSize, 
@@ -46,12 +47,12 @@ export const useRelatorioFuncionariosEmpresaSafe = (params: UseRelatorioFunciona
         .eq('empresa_id', empresaId);
 
       if (cnpjsError) {
-        console.error('❌ Erro ao buscar CNPJs:', cnpjsError);
+        logger.error('❌ Erro ao buscar CNPJs:', cnpjsError);
         throw cnpjsError;
       }
 
       if (!cnpjsData || cnpjsData.length === 0) {
-        console.log('⚠️ Nenhum CNPJ encontrado para a empresa');
+        logger.info('⚠️ Nenhum CNPJ encontrado para a empresa');
         return {
           data: [],
           totalCount: 0,
@@ -83,7 +84,7 @@ export const useRelatorioFuncionariosEmpresaSafe = (params: UseRelatorioFunciona
         .in('cnpj_id', targetCnpjIds);
 
       if (countError) {
-        console.error('❌ Erro ao contar funcionários:', countError);
+        logger.error('❌ Erro ao contar funcionários:', countError);
         throw countError;
       }
 
@@ -106,11 +107,11 @@ export const useRelatorioFuncionariosEmpresaSafe = (params: UseRelatorioFunciona
         .order('nome');
 
       if (funcionariosError) {
-        console.error('❌ Erro ao buscar funcionários:', funcionariosError);
+        logger.error('❌ Erro ao buscar funcionários:', funcionariosError);
         throw funcionariosError;
       }
 
-      console.log('✅ Funcionários carregados (safe):', funcionariosData?.length || 0);
+      logger.info('✅ Funcionários carregados (safe):', funcionariosData?.length || 0);
 
       const results: RelatorioFuncionarioEmpresaSafe[] = (funcionariosData || []).map(f => ({
         funcionario_id: f.id,

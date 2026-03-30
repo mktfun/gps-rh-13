@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import type { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 interface FuncionariosReportKPIs {
   total_funcionarios: number;
@@ -78,7 +79,7 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 [useFuncionariosReport] Buscando relatório de funcionários:', {
+      logger.info('🔍 [useFuncionariosReport] Buscando relatório de funcionários:', {
         empresaId,
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd'),
@@ -94,12 +95,12 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         .eq('empresa_id', empresaId);
 
       if (cnpjsError) {
-        console.error('❌ [useFuncionariosReport] Erro ao buscar CNPJs:', cnpjsError);
+        logger.error('❌ [useFuncionariosReport] Erro ao buscar CNPJs:', cnpjsError);
         throw cnpjsError;
       }
 
       if (!cnpjsData || cnpjsData.length === 0) {
-        console.log('⚠️ [useFuncionariosReport] Nenhum CNPJ encontrado para a empresa');
+        logger.info('⚠️ [useFuncionariosReport] Nenhum CNPJ encontrado para a empresa');
         return {
           kpis: { total_funcionarios: 0, funcionarios_ativos: 0, funcionarios_inativos: 0, taxa_cobertura: 0 },
           evolucao_temporal: [],
@@ -145,12 +146,12 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ [useFuncionariosReport] Erro ao buscar relatório:', error);
+        logger.error('❌ [useFuncionariosReport] Erro ao buscar relatório:', error);
         throw new Error(`Erro ao buscar relatório de funcionários: ${error.message}`);
       }
 
       if (!data) {
-        console.log('⚠️ [useFuncionariosReport] Nenhum dado retornado');
+        logger.info('⚠️ [useFuncionariosReport] Nenhum dado retornado');
         return {
           kpis: { total_funcionarios: 0, funcionarios_ativos: 0, funcionarios_inativos: 0, taxa_cobertura: 0 },
           evolucao_temporal: [],
@@ -161,7 +162,7 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         };
       }
 
-      console.log('✅ [useFuncionariosReport] Dados brutos carregados:', {
+      logger.info('✅ [useFuncionariosReport] Dados brutos carregados:', {
         total_funcionarios: data.length,
         funcionarios_ativos: data.filter(f => f.status === 'ativo').length,
         cnpjs_unicos: new Set(data.map(f => f.cnpj_id)).size,
@@ -265,7 +266,7 @@ export const useFuncionariosReport = (params: UseFuncionariosReportParams = {}) 
         }
       };
 
-      console.log('✅ [useFuncionariosReport] Relatório processado:', result);
+      logger.info('✅ [useFuncionariosReport] Relatório processado:', result);
       return result;
     },
     enabled: !!empresaId,

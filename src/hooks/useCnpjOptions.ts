@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 export const useCnpjOptions = () => {
   const { data: empresaId } = useEmpresaId();
@@ -18,7 +19,7 @@ export const useCnpjOptions = () => {
         .order('razao_social');
 
       if (error) {
-        console.error('❌ Erro ao buscar CNPJs:', error);
+        logger.error('❌ Erro ao buscar CNPJs:', error);
         throw error;
       }
 

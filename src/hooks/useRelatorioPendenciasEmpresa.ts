@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 // PROTOCOLO GAMBIARRA CONTROLADA: Interface para RPC customizada não presente nos tipos gerados
 interface RelatorioPendenciaEmpresa {
@@ -22,7 +23,7 @@ export const useRelatorioPendenciasEmpresa = () => {
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('Buscando relatório de pendências da empresa:', { empresaId });
+      logger.info('Buscando relatório de pendências da empresa:', { empresaId });
 
       // PROTOCOLO GAMBIARRA CONTROLADA: RPC customizada não presente nos tipos gerados
       const { data, error } = await (supabase as any).rpc('get_relatorio_pendencias_empresa', {
@@ -30,11 +31,11 @@ export const useRelatorioPendenciasEmpresa = () => {
       });
 
       if (error) {
-        console.error('Erro ao buscar relatório de pendências da empresa:', error);
+        logger.error('Erro ao buscar relatório de pendências da empresa:', error);
         throw error;
       }
 
-      console.log('✅ Relatório de pendências carregado:', data);
+      logger.info('✅ Relatório de pendências carregado:', data);
       return (data || []) as RelatorioPendenciaEmpresa[];
     },
     enabled: !!empresaId,

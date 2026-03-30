@@ -3,12 +3,13 @@
 // Todas as funções redirecionam para o hook correto
 
 import { useEmpresaDashboardMetrics } from '@/hooks/useEmpresaDashboardMetrics';
+import { logger } from '@/lib/logger';
 
 /**
  * @deprecated Use useEmpresaDashboardMetrics instead
  */
 export function useDashboardData(empresaId?: string) {
-  console.warn('⚠️ [useDashboardData] DEPRECATED - Use useEmpresaDashboardMetrics instead');
+  logger.warn('⚠️ [useDashboardData] DEPRECATED - Use useEmpresaDashboardMetrics instead');
   return useEmpresaDashboardMetrics();
 }
 
@@ -16,7 +17,7 @@ export function useDashboardData(empresaId?: string) {
  * @deprecated Use useEmpresaDashboardMetrics instead
  */
 export function useDashboardSummary(empresaId?: string) {
-  console.warn('⚠️ [useDashboardSummary] DEPRECATED - Use useEmpresaDashboardMetrics instead');
+  logger.warn('⚠️ [useDashboardSummary] DEPRECATED - Use useEmpresaDashboardMetrics instead');
   const { data, isLoading, error } = useEmpresaDashboardMetrics();
   
   return {
@@ -34,7 +35,7 @@ export function useDashboardSummary(empresaId?: string) {
  * @deprecated Use local calculation instead
  */
 export function useDashboardTrends(empresaId?: string) {
-  console.warn('⚠️ [useDashboardTrends] DEPRECATED - Calculate trends locally');
+  logger.warn('⚠️ [useDashboardTrends] DEPRECATED - Calculate trends locally');
   const { data, isLoading, error } = useEmpresaDashboardMetrics();
   
   const calculateTrend = (evolutionData: any[]) => {

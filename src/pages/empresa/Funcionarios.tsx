@@ -15,6 +15,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface FuncionarioEmpresa {
   id: string;
@@ -148,7 +149,7 @@ const Funcionarios = () => {
       setCreateModalOpen(false);
       setCurrentPage(0); // Reset to first page to see the new employee
     } catch (error) {
-      console.error('Erro ao criar funcionário:', error);
+      logger.error('Erro ao criar funcionário:', error);
     }
   };
 

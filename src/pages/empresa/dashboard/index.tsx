@@ -31,6 +31,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
 import { CnpjListHorizontal } from '@/components/dashboard/CnpjListHorizontal';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface KPICardProps {
   title: string;
@@ -490,7 +491,7 @@ export default function DashboardPage() {
   const { data, isLoading, error, refetch } = useEmpresaDashboardMetrics();
 
   // Log de segurança para verificar o ID usado
-  console.log('🔐 [DashboardPage] IDs de segurança:', {
+  logger.info('🔐 [DashboardPage] IDs de segurança:', {
     empresaId,
     userId: user?.id,
     realEmpresaId,
@@ -498,7 +499,7 @@ export default function DashboardPage() {
   });
 
   // Log detalhado dos dados recebidos
-  console.log('🏢 [DashboardPage] Hook resultado:', {
+  logger.info('🏢 [DashboardPage] Hook resultado:', {
     data: data,
     isLoading,
     error,
@@ -544,8 +545,8 @@ export default function DashboardPage() {
     return `💰 Investimento anual de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorAnual)} | Cobertura ${ratio}x o valor mensal`;
   }, [data?.planoPrincipal]);
 
-  console.log('🏢 [DashboardPage] Dados recebidos:', { data, isLoading, error });
-  console.log('🏢 [DashboardPage] Dados detalhados:', {
+  logger.info('🏢 [DashboardPage] Dados recebidos:', { data, isLoading, error });
+  logger.info('🏢 [DashboardPage] Dados detalhados:', {
     hasData: !!data,
     totalFuncionarios: data?.totalFuncionarios,
     funcionariosAtivos: data?.funcionariosAtivos,
@@ -562,7 +563,7 @@ export default function DashboardPage() {
       await refetch();
       toast.success('Dados atualizados com sucesso!');
     } catch (error) {
-      console.error('Erro ao atualizar dados:', error);
+      logger.error('Erro ao atualizar dados:', error);
       toast.error('Erro ao atualizar dados');
     } finally {
       setIsRefreshing(false);

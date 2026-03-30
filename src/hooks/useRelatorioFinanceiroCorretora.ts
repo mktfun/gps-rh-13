@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface RelatorioFinanceiroItem {
   empresa_id: string;
@@ -20,17 +21,17 @@ export const useRelatorioFinanceiroCorretora = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('Chamando RPC get_empresas_com_metricas para relatório financeiro (sem parâmetro)');
+      logger.info('Chamando RPC get_empresas_com_metricas para relatório financeiro (sem parâmetro)');
 
       // Usar get_empresas_com_metricas sem parâmetro (já filtra por RLS)
       const { data, error } = await supabase.rpc('get_empresas_com_metricas');
 
       if (error) {
-        console.error('Erro ao buscar relatório financeiro:', error);
+        logger.error('Erro ao buscar relatório financeiro:', error);
         throw error;
       }
 
-      console.log('Dados retornados da RPC get_empresas_com_metricas:', data);
+      logger.info('Dados retornados da RPC get_empresas_com_metricas:', data);
 
       // A função get_empresas_com_metricas agora retorna dados de empresas
       // Vamos processar os dados para o relatório financeiro
@@ -43,7 +44,7 @@ export const useRelatorioFinanceiroCorretora = () => {
           custo_total_mensal: Number(empresa.total_funcionarios) * 450 || 0, // Estimate R$450 per employee
         }));
 
-        console.log('Dados processados para relatório financeiro (array):', sanitizedData);
+        logger.info('Dados processados para relatório financeiro (array):', sanitizedData);
         return sanitizedData;
       }
 
@@ -56,7 +57,7 @@ export const useRelatorioFinanceiroCorretora = () => {
         custo_total_mensal: isNaN(Number(item.custo_mensal_total)) ? 0 : Number(item.custo_mensal_total),
       })) : [];
 
-      console.log('Dados processados para relatório financeiro (array):', sanitizedData);
+      logger.info('Dados processados para relatório financeiro (array):', sanitizedData);
       return sanitizedData as RelatorioFinanceiroItem[];
     },
     enabled: !!user?.id,

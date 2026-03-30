@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface StatusDistribution {
   status: string;
@@ -13,7 +14,7 @@ export const useDistribuicaoStatus = () => {
     const { data, error } = await supabase.rpc('get_distribuicao_status_funcionarios' as any);
 
     if (error) {
-      console.error('Erro ao buscar dados de distribuição de status:', error);
+      logger.error('Erro ao buscar dados de distribuição de status:', error);
       throw new Error('Não foi possível carregar os dados do gráfico.');
     }
 

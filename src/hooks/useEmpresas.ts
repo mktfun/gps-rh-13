@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { handleApiError } from '@/lib/errorHandler';
+import { logger } from '@/lib/logger';
 
 export interface EmpresaComMetricas {
   id: string;
@@ -35,117 +37,6 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
     data: result,
     isLoading,
     error
-  } = useQuery({
-    queryKey: ['empresas-com-metricas', user?.id, search, page, pageSize, orderBy, orderDirection],
-    queryFn: async (): Promise<{ empresas: EmpresaComMetricas[]; totalCount: number; totalPages: number }> => {
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      console.log('🏢 useEmpresas - Buscando empresas com métricas via RPC seguro (sem parâmetros)');
-
-      try {
-        // SECURITY: Call without parameters - function uses auth.uid() internally
-        const { data, error } = await supabase.rpc('get_empresas_com_metricas');
-
-        if (error) {
-          console.error('❌ [useEmpresas] Erro ao executar RPC:', error);
-          throw error;
-        }
-
-        console.log('✅ [useEmpresas] RPC retornou:', data);
-
-        // LÓGICA FINAL E À PROVA DE BALAS PARA NORMALIZAR O RETORNO:
-        let normalizedData: any[] = [];
-
-        if (Array.isArray(data)) {
-          // Se já for um array (0 ou múltiplos resultados), retorne como está.
-          normalizedData = data;
-        } else if (data && typeof data === 'object') {
-          // Se for um objeto único (e não nulo), embrulhe-o em um array.
-          normalizedData = [data];
-        } else {
-          // Como último recurso, se for qualquer outra coisa (null, etc.), retorne um array vazio.
-          normalizedData = [];
-        }
-
-        // Filtrar registros nulos e validar estrutura de dados
-        let empresas = normalizedData
-          .filter((empresa: any) => {
-            // Verificar se o objeto empresa não é null e tem propriedades essenciais
-            if (!empresa || typeof empresa !== 'object') {
-              console.warn('🚨 useEmpresas - Registro empresa inválido detectado:', empresa);
-              return false;
-            }
-
-            // Verificar propriedades obrigatórias
-            const hasRequiredFields = empresa.id && 
-                                     empresa.nome && 
-                                     empresa.responsavel && 
-                                     empresa.email;
-            
-            if (!hasRequiredFields) {
-              console.warn('🚨 useEmpresas - Empresa com campos obrigatórios ausentes:', empresa);
-              return false;
-            }
-
-            return true;
-          })
-          .map((empresa: any): EmpresaComMetricas => ({
-            id: empresa.id,
-            nome: empresa.nome,
-            responsavel: empresa.responsavel,
-            email: empresa.email,
-            telefone: empresa.telefone || '',
-            corretora_id: empresa.corretora_id,
-            created_at: empresa.created_at,
-            updated_at: empresa.updated_at,
-            primeiro_acesso: empresa.primeiro_acesso || false,
-            total_funcionarios: empresa.total_funcionarios || 0,
-            total_pendencias: empresa.total_pendencias || 0,
-            status_geral: empresa.status_geral || 'Ativo'
-          }));
-
-        // Aplicar filtro de busca no lado cliente
-        if (search && search.trim()) {
-          const searchTerm = search.toLowerCase();
-          empresas = empresas.filter(empresa => 
-            empresa.nome.toLowerCase().includes(searchTerm) ||
-            empresa.responsavel.toLowerCase().includes(searchTerm) ||
-            empresa.email.toLowerCase().includes(searchTerm)
-          );
-        }
-
-        // Aplicar ordenação no lado cliente
-        empresas.sort((a, b) => {
-          const aValue = a[orderBy as keyof EmpresaComMetricas];
-          const bValue = b[orderBy as keyof EmpresaComMetricas];
-          
-          if (aValue < bValue) return orderDirection === 'asc' ? -1 : 1;
-          if (aValue > bValue) return orderDirection === 'asc' ? 1 : -1;
-          return 0;
-        });
-
-        // Calcular dados de paginação
-        const totalCount = empresas.length;
-        const totalPages = Math.ceil(totalCount / pageSize);
-        
-        // Aplicar paginação no lado cliente
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize;
-        const paginatedEmpresas = empresas.slice(from, to);
-
-        console.log('✅ useEmpresas - Empresas válidas encontradas:', paginatedEmpresas.length, 'de', totalCount);
-        
-        return {
-          empresas: paginatedEmpresas,
-          totalCount,
-          totalPages
-        };
-      } catch (error) {
-        console.error('❌ useEmpresas - Erro na busca de empresas:', error);
-        throw error;
-      }
     },
     enabled: !!user?.id, // Só executa se o usuário estiver autenticado
     // Configurações de cache otimizadas para performance
@@ -171,8 +62,8 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
       toast.success('Empresa criada com sucesso');
     },
     onError: (error) => {
-      console.error('Erro ao criar empresa:', error);
-      toast.error('Erro ao criar empresa');
+      logger.error('Erro ao criar empresa:', error);
+      handleApiError(error, 'Ao criar empresa');
     }
   });
 
@@ -195,14 +86,14 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
       toast.success('Empresa atualizada com sucesso');
     },
     onError: (error) => {
-      console.error('Erro ao atualizar empresa:', error);
-      toast.error('Erro ao atualizar empresa');
+      logger.error('Erro ao atualizar empresa:', error);
+      handleApiError(error, 'Ao atualizar empresa');
     }
   });
 
   const deleteEmpresa = useMutation({
     mutationFn: async (id: string) => {
-      console.log('🗑️ Iniciando exclusão da empresa:', id);
+      logger.info('🗑️ Iniciando exclusão da empresa:', id);
       
       // Usar a função delete_empresa_with_cleanup para garantir a limpeza completa
       const { data, error } = await supabase.rpc('delete_empresa_with_cleanup', {
@@ -210,7 +101,7 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
       });
 
       if (error) {
-        console.error('❌ Erro ao excluir empresa:', error);
+        logger.error('❌ Erro ao excluir empresa:', error);
         
         // Tratamento específico para erro de auditoria
         if (error.code === '23502' && error.message?.includes('audit_log')) {
@@ -224,19 +115,19 @@ export const useEmpresas = (params: UseEmpresasParams = {}) => {
         throw new Error('Empresa não encontrada ou não pôde ser excluída');
       }
 
-      console.log('✅ Empresa excluída com sucesso');
+      logger.info('✅ Empresa excluída com sucesso');
       return data;
     },
     onSuccess: () => {
-      console.log('🔄 Invalidando cache após exclusão bem-sucedida');
+      logger.info('🔄 Invalidando cache após exclusão bem-sucedida');
       queryClient.invalidateQueries({ queryKey: ['empresas-com-metricas'] });
       toast.success('Empresa excluída com sucesso');
     },
     onError: (error: any) => {
-      console.error('❌ Erro na exclusão da empresa:', error);
+      logger.error('❌ Erro na exclusão da empresa:', error);
       
       const errorMessage = error.message || 'Erro ao excluir empresa';
-      toast.error(errorMessage);
+      handleApiError(error, 'Ao processar empresa');
     }
   });
 

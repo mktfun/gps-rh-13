@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { handleApiError } from '@/lib/errorHandler';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type EstadoCivil = Database['public']['Enums']['estado_civil'];
 
@@ -21,7 +23,7 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
 
   const createFuncionario = useMutation({
     mutationFn: async (data: CreateFuncionarioData) => {
-      console.log('🔄 Criando funcionário:', data);
+      logger.info('🔄 Criando funcionário:', data);
 
       // Calcular idade baseada na data de nascimento
       const idade = data.data_nascimento 
@@ -41,7 +43,7 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
         status: 'pendente' as const,
       };
 
-      console.log('📋 Dados formatados para inserção:', funcionarioData);
+      logger.info('📋 Dados formatados para inserção:', funcionarioData);
 
       // 1. Criar o funcionário
       const { data: result, error } = await supabase
@@ -51,11 +53,11 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
         .single();
 
       if (error) {
-        console.error('❌ Erro ao criar funcionário:', error);
+        logger.error('❌ Erro ao criar funcionário:', error);
         throw error;
       }
 
-      console.log('✅ Funcionário criado com sucesso:', result);
+      logger.info('✅ Funcionário criado com sucesso:', result);
 
       // 2. Buscar a corretora a partir do CNPJ (mantido por compatibilidade; trigger já garante a pendência)
       const { data: cnpjData, error: cnpjError } = await supabase
@@ -71,14 +73,14 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
         .single();
 
       if (cnpjError || !cnpjData?.empresas?.corretora_id) {
-        console.error("💥 CRÍTICO: Falha ao encontrar corretora para criar pendência:", cnpjError);
+        logger.error("💥 CRÍTICO: Falha ao encontrar corretora para criar pendência:", cnpjError);
         // Observação: Trigger no banco já cria a pendência automaticamente.
         // Não interromper o fluxo se não conseguirmos criar manualmente.
         return result;
       }
 
       const corretoraId = cnpjData.empresas.corretora_id;
-      console.log('🏢 Corretora encontrada:', corretoraId);
+      logger.info('🏢 Corretora encontrada:', corretoraId);
 
       // 3. Tentar inserir a pendência manualmente (se já existir via trigger, ignorar duplicidade)
       const vencimento = new Date();
@@ -96,7 +98,7 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
         data_vencimento: dataVencimento
       };
 
-      console.log('📝 Tentando criar pendência manualmente (trigger já garante):', pendenciaData);
+      logger.info('📝 Tentando criar pendência manualmente (trigger já garante):', pendenciaData);
 
       const { error: pendenciaError } = await supabase
         .from('pendencias')
@@ -111,19 +113,19 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
           msg.includes('uniq_pend_ativacao_por_funcionario_pendente');
 
         if (isDuplicate) {
-          console.log('ℹ️ Pendência já existente (provavelmente criada pelo trigger). Prosseguindo sem erro.');
+          logger.info('ℹ️ Pendência já existente (provavelmente criada pelo trigger). Prosseguindo sem erro.');
         } else {
-          console.error("💥 CRÍTICO: Funcionário criado, mas falha ao criar pendência:", pendenciaError);
-          toast.error("Funcionário criado, mas houve um erro ao registrar a pendência.");
+          logger.error("💥 CRÍTICO: Funcionário criado, mas falha ao criar pendência:", pendenciaError);
+          handleApiError(error, 'Ao registrar pendência do funcionário recém-criado');
         }
       } else {
-        console.log('✅ Pendência criada com sucesso!');
+        logger.info('✅ Pendência criada com sucesso!');
       }
 
       return result;
     },
     onSuccess: (data) => {
-      console.log('🎉 Funcionário criado! Resetando paginação e invalidando cache...');
+      logger.info('🎉 Funcionário criado! Resetando paginação e invalidando cache...');
       
       // Resetar paginação para a primeira página
       if (resetPagination) {
@@ -152,8 +154,8 @@ export const useFuncionariosMutation = (cnpjId: string, resetPagination?: () => 
       toast.success(`Funcionário ${data.nome} adicionado com sucesso!`);
     },
     onError: (error: any) => {
-      console.error('💥 Erro ao criar funcionário:', error);
-      toast.error(error?.message || 'Erro ao adicionar funcionário');
+      logger.error('💥 Erro ao criar funcionário:', error);
+      handleApiError(error, 'Ao adicionar funcionário');
     },
   });
 

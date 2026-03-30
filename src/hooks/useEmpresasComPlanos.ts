@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface EmpresaComPlano {
   id: string;
@@ -21,11 +22,11 @@ export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlano
     queryKey: ['empresasComPlanos', tipoSeguro, user?.id],
     queryFn: async (): Promise<EmpresaComPlano[]> => {
       if (!user?.id) {
-        console.warn('⚠️ [useEmpresasComPlanos] Usuário não autenticado - retornando lista vazia');
+        logger.warn('⚠️ [useEmpresasComPlanos] Usuário não autenticado - retornando lista vazia');
         return [];
       }
 
-      console.log('🔍 [useEmpresasComPlanos] Chamando RPC get_empresas_com_planos_por_tipo:', {
+      logger.info('🔍 [useEmpresasComPlanos] Chamando RPC get_empresas_com_planos_por_tipo:', {
         tipoSeguro,
         corretoraId: user.id
       });
@@ -37,7 +38,7 @@ export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlano
       });
 
       if (error) {
-        console.error('❌ [useEmpresasComPlanos] Erro ao executar RPC:', error);
+        logger.error('❌ [useEmpresasComPlanos] Erro ao executar RPC:', error);
         throw error;
       }
 
@@ -49,7 +50,7 @@ export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlano
         total_planos_ativos: Number(row.total_planos_ativos ?? 0) || 0,
       })) as EmpresaComPlano[];
 
-      console.log('✅ [useEmpresasComPlanos] RPC retornou empresas:', normalized.length);
+      logger.info('✅ [useEmpresasComPlanos] RPC retornou empresas:', normalized.length);
       return normalized;
     },
     enabled: !!user?.id && !!tipoSeguro,

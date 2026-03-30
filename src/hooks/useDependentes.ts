@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export interface Dependente {
   id: string;
@@ -47,7 +48,7 @@ export const useDependentes = (funcionarioId: string | null) => {
       toast.success('Dependente adicionado com sucesso!');
     },
     onError: (error: Error) => {
-      console.error('Erro ao criar dependente:', error);
+      logger.error('Erro ao criar dependente:', error);
       toast.error('Erro ao adicionar dependente');
     },
   });
@@ -66,7 +67,7 @@ export const useDependentes = (funcionarioId: string | null) => {
       toast.success('Dependente removido com sucesso!');
     },
     onError: (error: Error) => {
-      console.error('Erro ao deletar dependente:', error);
+      logger.error('Erro ao deletar dependente:', error);
       toast.error('Erro ao remover dependente');
     },
   });

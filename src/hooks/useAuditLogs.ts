@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 
 interface AuditLogFilters {
   userEmail?: string;
@@ -28,7 +29,7 @@ export const useAuditLogs = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['audit-logs', filters, page],
     queryFn: async () => {
-      console.log('Buscando logs de auditoria com filtros:', filters, 'página:', page);
+      logger.info('Buscando logs de auditoria com filtros:', filters, 'página:', page);
       
       const offset = (page - 1) * pageSize;
       
@@ -44,18 +45,18 @@ export const useAuditLogs = () => {
         });
 
         if (error) {
-          console.error('Erro ao buscar logs de auditoria:', error);
+          logger.error('Erro ao buscar logs de auditoria:', error);
           throw error;
         }
 
-        console.log('Logs retornados da RPC:', data);
+        logger.info('Logs retornados da RPC:', data);
         return (data || []) as AuditLog[];
         
       } catch (rpcError) {
-        console.error('Erro na chamada RPC:', rpcError);
+        logger.error('Erro na chamada RPC:', rpcError);
         
         // Fallback para dados simulados em caso de erro
-        console.log('Usando dados simulados como fallback');
+        logger.info('Usando dados simulados como fallback');
         
         const mockLogs: AuditLog[] = [
           {

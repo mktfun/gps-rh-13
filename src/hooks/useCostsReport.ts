@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface CostsReportKPIs {
   custo_total_periodo: number;
@@ -69,7 +70,7 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
     queryFn: async (): Promise<CostsReportData> => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 [useCostsReport] Buscando relatório de custos:', {
+      logger.info('🔍 [useCostsReport] Buscando relatório de custos:', {
         empresaId,
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd')
@@ -82,11 +83,11 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
       });
 
       if (error) {
-        console.error('❌ [useCostsReport] Erro ao buscar relatório:', error);
+        logger.error('❌ [useCostsReport] Erro ao buscar relatório:', error);
         throw error;
       }
 
-      console.log('✅ [useCostsReport] Relatório carregado:', data);
+      logger.info('✅ [useCostsReport] Relatório carregado:', data);
 
       // Safely parse the JSON data
       const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
@@ -114,7 +115,7 @@ export const useCostsReport = (params: UseCostsReportParams = {}) => {
         }
         fixedKpis.total_funcionarios_ativos = totalFuncionarios;
 
-        console.log('🔧 [useCostsReport] KPIs recalculados:', fixedKpis);
+        logger.info('🔧 [useCostsReport] KPIs recalculados:', fixedKpis);
       }
 
       // Transform the data to ensure it matches our interface

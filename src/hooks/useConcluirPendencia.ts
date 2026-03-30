@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface ConcluirPendenciaParams {
   pendenciaId: string;
@@ -13,7 +14,7 @@ export const useConcluirPendencia = () => {
 
   return useMutation({
     mutationFn: async ({ pendenciaId }: ConcluirPendenciaParams) => {
-      console.log(`🚀 Marcando pendência ${pendenciaId} como concluída`);
+      logger.info(`🚀 Marcando pendência ${pendenciaId} como concluída`);
       
       const { data, error } = await supabase
         .from('pendencias')
@@ -26,16 +27,16 @@ export const useConcluirPendencia = () => {
         .single();
 
       if (error) {
-        console.error('❌ Erro ao concluir pendência:', error);
+        logger.error('❌ Erro ao concluir pendência:', error);
         throw error;
       }
 
-      console.log('✅ Pendência concluída com sucesso:', data);
+      logger.info('✅ Pendência concluída com sucesso:', data);
       return data;
     },
 
     onSuccess: () => {
-      console.log('🎉 Pendência marcada como concluída!');
+      logger.info('🎉 Pendência marcada como concluída!');
       
       // Invalidar queries relacionadas para atualizar a UI
       queryClient.invalidateQueries({ queryKey: ['pendencias-report'] });
@@ -50,7 +51,7 @@ export const useConcluirPendencia = () => {
     },
 
     onError: (error) => {
-      console.error('❌ Erro ao concluir pendência:', error);
+      logger.error('❌ Erro ao concluir pendência:', error);
       
       toast({
         title: 'Erro',

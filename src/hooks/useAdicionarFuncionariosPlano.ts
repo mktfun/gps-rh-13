@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface AdicionarFuncionariosPlanoParams {
   planoId: string;
@@ -12,8 +13,8 @@ export const useAdicionarFuncionariosPlano = () => {
 
   return useMutation({
     mutationFn: async ({ planoId, funcionarioIds }: AdicionarFuncionariosPlanoParams) => {
-      console.log('🔄 [useAdicionarFuncionariosPlano] Iniciando adição de funcionários');
-      console.log('📝 [useAdicionarFuncionariosPlano] Parâmetros:', { planoId, funcionarioIds });
+      logger.info('🔄 [useAdicionarFuncionariosPlano] Iniciando adição de funcionários');
+      logger.info('📝 [useAdicionarFuncionariosPlano] Parâmetros:', { planoId, funcionarioIds });
 
       // Preparar dados para inserção na tabela planos_funcionarios
       const registrosParaInserir = funcionarioIds.map(funcionarioId => ({
@@ -22,7 +23,7 @@ export const useAdicionarFuncionariosPlano = () => {
         status: 'ativo' as const
       }));
 
-      console.log('📊 [useAdicionarFuncionariosPlano] Dados para inserir:', registrosParaInserir);
+      logger.info('📊 [useAdicionarFuncionariosPlano] Dados para inserir:', registrosParaInserir);
 
       // Inserir registros na tabela planos_funcionarios
       const { data, error } = await supabase
@@ -31,11 +32,11 @@ export const useAdicionarFuncionariosPlano = () => {
         .select();
 
       if (error) {
-        console.error('❌ [useAdicionarFuncionariosPlano] Erro:', error);
+        logger.error('❌ [useAdicionarFuncionariosPlano] Erro:', error);
         throw new Error(`Erro ao adicionar funcionários ao plano: ${error.message}`);
       }
 
-      console.log('✅ [useAdicionarFuncionariosPlano] Funcionários adicionados com sucesso:', data);
+      logger.info('✅ [useAdicionarFuncionariosPlano] Funcionários adicionados com sucesso:', data);
 
       // Ativar os funcionários que estavam pendentes
       const { error: updateError } = await supabase
@@ -48,17 +49,17 @@ export const useAdicionarFuncionariosPlano = () => {
         .eq('status', 'pendente');
 
       if (updateError) {
-        console.error('⚠️ [useAdicionarFuncionariosPlano] Erro ao ativar funcionários:', updateError);
+        logger.error('⚠️ [useAdicionarFuncionariosPlano] Erro ao ativar funcionários:', updateError);
         // Não vamos falhar a operação por causa disso, apenas log
       } else {
-        console.log('✅ [useAdicionarFuncionariosPlano] Status dos funcionários atualizado para ativo');
+        logger.info('✅ [useAdicionarFuncionariosPlano] Status dos funcionários atualizado para ativo');
       }
 
       return data;
     },
     onSuccess: (data, variables) => {
-      console.log('🎉 [useAdicionarFuncionariosPlano] Sucesso - invalidando queries');
-      console.log('🔄 [useAdicionarFuncionariosPlano] Invalidando queries para planoId:', variables.planoId);
+      logger.info('🎉 [useAdicionarFuncionariosPlano] Sucesso - invalidando queries');
+      logger.info('🔄 [useAdicionarFuncionariosPlano] Invalidando queries para planoId:', variables.planoId);
       
       // Invalidar todas as variações da query de funcionários do plano
       queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
@@ -76,7 +77,7 @@ export const useAdicionarFuncionariosPlano = () => {
       toast.success(`${variables.funcionarioIds.length} funcionário(s) adicionado(s) ao plano com sucesso!`);
     },
     onError: (error) => {
-      console.error('💥 [useAdicionarFuncionariosPlano] Erro na mutação:', error);
+      logger.error('💥 [useAdicionarFuncionariosPlano] Erro na mutação:', error);
       toast.error('Erro ao adicionar funcionários ao plano');
     }
   });

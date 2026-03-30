@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface PlanoDetalhes {
   id: string;
@@ -25,19 +26,19 @@ export const usePlanoDetalhes = (planoId: string) => {
         throw new Error('ID do plano não encontrado');
       }
 
-      console.log('🔍 Buscando detalhes do plano:', planoId);
+      logger.info('🔍 Buscando detalhes do plano:', planoId);
 
       const { data, error } = await supabase.rpc('get_plano_detalhes', {
         p_plano_id: planoId,
       });
 
       if (error) {
-        console.error('❌ Erro ao buscar detalhes do plano:', error);
+        logger.error('❌ Erro ao buscar detalhes do plano:', error);
         throw error;
       }
 
       // Debugging detalhado
-      console.log('🔍 DEBUGGING - Resposta raw da função RPC:', {
+      logger.info('🔍 DEBUGGING - Resposta raw da função RPC:', {
         data,
         dataType: typeof data,
         isArray: Array.isArray(data),
@@ -47,17 +48,17 @@ export const usePlanoDetalhes = (planoId: string) => {
 
       // Validação mais robusta
       if (!data) {
-        console.warn('⚠️ Data é null/undefined:', data);
+        logger.warn('⚠️ Data é null/undefined:', data);
         throw new Error('Plano não encontrado');
       }
 
       if (!Array.isArray(data)) {
-        console.warn('⚠️ Data não é um array:', data);
+        logger.warn('⚠️ Data não é um array:', data);
         throw new Error('Formato de dados inválido');
       }
 
       if (data.length === 0) {
-        console.warn('⚠️ Array de dados está vazio para plano:', planoId);
+        logger.warn('⚠️ Array de dados está vazio para plano:', planoId);
         throw new Error('Plano não encontrado');
       }
 
@@ -65,13 +66,13 @@ export const usePlanoDetalhes = (planoId: string) => {
       
       // Validação do primeiro item do array
       if (!planoData || typeof planoData !== 'object') {
-        console.warn('⚠️ Primeiro item do array é inválido:', planoData);
+        logger.warn('⚠️ Primeiro item do array é inválido:', planoData);
         throw new Error('Dados do plano inválidos');
       }
 
       // Verificar se tem as propriedades essenciais
       if (!planoData.id || !planoData.seguradora) {
-        console.warn('⚠️ Dados do plano incompletos:', planoData);
+        logger.warn('⚠️ Dados do plano incompletos:', planoData);
         throw new Error('Dados do plano incompletos');
       }
 
@@ -96,13 +97,13 @@ export const usePlanoDetalhes = (planoId: string) => {
             });
 
           if (valorError) {
-            console.error('❌ Erro ao calcular valor via RPC:', valorError);
+            logger.error('❌ Erro ao calcular valor via RPC:', valorError);
           } else {
             valorCalculado = valorRpc || 0;
-            console.log('✅ Valor calculado para plano de saúde via RPC:', valorCalculado);
+            logger.info('✅ Valor calculado para plano de saúde via RPC:', valorCalculado);
           }
         } catch (error) {
-          console.error('❌ Erro ao calcular valor do plano de saúde:', error);
+          logger.error('❌ Erro ao calcular valor do plano de saúde:', error);
         }
       }
 
@@ -112,7 +113,7 @@ export const usePlanoDetalhes = (planoId: string) => {
         tipo_seguro: tipoSeguro
       };
 
-      console.log('✅ Detalhes do plano validados e encontrados:', resultado);
+      logger.info('✅ Detalhes do plano validados e encontrados:', resultado);
       return resultado;
     },
     enabled: !!planoId,

@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface ConversaComProtocolo {
   id: string;
@@ -24,7 +25,7 @@ export const useConversaComProtocolo = (conversaId: string | null) => {
         return null;
       }
 
-      console.log('🔍 Buscando conversa com protocolo:', conversaId);
+      logger.info('🔍 Buscando conversa com protocolo:', conversaId);
 
       const { data: conversa, error } = await supabase
         .from('conversas')
@@ -39,11 +40,11 @@ export const useConversaComProtocolo = (conversaId: string | null) => {
         .single();
 
       if (error) {
-        console.error('❌ Erro ao buscar conversa:', error);
+        logger.error('❌ Erro ao buscar conversa:', error);
         throw error;
       }
 
-      console.log('✅ Conversa encontrada:', conversa);
+      logger.info('✅ Conversa encontrada:', conversa);
       return conversa;
     },
     enabled: !!conversaId && !!user,

@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export const useSignedUrl = () => {
   const [loading, setLoading] = useState(false);
@@ -13,13 +14,13 @@ export const useSignedUrl = () => {
         .createSignedUrl(filePath, expiresIn);
 
       if (error) {
-        console.error('❌ Erro ao gerar URL assinada:', error);
+        logger.error('❌ Erro ao gerar URL assinada:', error);
         throw error;
       }
 
       return data.signedUrl;
     } catch (error) {
-      console.error('❌ Erro ao gerar URL assinada:', error);
+      logger.error('❌ Erro ao gerar URL assinada:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -31,7 +32,7 @@ export const useSignedUrl = () => {
       const signedUrl = await getSignedUrl(filePath, 60); // 60 segundos para download
       window.open(signedUrl, '_blank');
     } catch (error) {
-      console.error('❌ Erro ao baixar arquivo:', error);
+      logger.error('❌ Erro ao baixar arquivo:', error);
     }
   }, [getSignedUrl]);
 

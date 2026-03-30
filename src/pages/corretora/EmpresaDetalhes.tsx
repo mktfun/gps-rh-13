@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useQueryClient } from '@tanstack/react-query';
 import { useExportData, ExportField } from '@/hooks/useExportData';
 import { ExportModal } from '@/components/ui/export-modal';
+import { logger } from '@/lib/logger';
 
 type Cnpj = Database['public']['Tables']['cnpjs']['Row'];
 
@@ -38,7 +39,7 @@ const EmpresaDetalhes = () => {
   
   // Checagem de sanidade obrigatória LOGO NO INÍCIO
   if (!empresaId) {
-    console.error("❌ FATAL: empresaId não encontrado nos parâmetros da URL. Verifique a rota em App.tsx.");
+    logger.error("❌ FATAL: empresaId não encontrado nos parâmetros da URL. Verifique a rota em App.tsx.");
     return (
       <div className="container mx-auto p-8">
         <EmptyState 
@@ -54,7 +55,7 @@ const EmpresaDetalhes = () => {
     );
   }
 
-  console.log(`✅ [EmpresaDetalhes] empresaId capturado com sucesso: ${empresaId}`);
+  logger.info(`✅ [EmpresaDetalhes] empresaId capturado com sucesso: ${empresaId}`);
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(filtroStatus || 'all');
@@ -103,7 +104,7 @@ const EmpresaDetalhes = () => {
   
   // Debug logs para monitorar estados - com informações mais detalhadas
   useEffect(() => {
-    console.log('🔍 [EmpresaDetalhes] Estados atuais (DETALHADO):', {
+    logger.info('🔍 [EmpresaDetalhes] Estados atuais (DETALHADO):', {
       empresaId,
       empresaIdType: typeof empresaId,
       isLoadingEmpresa,
@@ -236,7 +237,7 @@ const EmpresaDetalhes = () => {
 
   const handleForceRefresh = async () => {
     if (empresaId) {
-      console.log('🔄 [EmpresaDetalhes] Forçando refresh manual para empresa:', empresaId);
+      logger.info('🔄 [EmpresaDetalhes] Forçando refresh manual para empresa:', empresaId);
       clearEmpresaCache(empresaId);
       await refreshEmpresa(empresaId);
     }
@@ -244,12 +245,12 @@ const EmpresaDetalhes = () => {
 
   // ESTADO 1: CARREGANDO (apenas se realmente não temos dados)
   if (isLoadingEmpresa && !empresa) {
-    console.log('📊 [EmpresaDetalhes] Renderizando loading state para empresa:', empresaId);
+    logger.info('📊 [EmpresaDetalhes] Renderizando loading state para empresa:', empresaId);
     return <DashboardLoadingState />;
   }
 
   if (empresa && empresa.id && empresa.nome) {
-    console.log('✅ [EmpresaDetalhes] Renderizando com dados válidos:', empresa.nome, 'ID:', empresa.id);
+    logger.info('✅ [EmpresaDetalhes] Renderizando com dados válidos:', empresa.nome, 'ID:', empresa.id);
     
     return (
       <div className="space-y-6">
@@ -512,7 +513,7 @@ const EmpresaDetalhes = () => {
 
   // ESTADO 3: ERRO APENAS SE REALMENTE NÃO TEMOS DADOS
   if (erroEmpresa && !empresa) {
-    console.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa, 'ID:', empresaId);
+    logger.error("❌ [EmpresaDetalhes] Erro ao buscar dados da empresa:", erroEmpresa, 'ID:', empresaId);
     
     const isPermissionError = erroEmpresa.message?.includes('Row Level Security') || 
                              erroEmpresa.message?.includes('permission');
@@ -545,7 +546,7 @@ const EmpresaDetalhes = () => {
   }
 
   // ESTADO 4: FALLBACK FINAL - dados indefinidos (não deveria mais acontecer)
-  console.warn('⚠️ [EmpresaDetalhes] Estado indefinido - dados válidos mas não renderizados. ID:', empresaId);
+  logger.warn('⚠️ [EmpresaDetalhes] Estado indefinido - dados válidos mas não renderizados. ID:', empresaId);
   
   return (
     <div className="container mx-auto p-8">

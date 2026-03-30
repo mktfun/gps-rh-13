@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 interface RelatorioFuncionarioResilient {
   funcionario_id: string;
@@ -32,7 +33,7 @@ export const useRelatorioFuncionariosResilient = (params: UseRelatorioFuncionari
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Tentando buscar relatório de funcionários (resilient):', { 
+      logger.info('🔍 Tentando buscar relatório de funcionários (resilient):', { 
         empresaId, 
         cnpjId,
         pageSize, 
@@ -49,11 +50,11 @@ export const useRelatorioFuncionariosResilient = (params: UseRelatorioFuncionari
         });
 
         if (error) {
-          console.warn('⚠️ SQL function failed, trying fallback method:', error.message);
+          logger.warn('⚠️ SQL function failed, trying fallback method:', error.message);
           throw error; // This will trigger the fallback
         }
 
-        console.log('✅ SQL function succeeded');
+        logger.info('✅ SQL function succeeded');
         
         const results = (data || []).map((item: any) => ({
           funcionario_id: item.funcionario_id,
@@ -83,7 +84,7 @@ export const useRelatorioFuncionariosResilient = (params: UseRelatorioFuncionari
         };
 
       } catch (sqlError) {
-        console.warn('🔄 Falling back to direct query method');
+        logger.warn('🔄 Falling back to direct query method');
         
         // Fallback: Direct query method
         const { data: cnpjsData, error: cnpjsError } = await supabase
@@ -147,7 +148,7 @@ export const useRelatorioFuncionariosResilient = (params: UseRelatorioFuncionari
 
         if (funcionariosError) throw funcionariosError;
 
-        console.log('✅ Fallback method succeeded');
+        logger.info('✅ Fallback method succeeded');
 
         const results: RelatorioFuncionarioResilient[] = (funcionariosData || []).map(f => ({
           funcionario_id: f.id,

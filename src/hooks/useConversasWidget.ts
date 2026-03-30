@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface ConversaWidget {
   conversa_id: string;
@@ -20,21 +21,21 @@ export const useConversasWidget = () => {
     queryKey: ['conversas', user?.id],
     queryFn: async (): Promise<ConversaWidget[]> => {
       if (!user) {
-        console.log('Usuário não autenticado.');
+        logger.info('Usuário não autenticado.');
         return [];
       }
 
-      console.log('🔍 Buscando conversas do usuário:', user.id);
+      logger.info('🔍 Buscando conversas do usuário:', user.id);
 
       const { data: conversas, error } = await supabase.rpc('get_conversas_usuario');
 
       if (error) {
-        console.error('❌ Erro ao buscar conversas:', error);
+        logger.error('❌ Erro ao buscar conversas:', error);
         throw error;
       }
 
-      console.log('✅ Conversas encontradas:', conversas?.length || 0);
-      console.log('📋 Dados das conversas:', conversas);
+      logger.info('✅ Conversas encontradas:', conversas?.length || 0);
+      logger.info('📋 Dados das conversas:', conversas);
       
       // Mapear para o formato esperado
       return (conversas || []).map((conversa: any) => ({
@@ -60,7 +61,7 @@ export const useConversasWidget = () => {
         schema: 'public',
         table: 'conversas'
       }, (payload) => {
-        console.log('⚡ Nova conversa em tempo real! Invalidando queries...', payload);
+        logger.info('⚡ Nova conversa em tempo real! Invalidando queries...', payload);
 
         // Invalidar as queries para forçar refresh
         queryClient.invalidateQueries({ queryKey: ['conversas', user?.id] });
@@ -71,7 +72,7 @@ export const useConversasWidget = () => {
         schema: 'public',
         table: 'mensagens'
       }, (payload) => {
-        console.log('⚡ Nova mensagem em tempo real! Invalidando queries...', payload);
+        logger.info('⚡ Nova mensagem em tempo real! Invalidando queries...', payload);
         
         // Invalidar queries para atualizar contadores
         queryClient.invalidateQueries({ queryKey: ['conversas', user?.id] });

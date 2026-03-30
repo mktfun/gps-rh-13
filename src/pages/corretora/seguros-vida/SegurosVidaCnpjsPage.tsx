@@ -11,6 +11,7 @@ import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { CnpjsCardView } from '@/components/seguros-vida/CnpjsCardView';
 import { CnpjsListView } from '@/components/seguros-vida/CnpjsListView';
 import { BulkImportModal } from '@/components/import/BulkImportModal';
+import { logger } from '@/lib/logger';
 
 const SegurosVidaCnpjsPage = () => {
   const { empresaId } = useParams<{ empresaId: string }>();
@@ -28,8 +29,8 @@ const SegurosVidaCnpjsPage = () => {
   });
 
   const handleCnpjClick = (cnpj: any) => {
-    console.log('🔗 Navegando para CNPJ:', cnpj.id);
-    console.log('🔗 Empresa ID:', empresaId);
+    logger.info('🔗 Navegando para CNPJ:', cnpj.id);
+    logger.info('🔗 Empresa ID:', empresaId);
     // ✅ CORREÇÃO: Navegar para a rota correta que inclui tanto empresaId quanto cnpjId
     navigate(`/corretora/seguros-de-vida/${empresaId}/cnpj/${cnpj.id}`);
   };

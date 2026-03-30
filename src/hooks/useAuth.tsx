@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface BrandingData {
   logo_url?: string;
@@ -24,110 +25,56 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Função auxiliar para buscar dados do perfil do usuário - CORRIGIDA
-const getUserProfile = async (user: User): Promise<{ role: string | null; empresaId: string | null }> => {
+const getUserData = async (user: User): Promise<{ role: string | null; empresaId: string | null; branding: BrandingData | null }> => {
   try {
-    console.log(`[AUTH] Buscando perfil para usuário:`, user.email);
+    logger.info(`[AUTH] Buscando dados unificados para usuário:`, user.email);
     
-    // Busca direta na tabela profiles incluindo empresa_id
     const { data, error } = await supabase
       .from('profiles')
-      .select('role, empresa_id')
+      .select(`
+        role, 
+        empresa_id, 
+        corretora_branding!corretora_branding_corretora_id_fkey(logo_url, cor_primaria), 
+        empresa_branding!empresa_branding_empresa_id_fkey(logo_url)
+      `)
       .eq('id', user.id)
       .single();
     
     if (error) {
-      console.error('[AUTH] Erro ao buscar perfil:', error);
-      return { role: null, empresaId: null };
+      logger.error('[AUTH] Erro ao buscar dados unificados:', error);
+      return { role: null, empresaId: null, branding: null };
     }
     
-    console.log('[AUTH] Perfil obtido:', { role: data.role, empresaId: data.empresa_id });
+    let branding: BrandingData | null = null;
     
-    // Logs específicos para empresa_id
-    if (data.empresa_id) {
-      console.log(`[AUTH] Empresa ID definido: ${data.empresa_id}`);
+    if (data.role === 'corretora') {
+      const cb = Array.isArray(data.corretora_branding) ? data.corretora_branding[0] : data.corretora_branding;
+      if (cb) {
+        branding = {
+          logo_url: cb.logo_url || undefined,
+          cor_primaria: cb.cor_primaria || undefined
+        };
+      }
     } else if (data.role === 'empresa') {
-      console.error('[AUTH] Empresa ID não encontrado no perfil para usuário tipo empresa');
+      const eb = Array.isArray(data.empresa_branding) ? data.empresa_branding[0] : data.empresa_branding;
+      if (eb) {
+        branding = {
+          logo_url: eb.logo_url || undefined
+        };
+      }
     }
+
+    logger.info('[AUTH] Dados unificados obtidos:', { role: data.role, empresa_id: data.empresa_id, branding });
     
     return { 
       role: data.role || null, 
-      empresaId: data.empresa_id || null 
+      empresaId: data.empresa_id || null,
+      branding
     };
     
   } catch (error) {
-    console.error('[AUTH] Erro crítico na busca do perfil:', error);
-    return { role: null, empresaId: null };
-  }
-};
-
-// Função auxiliar para buscar dados de branding - CORRIGIDA
-const getBrandingData = async (user: User, role: string): Promise<BrandingData | null> => {
-  try {
-    console.log(`[AUTH] Buscando dados de branding para usuário:`, user.email, 'Role:', role);
-    
-    if (role === 'corretora') {
-      const { data, error } = await supabase
-        .from('corretora_branding')
-        .select('logo_url, cor_primaria')
-        .eq('corretora_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[AUTH] Erro ao buscar branding da corretora:', error);
-        return null;
-      }
-      
-      if (!data) {
-        console.log('[AUTH] Dados de branding da corretora não encontrados');
-        return null;
-      }
-      
-      console.log('[AUTH] Dados de branding da corretora obtidos:', data);
-      return {
-        logo_url: data.logo_url || undefined,
-        cor_primaria: data.cor_primaria || undefined,
-      };
-    } else if (role === 'empresa') {
-      // Buscar empresa_id do profile primeiro
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.empresa_id) {
-        console.log('[AUTH] Empresa ID não encontrado no perfil');
-        return null;
-      }
-
-      const { data, error } = await supabase
-        .from('empresa_branding')
-        .select('logo_url')
-        .eq('empresa_id', profile.empresa_id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[AUTH] Erro ao buscar branding da empresa:', error);
-        return null;
-      }
-      
-      if (!data) {
-        console.log('[AUTH] Dados de branding da empresa não encontrados');
-        return null;
-      }
-      
-      console.log('[AUTH] Dados de branding da empresa obtidos:', data);
-      return {
-        logo_url: data.logo_url || undefined,
-      };
-    }
-    
-    return null;
-    
-  } catch (error) {
-    console.error('[AUTH] Erro crítico na busca de branding:', error);
-    return null;
+    logger.error('[AUTH] Erro crítico na busca unificada de dados:', error);
+    return { role: null, empresaId: null, branding: null };
   }
 };
 
@@ -143,26 +90,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshBranding = async () => {
     if (user && role && (role === 'empresa' || role === 'corretora')) {
-      console.log('[AUTH] Refreshing branding data...');
-      const brandingData = await getBrandingData(user, role);
-      console.log('[AUTH] New branding data:', brandingData);
+      logger.info('[AUTH] Refreshing branding data...');
+      const { branding: brandingData } = await getUserData(user);
+      logger.info('[AUTH] New branding data:', brandingData);
       setBranding(brandingData);
     }
   };
 
   useEffect(() => {
-    console.log('[AUTH] Iniciando AuthProvider...');
+    logger.info('[AUTH] Iniciando AuthProvider...');
     
     // Timeout de emergência - se tudo travar, libera em 10 segundos
     const emergencyTimeout = setTimeout(() => {
-      console.warn('[AUTH] TIMEOUT DE EMERGÊNCIA! Liberando autenticação após 10 segundos');
+      logger.warn('[AUTH] TIMEOUT DE EMERGÊNCIA! Liberando autenticação após 10 segundos');
       setIsLoading(false);
     }, 10000);
 
     // CRÍTICO: Callback SÍNCRONO para evitar loops infinitos
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('[AUTH] Auth state change:', event, session?.user?.email || 'no user');
+        logger.info('[AUTH] Auth state change:', event, session?.user?.email || 'no user');
         
         const currentUser = session?.user ?? null;
         
@@ -173,42 +120,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (currentUser) {
           // CRÍTICO: Deferir todas as chamadas Supabase com setTimeout(0)
           setTimeout(() => {
-            console.log('[AUTH] Sessão detectada. Buscando perfil UMA VEZ.');
+            logger.info('[AUTH] Sessão detectada. Buscando perfil + branding UMA VEZ.');
             
-            // Buscar perfil completo (role + empresa_id)
-            getUserProfile(currentUser).then(({ role: userRole, empresaId: userEmpresaId }) => {
-              console.log('[AUTH] Perfil completo definido:', { role: userRole, empresaId: userEmpresaId });
+            getUserData(currentUser).then(({ role: userRole, empresaId: userEmpresaId, branding: userBranding }) => {
+              logger.info('[AUTH] Perfil completo definido:', { role: userRole, empresaId: userEmpresaId, branding: userBranding });
               setRole(userRole);
               setEmpresaId(userEmpresaId);
+              setBranding(userBranding);
               
-              // Buscar branding baseado no role
-              if (userRole === 'corretora' || userRole === 'empresa') {
-                getBrandingData(currentUser, userRole).then((brandingData) => {
-                  console.log('[AUTH] Branding definido:', brandingData);
-                  setBranding(brandingData);
-                });
-              } else {
-                setBranding(null);
-              }
+              // CRÍTICO: Sempre para o loading AQUI, após a resolução
+              clearTimeout(emergencyTimeout);
+              setIsLoading(false);
             });
           }, 0);
         } else {
-          console.log('[AUTH] Usuário deslogado, limpando dados');
+          logger.info('[AUTH] Usuário deslogado, limpando dados');
           setRole(null);
           setEmpresaId(null);
           setBranding(null);
+          
+          // CRÍTICO: Parar loading AQUI se não houver usuário
+          clearTimeout(emergencyTimeout);
+          setIsLoading(false);
         }
-
-        // CRÍTICO: Sempre para o loading, independente do que acontecer
-        console.log('[AUTH] Finalizando loading...');
-        clearTimeout(emergencyTimeout);
-        setIsLoading(false);
       }
     );
 
     // Event listener para atualização do branding
     const handleBrandingUpdate = async () => {
-      console.log('[AUTH] Recebido evento de atualização do branding');
+      logger.info('[AUTH] Recebido evento de atualização do branding');
       if (user && role) {
         await refreshBranding();
       }
@@ -217,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('auth-branding-updated', handleBrandingUpdate);
 
     return () => {
-      console.log('[AUTH] Limpando listener...');
+      logger.info('[AUTH] Limpando listener...');
       clearTimeout(emergencyTimeout);
       authListener?.subscription.unsubscribe();
       window.removeEventListener('auth-branding-updated', handleBrandingUpdate);
@@ -225,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // ARRAY VAZIO - CRÍTICO PARA EVITAR LOOPS!
 
   const signIn = async (email: string, password: string) => {
-    console.log('[AUTH] Tentando fazer login...');
+    logger.info('[AUTH] Tentando fazer login...');
     setIsLoading(true);
     
     try {
@@ -235,21 +175,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       if (error) {
-        console.error('[AUTH] Erro no login:', error);
+        logger.error('[AUTH] Erro no login:', error);
         setIsLoading(false);
       }
       // Se sucesso, onAuthStateChange vai lidar com o resto
       
       return { error };
     } catch (error) {
-      console.error('[AUTH] Erro inesperado no login:', error);
+      logger.error('[AUTH] Erro inesperado no login:', error);
       setIsLoading(false);
       return { error };
     }
   };
 
   const signOut = async () => {
-    console.log('[AUTH] Fazendo logout...');
+    logger.info('[AUTH] Fazendo logout...');
     
     // 1. Limpar estado React imediatamente
     setUser(null);
@@ -262,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('[AUTH] Erro no signOut (ignorando):', error);
+      logger.error('[AUTH] Erro no signOut (ignorando):', error);
     }
     
     // 3. Fallback: limpar storage manualmente
@@ -279,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string) => {
-    console.log('[AUTH] Tentando registrar usuário...');
+    logger.info('[AUTH] Tentando registrar usuário...');
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,

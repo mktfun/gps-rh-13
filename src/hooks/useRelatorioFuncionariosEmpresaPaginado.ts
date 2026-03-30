@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 interface RelatorioFuncionarioEmpresaPaginado {
   funcionario_id: string;
@@ -33,7 +34,7 @@ export const useRelatorioFuncionariosEmpresaPaginado = (params: UseRelatorioFunc
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('Buscando relatório de funcionários paginado:', { 
+      logger.info('Buscando relatório de funcionários paginado:', { 
         empresaId, 
         cnpjId,
         pageSize, 
@@ -48,11 +49,11 @@ export const useRelatorioFuncionariosEmpresaPaginado = (params: UseRelatorioFunc
       });
 
       if (error) {
-        console.error('Erro ao buscar relatório de funcionários paginado:', error);
+        logger.error('Erro ao buscar relatório de funcionários paginado:', error);
         throw error;
       }
 
-      console.log('✅ Relatório de funcionários paginado carregado:', data);
+      logger.info('✅ Relatório de funcionários paginado carregado:', data);
       
       const results = (data || []).map((item: any) => ({
         funcionario_id: item.funcionario_id,

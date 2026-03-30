@@ -2,6 +2,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { handleApiError } from '@/lib/errorHandler';
+import { logger } from '@/lib/logger';
 
 export interface CreatePlanoData {
   cnpj_id: string;
@@ -37,7 +39,7 @@ export const usePlanosMutation = () => {
 
   const createPlano = useMutation({
     mutationFn: async (data: CreatePlanoData) => {
-      console.log('🔄 Criando plano:', data);
+      logger.info('🔄 Criando plano:', data);
       
       // Use direct RPC call to ensure the function exists
       const { data: result, error } = await supabase.rpc('create_plano_v2' as any, {
@@ -52,17 +54,17 @@ export const usePlanosMutation = () => {
       });
 
       if (error) {
-        console.error('❌ Erro ao criar plano:', error);
+        logger.error('❌ Erro ao criar plano:', error);
         throw error;
       }
 
       const response = result as unknown as RPCResponse;
       if (response && !response.success) {
-        console.error('❌ Erro retornado pela função:', response.error);
+        logger.error('❌ Erro retornado pela função:', response.error);
         throw new Error(response.error);
       }
 
-      console.log('✅ Plano criado com sucesso:', result);
+      logger.info('✅ Plano criado com sucesso:', result);
       return response;
     },
     onSuccess: (data) => {
@@ -72,14 +74,14 @@ export const usePlanosMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['pulse-financeiro'] });
     },
     onError: (error: any) => {
-      console.error('❌ Erro na mutação de criação:', error);
-      toast.error(error?.message || 'Erro ao criar plano');
+      logger.error('❌ Erro na mutação de criação:', error);
+      handleApiError(error, 'Ao criar plano');
     },
   });
 
   const updatePlano = useMutation({
     mutationFn: async (data: UpdatePlanoData) => {
-      console.log('🔄 Atualizando plano:', data);
+      logger.info('🔄 Atualizando plano:', data);
       
       // Use direct RPC call to ensure the function exists
       const { data: result, error } = await supabase.rpc('update_plano_v2' as any, {
@@ -94,17 +96,17 @@ export const usePlanosMutation = () => {
       });
 
       if (error) {
-        console.error('❌ Erro ao atualizar plano:', error);
+        logger.error('❌ Erro ao atualizar plano:', error);
         throw error;
       }
 
       const response = result as unknown as RPCResponse;
       if (response && !response.success) {
-        console.error('❌ Erro retornado pela função:', response.error);
+        logger.error('❌ Erro retornado pela função:', response.error);
         throw new Error(response.error);
       }
 
-      console.log('✅ Plano atualizado com sucesso:', result);
+      logger.info('✅ Plano atualizado com sucesso:', result);
       return response;
     },
     onSuccess: (data) => {
@@ -115,31 +117,31 @@ export const usePlanosMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['pulse-financeiro'] });
     },
     onError: (error: any) => {
-      console.error('❌ Erro na mutação de atualização:', error);
-      toast.error(error?.message || 'Erro ao atualizar plano');
+      logger.error('❌ Erro na mutação de atualização:', error);
+      handleApiError(error, 'Ao atualizar plano');
     },
   });
 
   const deletePlano = useMutation({
     mutationFn: async (planoId: string) => {
-      console.log('🔄 Excluindo plano:', planoId);
+      logger.info('🔄 Excluindo plano:', planoId);
       
       const { data: result, error } = await supabase.rpc('delete_plano', {
         p_plano_id: planoId
       });
 
       if (error) {
-        console.error('❌ Erro ao excluir plano:', error);
+        logger.error('❌ Erro ao excluir plano:', error);
         throw error;
       }
 
       const response = result as unknown as RPCResponse;
       if (response && !response.success) {
-        console.error('❌ Erro retornado pela função:', response.error);
+        logger.error('❌ Erro retornado pela função:', response.error);
         throw new Error(response.error);
       }
 
-      console.log('✅ Plano excluído com sucesso:', result);
+      logger.info('✅ Plano excluído com sucesso:', result);
       return response;
     },
     onSuccess: (data) => {
@@ -150,8 +152,8 @@ export const usePlanosMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['pulse-financeiro'] });
     },
     onError: (error: any) => {
-      console.error('❌ Erro na mutação de exclusão:', error);
-      toast.error(error?.message || 'Erro ao excluir plano');
+      logger.error('❌ Erro na mutação de exclusão:', error);
+      handleApiError(error, 'Ao excluir plano');
     },
   });
 

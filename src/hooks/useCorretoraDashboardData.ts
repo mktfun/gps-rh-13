@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { handleApiError } from '@/lib/errorHandler';
 import { useEffect, useState } from 'react';
 import { CorretoraDashboardData } from '@/types/supabase-json';
+import { logger } from '@/lib/logger';
 
 export const useCorretoraDashboardData = () => {
   const { user } = useAuth();
@@ -15,7 +17,7 @@ export const useCorretoraDashboardData = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('🔍 [Dashboard] Buscando dados do dashboard da corretora...');
+      logger.info('🔍 [Dashboard] Buscando dados do dashboard da corretora...');
       
       try {
         // Chamar função RPC do Supabase
@@ -24,12 +26,12 @@ export const useCorretoraDashboardData = () => {
         );
 
         if (error) {
-          console.error('❌ [Dashboard] Erro ao buscar dados:', error);
+          logger.error('❌ [Dashboard] Erro ao buscar dados:', error);
           throw error;
         }
 
         if (dashboardData) {
-          console.log('✅ Dados carregados via get_corretora_dashboard_metrics:', dashboardData);
+          logger.info('✅ Dados carregados via get_corretora_dashboard_metrics:', dashboardData);
           const typedData = dashboardData as unknown as CorretoraDashboardData;
           return {
             kpis: {
@@ -39,9 +41,9 @@ export const useCorretoraDashboardData = () => {
               total_pendencias: Number(typedData.total_pendencias) || 0,
             },
             eficiencia: {
-              produtividade_carteira: Number(typedData.produtividade_carteira) || 75,
-              taxa_eficiencia: Number(typedData.taxa_eficiencia) || 82,
-              qualidade_dados: Number(typedData.qualidade_dados) || 88,
+              produtividade_carteira: typedData.produtividade_carteira !== undefined ? Number(typedData.produtividade_carteira) : null,
+              taxa_eficiencia: typedData.taxa_eficiencia !== undefined ? Number(typedData.taxa_eficiencia) : null,
+              qualidade_dados: typedData.qualidade_dados !== undefined ? Number(typedData.qualidade_dados) : null,
             },
             alertas: {
               funcionarios_travados: Number(typedData.funcionarios_travados) || 0,
@@ -52,7 +54,7 @@ export const useCorretoraDashboardData = () => {
           };
         }
       } catch (error) {
-        console.error('❌ [Dashboard] Erro inesperado:', error);
+        logger.error('❌ [Dashboard] Erro inesperado:', error);
         throw error;
       }
 
@@ -65,9 +67,9 @@ export const useCorretoraDashboardData = () => {
           total_pendencias: 0,
         },
         eficiencia: {
-          produtividade_carteira: 75,
-          taxa_eficiencia: 82,
-          qualidade_dados: 88,
+          produtividade_carteira: null,
+          taxa_eficiencia: null,
+          qualidade_dados: null,
         },
         alertas: {
           funcionarios_travados: 0,
@@ -90,7 +92,7 @@ export const useCorretoraDashboardActions = () => {
 
   const executarAcaoInteligente = useMutation({
     mutationFn: async ({ acao, parametros }: { acao: string; parametros?: any }) => {
-      console.log('🎯 [Dashboard Actions] Executando ação:', acao, parametros);
+      logger.info('🎯 [Dashboard Actions] Executando ação:', acao, parametros);
       
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -119,14 +121,14 @@ export const useCorretoraDashboardActions = () => {
       }
     },
     onSuccess: (data, variables) => {
-      console.log('✅ [Dashboard Actions] Ação executada com sucesso:', data);
+      logger.info('✅ [Dashboard Actions] Ação executada com sucesso:', data);
       toast.success(`Ação "${variables.acao}" executada com sucesso!`);
       
       queryClient.invalidateQueries({ queryKey: ['corretora-dashboard-data'] });
     },
     onError: (error, variables) => {
-      console.error('❌ [Dashboard Actions] Erro ao executar ação:', error);
-      toast.error(`Erro ao executar ação "${variables.acao}"`);
+      logger.error('❌ [Dashboard Actions] Erro ao executar ação:', error);
+      handleApiError(error, `Ao executar ação ${variables.acao}`);
     }
   });
 

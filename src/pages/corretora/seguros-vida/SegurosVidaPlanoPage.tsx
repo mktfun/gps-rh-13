@@ -19,6 +19,7 @@ import { DemonstrativosTab } from '@/components/planos/DemonstrativosTab';
 import { EmptyStateWithAction } from '@/components/ui/empty-state-with-action';
 import { SelecionarFuncionariosModal } from '@/components/planos/SelecionarFuncionariosModal';
 import { useQueryClient } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 
 interface PlanoDetalhes {
   id: string;
@@ -58,7 +59,7 @@ const SegurosVidaPlanoPage = () => {
   const [shouldOpenAddModal, setShouldOpenAddModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  console.log('🔍 SegurosVidaPlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
+  logger.info('🔍 SegurosVidaPlanoPage - Empresa ID:', empresaId, 'CNPJ ID:', cnpjId);
 
   // Check if empresaId is actually a cnpjId that needs autocorrection
   const { data: autocorrectCheck } = useQuery({
@@ -80,7 +81,7 @@ const SegurosVidaPlanoPage = () => {
         .maybeSingle();
 
       if (cnpjData && cnpjData.empresas) {
-        console.log('🔄 Autocorrect: EmpresaId is actually a CNPJ, redirecting...');
+        logger.info('🔄 Autocorrect: EmpresaId is actually a CNPJ, redirecting...');
         return {
           needsRedirect: true,
           correctEmpresaId: cnpjData.empresa_id,
@@ -110,7 +111,7 @@ const SegurosVidaPlanoPage = () => {
       if (!cnpjId) throw new Error('ID do CNPJ não fornecido');
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      console.log('🔍 Buscando plano de VIDA para CNPJ:', cnpjId);
+      logger.info('🔍 Buscando plano de VIDA para CNPJ:', cnpjId);
 
       const { data, error } = await supabase
         .from('dados_planos')
@@ -131,16 +132,16 @@ const SegurosVidaPlanoPage = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Erro ao buscar detalhes do plano de vida:', error);
+        logger.error('❌ Erro ao buscar detalhes do plano de vida:', error);
         throw new Error('Erro ao buscar detalhes do plano de vida');
       }
 
       if (!data) {
-        console.error('❌ Plano de vida não encontrado para CNPJ:', cnpjId);
+        logger.error('❌ Plano de vida não encontrado para CNPJ:', cnpjId);
         throw new Error('Plano de vida não encontrado para este CNPJ');
       }
 
-      console.log('✅ Plano de vida encontrado:', data);
+      logger.info('✅ Plano de vida encontrado:', data);
 
       return {
         id: data.id,
@@ -172,7 +173,7 @@ const SegurosVidaPlanoPage = () => {
         .eq('cnpj_id', cnpjId);
 
       if (error) {
-        console.error('Erro ao buscar funcionários:', error);
+        logger.error('Erro ao buscar funcionários:', error);
         throw new Error('Erro ao buscar funcionários');
       }
 
@@ -266,7 +267,7 @@ const SegurosVidaPlanoPage = () => {
               primaryAction={{
                 label: "Configurar Plano de Vida",
                 onClick: () => {
-                  console.log('🔧 Abrindo modal de configuração de plano de vida para CNPJ:', cnpjId);
+                  logger.info('🔧 Abrindo modal de configuração de plano de vida para CNPJ:', cnpjId);
                   toast.info('Modal de configuração de plano em desenvolvimento');
                   // TODO: Integrar com modal de criação de plano
                 }

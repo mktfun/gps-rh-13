@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface AdicionarFuncionariosData {
   planoId: string;
@@ -13,7 +14,7 @@ export const useAdicionarFuncionariosMutation = () => {
 
   return useMutation({
     mutationFn: async ({ planoId, funcionarioIds }: AdicionarFuncionariosData) => {
-      console.log('🔄 Adicionando funcionários ao plano:', { planoId, funcionarioIds });
+      logger.info('🔄 Adicionando funcionários ao plano:', { planoId, funcionarioIds });
 
       // Preparar dados para inserção em lote
       const planosFuncionarios = funcionarioIds.map(funcionarioId => ({
@@ -28,11 +29,11 @@ export const useAdicionarFuncionariosMutation = () => {
         .select();
 
       if (error) {
-        console.error('❌ Erro ao adicionar funcionários:', error);
+        logger.error('❌ Erro ao adicionar funcionários:', error);
         throw error;
       }
 
-      console.log('✅ Funcionários adicionados com sucesso:', data);
+      logger.info('✅ Funcionários adicionados com sucesso:', data);
       return data;
     },
     onSuccess: (data, variables) => {
@@ -47,16 +48,16 @@ export const useAdicionarFuncionariosMutation = () => {
       const debugPermissions = async () => {
         try {
           const { data: debugData } = await supabase.rpc('debug_pendencias_permissions' as any);
-          console.log('🔍 Debug permissions:', debugData);
+          logger.info('🔍 Debug permissions:', debugData);
         } catch (err) {
-          console.log('⚠️ Debug function not available:', err);
+          logger.info('⚠️ Debug function not available:', err);
         }
       };
       
       debugPermissions();
     },
     onError: (error: any) => {
-      console.error('❌ Erro na mutação:', error);
+      logger.error('❌ Erro na mutação:', error);
       toast.error('Erro ao adicionar funcionários ao plano: ' + error.message);
     }
   });

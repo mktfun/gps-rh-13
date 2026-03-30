@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface Conversa {
   id: string;
@@ -41,11 +42,11 @@ export const useConversas = () => {
     queryKey: ['conversas'],
     queryFn: async (): Promise<Conversa[]> => {
       if (!user) {
-        console.log('Usuário não autenticado.');
+        logger.info('Usuário não autenticado.');
         return [];
       }
 
-      console.log('🔍 Buscando conversas do usuário:', user.id);
+      logger.info('🔍 Buscando conversas do usuário:', user.id);
 
       const { data: conversas, error } = await supabase
         .from('conversas')
@@ -60,11 +61,11 @@ export const useConversas = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Erro ao buscar conversas:', error);
+        logger.error('❌ Erro ao buscar conversas:', error);
         throw error;
       }
 
-      console.log('✅ Conversas encontradas:', conversas?.length || 0);
+      logger.info('✅ Conversas encontradas:', conversas?.length || 0);
       return conversas || [];
     },
     enabled: !!user,
@@ -72,7 +73,7 @@ export const useConversas = () => {
 
   const createConversaCorretora = useMutation({
     mutationFn: async ({ empresaId }: { empresaId: string }) => {
-      console.log('📝 Criando conversa entre corretora e empresa:', empresaId);
+      logger.info('📝 Criando conversa entre corretora e empresa:', empresaId);
 
       if (!empresaId) {
         throw new Error('ID da empresa é obrigatório');
@@ -95,7 +96,7 @@ export const useConversas = () => {
       throw new Error('Resposta inválida do servidor');
     },
     onSuccess: (data) => {
-      console.log('✅ Conversa criada/encontrada:', data);
+      logger.info('✅ Conversa criada/encontrada:', data);
       
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['conversas'] });
@@ -112,13 +113,13 @@ export const useConversas = () => {
       toast.success('Conversa iniciada com sucesso!');
     },
     onError: (error) => {
-      console.error('❌ Erro ao criar conversa:', error);
+      logger.error('❌ Erro ao criar conversa:', error);
       toast.error('Erro ao iniciar conversa');
     },
   });
 
   const getMensagens = async (conversaId: string): Promise<Mensagem[]> => {
-    console.log(`🔍 Buscando mensagens da conversa: ${conversaId}`);
+    logger.info(`🔍 Buscando mensagens da conversa: ${conversaId}`);
 
     const { data: mensagens, error } = await supabase
       .from('mensagens')
@@ -133,11 +134,11 @@ export const useConversas = () => {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('❌ Erro ao buscar mensagens:', error);
+      logger.error('❌ Erro ao buscar mensagens:', error);
       throw error;
     }
 
-    console.log(`✅ Mensagens encontradas: ${mensagens?.length || 0}`);
+    logger.info(`✅ Mensagens encontradas: ${mensagens?.length || 0}`);
     
     // Mapear para o formato esperado
     return (mensagens || []).map(msg => ({
@@ -166,7 +167,7 @@ export const useConversas = () => {
           filter: `conversa_id=eq.${conversaId}`
         },
         (payload) => {
-          console.log('Realtime payload:', payload);
+          logger.info('Realtime payload:', payload);
           
           if (payload.new && typeof payload.new === 'object' && 'conversa_id' in payload.new && payload.new.conversa_id === conversaId) {
             const payloadData = payload.new as any;
@@ -183,7 +184,7 @@ export const useConversas = () => {
             };
             setMensagens(prevMensagens => [...prevMensagens, novaMensagem]);
           } else {
-            console.warn('Payload sem nova mensagem ou estrutura inesperada:', payload);
+            logger.warn('Payload sem nova mensagem ou estrutura inesperada:', payload);
           }
         })
         .subscribe();

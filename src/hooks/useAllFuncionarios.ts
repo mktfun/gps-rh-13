@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface Funcionario {
   id: string;
@@ -20,7 +21,7 @@ export const useAllFuncionarios = () => {
         .order('nome');
 
       if (error) {
-        console.error('Erro ao buscar funcionários:', error);
+        logger.error('Erro ao buscar funcionários:', error);
         throw error;
       }
 

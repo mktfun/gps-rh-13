@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export const useIniciarConversaComProtocolo = () => {
   const { empresaId } = useAuth();
@@ -10,7 +11,7 @@ export const useIniciarConversaComProtocolo = () => {
 
   const iniciarConversa = useMutation({
     mutationFn: async ({ assuntoId }: { assuntoId: string }) => {
-      console.log('📝 Iniciando conversa com protocolo:', { empresaId, assuntoId });
+      logger.info('📝 Iniciando conversa com protocolo:', { empresaId, assuntoId });
 
       if (!empresaId) {
         throw new Error('ID da empresa não encontrado');
@@ -22,15 +23,15 @@ export const useIniciarConversaComProtocolo = () => {
       });
 
       if (error) {
-        console.error('❌ Erro ao iniciar conversa:', error);
+        logger.error('❌ Erro ao iniciar conversa:', error);
         throw error;
       }
 
-      console.log('✅ Conversa criada com ID:', data);
+      logger.info('✅ Conversa criada com ID:', data);
       return data as string; // UUID da conversa criada
     },
     onSuccess: (conversaId) => {
-      console.log('✅ Conversa iniciada com sucesso, ID:', conversaId);
+      logger.info('✅ Conversa iniciada com sucesso, ID:', conversaId);
       
       // Invalidar queries relacionadas para atualizar a lista
       queryClient.invalidateQueries({ queryKey: ['conversas'] });
@@ -38,7 +39,7 @@ export const useIniciarConversaComProtocolo = () => {
       toast.success('Conversa iniciada com protocolo!');
     },
     onError: (error) => {
-      console.error('❌ Erro ao iniciar conversa:', error);
+      logger.error('❌ Erro ao iniciar conversa:', error);
       toast.error('Erro ao iniciar conversa');
     },
   });

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type EstadoCivil = Database['public']['Enums']['estado_civil'];
 
@@ -24,7 +25,7 @@ export const useCriarFuncionarioComPlanos = () => {
 
   const criarFuncionario = useMutation({
     mutationFn: async (data: CriarFuncionarioData) => {
-      console.log('🔄 Criando funcionário com planos selecionados:', data);
+      logger.info('🔄 Criando funcionário com planos selecionados:', data);
 
       const { data: result, error } = await supabase.rpc('criar_funcionario_com_planos', {
         p_nome: data.nome,
@@ -41,15 +42,15 @@ export const useCriarFuncionarioComPlanos = () => {
       });
 
       if (error) {
-        console.error('❌ Erro ao criar funcionário:', error);
+        logger.error('❌ Erro ao criar funcionário:', error);
         throw error;
       }
 
-      console.log('✅ Funcionário criado:', result);
+      logger.info('✅ Funcionário criado:', result);
       return result;
     },
     onSuccess: (result: any) => {
-      console.log('🎉 Funcionário criado com sucesso!');
+      logger.info('🎉 Funcionário criado com sucesso!');
       
       // Invalidar queries relevantes
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
@@ -68,7 +69,7 @@ export const useCriarFuncionarioComPlanos = () => {
       toast.success(`Funcionário cadastrado com sucesso!${pendenciasMsg}`);
     },
     onError: (error: any) => {
-      console.error('💥 Erro ao criar funcionário:', error);
+      logger.error('💥 Erro ao criar funcionário:', error);
       const msg = error?.message || '';
       
       if (msg.includes('check_salario_positivo')) {

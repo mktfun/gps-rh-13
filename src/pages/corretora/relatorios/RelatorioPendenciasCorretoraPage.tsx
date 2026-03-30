@@ -20,6 +20,7 @@ import { useLocation } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
 import { CorrigirPendenciasButton } from '@/components/debug/CorrigirPendenciasButton';
 import { SincronizarPendenciasButton } from '@/components/debug/SincronizarPendenciasButton';
+import { logger } from '@/lib/logger';
 // import { PendencyVisibilityDebug } from '@/components/debug/PendencyVisibilityDebug'; // Removido temporariamente
 
 const RelatorioPendenciasCorretoraPage = () => {
@@ -39,7 +40,7 @@ const RelatorioPendenciasCorretoraPage = () => {
   useEffect(() => {
     const state = location.state as { empresaId?: string; empresaNome?: string } | null;
     if (state?.empresaId) {
-      console.log('🔗 Aplicando filtro pré-selecionado para empresa:', state.empresaNome);
+      logger.info('🔗 Aplicando filtro pré-selecionado para empresa:', state.empresaNome);
       
       // Encontrar o CNPJ da empresa selecionada
       const cnpjDaEmpresa = cnpjs?.find(cnpj => 
@@ -48,7 +49,7 @@ const RelatorioPendenciasCorretoraPage = () => {
       
       if (cnpjDaEmpresa) {
         setCnpjFilter(cnpjDaEmpresa.id);
-        console.log('✅ Filtro aplicado para CNPJ:', cnpjDaEmpresa.razao_social);
+        logger.info('✅ Filtro aplicado para CNPJ:', cnpjDaEmpresa.razao_social);
       }
     }
   }, [location.state, cnpjs]);
@@ -85,7 +86,7 @@ const RelatorioPendenciasCorretoraPage = () => {
 
   const handleExport = () => {
     if (!filteredTableData || filteredTableData.length === 0) {
-      console.log('Nenhum dado para exportar');
+      logger.info('Nenhum dado para exportar');
       return;
     }
 

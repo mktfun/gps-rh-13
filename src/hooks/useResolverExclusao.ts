@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface ResolverExclusaoParams {
   funcionarioId: string;
@@ -26,7 +27,7 @@ export const useResolverExclusao = () => {
 
   return useMutation({
     mutationFn: async ({ funcionarioId, acao }: ResolverExclusaoParams) => {
-      console.log(`🚀 Iniciando resolução de exclusão: ${acao} para funcionário ${funcionarioId}`);
+      logger.info(`🚀 Iniciando resolução de exclusão: ${acao} para funcionário ${funcionarioId}`);
       
       const { data, error } = await supabase.rpc('resolver_exclusao_funcionario', {
         p_funcionario_id: funcionarioId,
@@ -34,22 +35,22 @@ export const useResolverExclusao = () => {
       });
 
       if (error) {
-        console.error('❌ Erro na RPC resolver_exclusao_funcionario:', error);
+        logger.error('❌ Erro na RPC resolver_exclusao_funcionario:', error);
         throw error;
       }
 
-      console.log('✅ RPC executada com sucesso:', data);
+      logger.info('✅ RPC executada com sucesso:', data);
       return data as unknown as ResolverExclusaoResponse;
     },
 
     onSuccess: (data, variables) => {
       const { acao } = variables;
       
-      console.log(`🎉 Solicitação de exclusão foi ${acao === 'aprovar' ? 'aprovada' : 'negada'} com sucesso!`);
+      logger.info(`🎉 Solicitação de exclusão foi ${acao === 'aprovar' ? 'aprovada' : 'negada'} com sucesso!`);
       
       // AQUI ESTÁ A CORREÇÃO CRÍTICA, CARALHO! 
       // INVALIDAÇÃO COMPLETA DO CACHE PARA SINCRONIZAÇÃO IMEDIATA
-      console.log('🔄 Invalidando todas as queries relevantes...');
+      logger.info('🔄 Invalidando todas as queries relevantes...');
       
       // 1. Dashboard metrics (gráfico de pizza e contadores)
       queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
@@ -62,7 +63,7 @@ export const useResolverExclusao = () => {
       // 3. Notificações (sino e lista)
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       
-      console.log('✅ Cache invalidado. UI deve atualizar instantaneamente.');
+      logger.info('✅ Cache invalidado. UI deve atualizar instantaneamente.');
 
       toast({
         title: 'Sucesso',
@@ -73,7 +74,7 @@ export const useResolverExclusao = () => {
     onError: (error, variables) => {
       const { acao } = variables;
       
-      console.error(`❌ Erro ao ${acao} exclusão:`, error);
+      logger.error(`❌ Erro ao ${acao} exclusão:`, error);
       
       toast({
         title: 'Erro',

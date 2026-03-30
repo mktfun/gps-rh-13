@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 // PROTOCOLO GAMBIARRA CONTROLADA: Interface para RPC customizada não presente nos tipos gerados
 interface RelatorioFuncionarioEmpresa {
@@ -28,7 +29,7 @@ export const useRelatorioFuncionariosEmpresa = (params: UseRelatorioFuncionarios
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('Buscando relatório de funcionários da empresa:', { empresaId, cnpjId });
+      logger.info('Buscando relatório de funcionários da empresa:', { empresaId, cnpjId });
 
       // PROTOCOLO GAMBIARRA CONTROLADA: RPC customizada não presente nos tipos gerados
       const { data, error } = await (supabase as any).rpc('get_relatorio_funcionarios_empresa', {
@@ -37,11 +38,11 @@ export const useRelatorioFuncionariosEmpresa = (params: UseRelatorioFuncionarios
       });
 
       if (error) {
-        console.error('Erro ao buscar relatório de funcionários da empresa:', error);
+        logger.error('Erro ao buscar relatório de funcionários da empresa:', error);
         throw error;
       }
 
-      console.log('✅ Relatório de funcionários carregado:', data);
+      logger.info('✅ Relatório de funcionários carregado:', data);
       return (data || []) as RelatorioFuncionarioEmpresa[];
     },
     enabled: !!empresaId,

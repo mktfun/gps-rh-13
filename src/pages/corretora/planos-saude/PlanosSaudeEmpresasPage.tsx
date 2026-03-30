@@ -7,9 +7,10 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useEmpresasComPlanos, EmpresaComPlano } from '@/hooks/useEmpresasComPlanos';
 import { EmpresasCardView } from '@/components/seguros-vida/EmpresasCardView';
 import { EmpresasListView } from '@/components/seguros-vida/EmpresasListView';
+import { logger } from '@/lib/logger';
 
 export default function PlanosSaudeEmpresasPage() {
-  console.log('🩺 PlanosSaudeEmpresasPage: Componente da corretora carregado');
+  logger.info('🩺 PlanosSaudeEmpresasPage: Componente da corretora carregado');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const navigate = useNavigate();
@@ -20,8 +21,8 @@ export default function PlanosSaudeEmpresasPage() {
   });
 
   const handleEmpresaClick = (empresa: EmpresaComPlano) => {
-    console.log('🔗 Navegando para empresa:', empresa.id);
-    console.log('🎯 Rota correta:', `/corretora/planos-de-saude/${empresa.id}`);
+    logger.info('🔗 Navegando para empresa:', empresa.id);
+    logger.info('🎯 Rota correta:', `/corretora/planos-de-saude/${empresa.id}`);
     navigate(`/corretora/planos-de-saude/${empresa.id}`);
   };
 

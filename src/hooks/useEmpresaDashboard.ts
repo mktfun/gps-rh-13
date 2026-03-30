@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface EmpresaDashboardData {
   solicitacoes_pendentes_count: number;
@@ -14,10 +15,10 @@ export const useEmpresaDashboard = () => {
   return useQuery({
     queryKey: ['empresa-dashboard-basic', empresaId],
     queryFn: async (): Promise<EmpresaDashboardData> => {
-      console.log('🔍 [useEmpresaDashboard] Carregando dados básicos...');
+      logger.info('🔍 [useEmpresaDashboard] Carregando dados básicos...');
 
       if (!empresaId) {
-        console.error('❌ Empresa ID não encontrado');
+        logger.error('❌ Empresa ID não encontrado');
         throw new Error('Empresa ID não encontrado');
       }
 

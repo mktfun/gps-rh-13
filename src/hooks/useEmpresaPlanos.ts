@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface PlanoEmpresa {
   id: string;
@@ -24,18 +25,18 @@ export const useEmpresaPlanos = () => {
     queryKey: ['planos-empresa', empresaId],
     queryFn: async (): Promise<PlanoEmpresa[]> => {
       if (!empresaId) {
-        console.log('🔍 useEmpresaPlanos - Empresa ID não encontrado');
+        logger.info('🔍 useEmpresaPlanos - Empresa ID não encontrado');
         return [];
       }
 
-      console.log('🔍 useEmpresaPlanos - Buscando planos para empresa:', empresaId);
+      logger.info('🔍 useEmpresaPlanos - Buscando planos para empresa:', empresaId);
 
       const { data, error } = await supabase.rpc('get_planos_por_empresa', {
         p_empresa_id: empresaId,
       });
 
       if (error) {
-        console.error('❌ useEmpresaPlanos - Erro ao buscar planos da empresa:', error);
+        logger.error('❌ useEmpresaPlanos - Erro ao buscar planos da empresa:', error);
         throw error;
       }
 
@@ -49,10 +50,10 @@ export const useEmpresaPlanos = () => {
             .eq('status', 'ativo'); // Apenas funcionários ativos NO PLANO
 
           if (funcionariosError) {
-            console.error('❌ Erro ao buscar funcionários do plano:', funcionariosError);
+            logger.error('❌ Erro ao buscar funcionários do plano:', funcionariosError);
           }
 
-          console.log(`📊 Plano ${plano.seguradora}: ${funcionariosData?.length || 0} funcionários vinculados`);
+          logger.info(`📊 Plano ${plano.seguradora}: ${funcionariosData?.length || 0} funcionários vinculados`);
 
           return {
             ...plano,
@@ -62,7 +63,7 @@ export const useEmpresaPlanos = () => {
         })
       );
 
-      console.log('✅ useEmpresaPlanos - Planos encontrados:', planosComFuncionarios?.length || 0);
+      logger.info('✅ useEmpresaPlanos - Planos encontrados:', planosComFuncionarios?.length || 0);
       return planosComFuncionarios;
     },
     enabled: !!empresaId,

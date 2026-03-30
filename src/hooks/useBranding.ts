@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface BrandingData {
   logo_url?: string;
@@ -25,7 +26,7 @@ export const useBranding = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Erro ao buscar branding:', error);
+        logger.error('Erro ao buscar branding:', error);
         throw error;
       }
       
@@ -58,7 +59,7 @@ export const useBranding = () => {
       toast.success('Configurações de marca atualizadas com sucesso!');
     },
     onError: (error) => {
-      console.error('Erro ao atualizar branding:', error);
+      logger.error('Erro ao atualizar branding:', error);
       toast.error('Erro ao atualizar configurações de marca');
     },
   });
@@ -90,7 +91,7 @@ export const useBranding = () => {
       updateBranding.mutate({ logo_url: logoUrl });
     },
     onError: (error) => {
-      console.error('Erro ao fazer upload do logo:', error);
+      logger.error('Erro ao fazer upload do logo:', error);
       toast.error('Erro ao fazer upload do logo');
     },
   });

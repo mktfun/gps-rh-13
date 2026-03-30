@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface EmpresaUnificada {
   id: string;
@@ -23,22 +24,22 @@ export const useEmpresasUnificadas = (search?: string) => {
     queryKey: ['empresas-unificadas', user?.id, search],
     queryFn: async (): Promise<EmpresaUnificada[]> => {
       if (!user?.id) {
-        console.warn('⚠️ [useEmpresasUnificadas] Usuário não autenticado');
+        logger.warn('⚠️ [useEmpresasUnificadas] Usuário não autenticado');
         return [];
       }
 
-      console.log('🔍 [useEmpresasUnificadas] Buscando dados unificados das empresas (seguro)');
+      logger.info('🔍 [useEmpresasUnificadas] Buscando dados unificados das empresas (seguro)');
 
       // SECURITY: Call without parameters - function uses auth.uid() internally
       const { data, error } = await supabase.rpc('get_empresas_unificadas');
 
       if (error) {
-        console.error('❌ [useEmpresasUnificadas] Erro ao buscar dados:', error);
+        logger.error('❌ [useEmpresasUnificadas] Erro ao buscar dados:', error);
         throw error;
       }
 
       if (!data) {
-        console.log('⚠️ [useEmpresasUnificadas] Nenhum dado retornado');
+        logger.info('⚠️ [useEmpresasUnificadas] Nenhum dado retornado');
         return [];
       }
 
@@ -73,7 +74,7 @@ export const useEmpresasUnificadas = (search?: string) => {
         };
       });
 
-      console.log(`✅ [useEmpresasUnificadas] ${empresas.length} empresas carregadas`);
+      logger.info(`✅ [useEmpresasUnificadas] ${empresas.length} empresas carregadas`);
       return empresas;
     },
     enabled: !!user?.id,

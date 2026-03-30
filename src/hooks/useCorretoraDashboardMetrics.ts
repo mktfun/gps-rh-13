@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface CorretoraDashboardMetrics {
   totalEmpresas: number;
@@ -47,23 +48,23 @@ export const useCorretoraDashboardMetrics = () => {
     queryFn: async (): Promise<CorretoraDashboardMetrics> => {
       // CORREÇÃO: Verificação mais robusta do usuário
       if (!user?.id) {
-        console.error('❌ [useCorretoraDashboardMetrics] Usuário não autenticado');
+        logger.error('❌ [useCorretoraDashboardMetrics] Usuário não autenticado');
         throw new Error('Usuário não autenticado');
       }
 
-      console.log('🔍 [useCorretoraDashboardMetrics] Buscando dados do dashboard para corretora:', user.id);
+      logger.info('🔍 [useCorretoraDashboardMetrics] Buscando dados do dashboard para corretora:', user.id);
 
       try {
         // Buscar dados via RPC
         const { data: dashboardDetails, error } = await supabase.rpc('get_dashboard_details_corretora');
 
         if (error) {
-          console.error('❌ [useCorretoraDashboardMetrics] Erro ao buscar detalhes do dashboard:', error);
+          logger.error('❌ [useCorretoraDashboardMetrics] Erro ao buscar detalhes do dashboard:', error);
           throw new Error(`Erro ao buscar dados: ${error.message}`);
         }
 
         if (!dashboardDetails) {
-          console.warn('⚠️ [useCorretoraDashboardMetrics] Nenhum dado retornado da função RPC');
+          logger.warn('⚠️ [useCorretoraDashboardMetrics] Nenhum dado retornado da função RPC');
           // CORREÇÃO: Retornar dados padrão ao invés de error
           return {
             totalEmpresas: 0,
@@ -79,7 +80,7 @@ export const useCorretoraDashboardMetrics = () => {
           };
         }
 
-        console.log('✅ [useCorretoraDashboardMetrics] Detalhes do dashboard carregados:', dashboardDetails);
+        logger.info('✅ [useCorretoraDashboardMetrics] Detalhes do dashboard carregados:', dashboardDetails);
 
         // Processar estatísticas mensais com proteção contra NaN
         let estatisticasMensais: any[] = [];
@@ -123,7 +124,7 @@ export const useCorretoraDashboardMetrics = () => {
           rankingEmpresas: Array.isArray(dd?.ranking_empresas) ? dd.ranking_empresas : []
         };
       } catch (error) {
-        console.error('❌ [useCorretoraDashboardMetrics] Erro na execução:', error);
+        logger.error('❌ [useCorretoraDashboardMetrics] Erro na execução:', error);
         throw error;
       }
     },
@@ -133,11 +134,11 @@ export const useCorretoraDashboardMetrics = () => {
     retry: (failureCount, error: any) => {
       // CORREÇÃO: Não fazer retry se não há usuário autenticado
       if (!user?.id) {
-        console.log('🚫 [useCorretoraDashboardMetrics] Não fazendo retry - usuário não autenticado');
+        logger.info('🚫 [useCorretoraDashboardMetrics] Não fazendo retry - usuário não autenticado');
         return false;
       }
       
-      console.log(`🔄 [useCorretoraDashboardMetrics] Retry ${failureCount}/2:`, error?.message);
+      logger.info(`🔄 [useCorretoraDashboardMetrics] Retry ${failureCount}/2:`, error?.message);
       return failureCount < 2;
     },
     retryDelay: 1000,

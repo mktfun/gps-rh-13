@@ -14,11 +14,12 @@ import {
 import { useEmpresaPlanosPorTipo } from '@/hooks/useEmpresaPlanosPorTipo';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import { logger } from '@/lib/logger';
 
 const EmpresaPlanosSaudePage = () => {
-  console.log('🩺 EmpresaPlanosSaudePage: Componente carregado');
+  logger.info('🩺 EmpresaPlanosSaudePage: Componente carregado');
   const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('saude');
-  console.log('🩺 EmpresaPlanosSaudePage: Estado dos dados', { planos: planos?.length, isLoading, error });
+  logger.info('🩺 EmpresaPlanosSaudePage: Estado dos dados', { planos: planos?.length, isLoading, error });
 
   const formatCurrency = (value: number, precise = false) => {
     return new Intl.NumberFormat('pt-BR', {

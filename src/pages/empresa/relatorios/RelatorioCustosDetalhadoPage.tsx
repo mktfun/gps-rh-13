@@ -12,6 +12,7 @@ import { createCostsDetailedTableColumns } from '@/components/relatorios/costsDe
 import { useCostsReport } from '@/hooks/useCostsReport';
 import { DateRange } from 'react-day-picker';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 const RelatorioCustosDetalhadoPage = () => {
   // Últimos 6 meses como padrão para melhor visualização histórica
@@ -29,7 +30,7 @@ const RelatorioCustosDetalhadoPage = () => {
 
   const handleExport = () => {
     // Implementar exportação futuramente
-    console.log('Exportar relatório', reportData);
+    logger.info('Exportar relatório', reportData);
   };
 
   if (isLoading) {

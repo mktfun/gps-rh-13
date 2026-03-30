@@ -15,6 +15,7 @@ import { useExportData, ExportField } from '@/hooks/useExportData';
 import { Download, Search, Filter, PieChart, BarChart3, Building, Table } from 'lucide-react';
 import { addDays, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
+import { logger } from '@/lib/logger';
 
 const RelatorioPendenciasEmpresaPage = () => {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -169,7 +170,7 @@ const RelatorioPendenciasEmpresaPage = () => {
 
   const handleExport = () => {
     if (!filteredTableData || filteredTableData.length === 0) {
-      console.log('Nenhum dado para exportar');
+      logger.info('Nenhum dado para exportar');
       return;
     }
 

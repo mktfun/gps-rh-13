@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 export const useDebugCostsData = () => {
   const { data: empresaId } = useEmpresaId();
@@ -10,7 +11,7 @@ export const useDebugCostsData = () => {
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Debug: Buscando dados básicos para empresa:', empresaId);
+      logger.info('🔍 Debug: Buscando dados básicos para empresa:', empresaId);
 
       // 1. Verificar CNPJs da empresa
       const { data: cnpjs, error: cnpjsError } = await supabase

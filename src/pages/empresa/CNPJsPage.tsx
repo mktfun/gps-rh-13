@@ -15,6 +15,7 @@ import { CNPJsCardView } from '@/components/empresa/CNPJsCardView';
 import { CNPJsListView } from '@/components/empresa/CNPJsListView';
 import { CNPJsDashboard } from '@/components/empresa/CNPJsDashboard';
 import CnpjModal from '@/components/cnpjs/CnpjModal';
+import { logger } from '@/lib/logger';
 
 const CNPJsPage = () => {
   const { user, empresaId } = useAuth();
@@ -69,7 +70,7 @@ const CNPJsPage = () => {
       }
       handleModalClose();
     } catch (error) {
-      console.error('Erro ao salvar CNPJ:', error);
+      logger.error('Erro ao salvar CNPJ:', error);
     }
   };
 
@@ -79,14 +80,14 @@ const CNPJsPage = () => {
         await deleteCnpj.mutateAsync(cnpjId);
         refetch();
       } catch (error) {
-        console.error('Erro ao excluir CNPJ:', error);
+        logger.error('Erro ao excluir CNPJ:', error);
       }
     }
   };
 
   const handleExport = () => {
     // TODO: Implementar exportação de dados
-    console.log('Exportar CNPJs');
+    logger.info('Exportar CNPJs');
   };
 
   // Aplicar filtros locais

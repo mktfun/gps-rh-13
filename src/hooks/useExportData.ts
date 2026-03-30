@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 export interface ExportField {
   key: string;
@@ -128,7 +129,7 @@ export const useExportData = <T extends Record<string, any>>() => {
 
       setIsPreviewOpen(false);
     } catch (error) {
-      console.error('Erro na exportação:', error);
+      logger.error('Erro na exportação:', error);
       toast({
         title: 'Erro na exportação',
         description: 'Ocorreu um erro ao exportar os dados.',

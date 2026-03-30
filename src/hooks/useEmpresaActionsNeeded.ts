@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 interface EmpresaActionsNeeded {
   solicitacoes_pendentes_count: number;
@@ -13,10 +14,10 @@ export const useEmpresaActionsNeeded = () => {
   return useQuery({
     queryKey: ['empresa-actions-needed', user?.id],
     queryFn: async (): Promise<EmpresaActionsNeeded> => {
-      console.log('🔍 [useEmpresaActionsNeeded] Buscando ações necessárias da empresa...');
+      logger.info('🔍 [useEmpresaActionsNeeded] Buscando ações necessárias da empresa...');
 
       if (!user?.id) {
-        console.error('❌ [useEmpresaActionsNeeded] ID do usuário não encontrado');
+        logger.error('❌ [useEmpresaActionsNeeded] ID do usuário não encontrado');
         throw new Error('Usuário não autenticado');
       }
 
@@ -28,7 +29,7 @@ export const useEmpresaActionsNeeded = () => {
         .single();
 
       if (profileError || !profile?.empresa_id) {
-        console.error('❌ [useEmpresaActionsNeeded] Erro ao buscar perfil ou empresa_id não encontrado');
+        logger.error('❌ [useEmpresaActionsNeeded] Erro ao buscar perfil ou empresa_id não encontrado');
         throw new Error('ID da empresa não encontrado');
       }
 
@@ -38,16 +39,16 @@ export const useEmpresaActionsNeeded = () => {
       });
 
       if (error) {
-        console.error('❌ [useEmpresaActionsNeeded] Erro ao buscar métricas da empresa:', error);
+        logger.error('❌ [useEmpresaActionsNeeded] Erro ao buscar métricas da empresa:', error);
         throw new Error(`Erro ao buscar métricas: ${error.message}`);
       }
 
       if (!data) {
-        console.error('❌ [useEmpresaActionsNeeded] Nenhum dado retornado');
+        logger.error('❌ [useEmpresaActionsNeeded] Nenhum dado retornado');
         throw new Error('Nenhum dado retornado');
       }
 
-      console.log('✅ [useEmpresaActionsNeeded] Métricas de ações necessárias carregadas:', data);
+      logger.info('✅ [useEmpresaActionsNeeded] Métricas de ações necessárias carregadas:', data);
 
       // Type cast the data safely
       const typedData = data as unknown as { funcionarios_pendentes?: number };

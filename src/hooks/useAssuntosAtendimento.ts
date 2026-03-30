@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface AssuntoAtendimento {
   id: string;
@@ -13,7 +14,7 @@ export const useAssuntosAtendimento = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['assuntos-atendimento'],
     queryFn: async (): Promise<AssuntoAtendimento[]> => {
-      console.log('🔍 Buscando assuntos de atendimento...');
+      logger.info('🔍 Buscando assuntos de atendimento...');
 
       const { data: assuntos, error } = await supabase
         .from('assuntos_atendimento')
@@ -21,11 +22,11 @@ export const useAssuntosAtendimento = () => {
         .order('nome');
 
       if (error) {
-        console.error('❌ Erro ao buscar assuntos:', error);
+        logger.error('❌ Erro ao buscar assuntos:', error);
         throw error;
       }
 
-      console.log('✅ Assuntos encontrados:', assuntos?.length || 0);
+      logger.info('✅ Assuntos encontrados:', assuntos?.length || 0);
       return assuntos || [];
     },
   });

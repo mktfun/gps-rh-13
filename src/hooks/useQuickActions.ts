@@ -14,6 +14,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { useActionContext } from '@/utils/actionContext';
+import { logger } from '@/lib/logger';
 
 export interface QuickAction {
   id: string;
@@ -73,7 +74,7 @@ export const useQuickActions = () => {
               icon: Download,
               action: () => {
                 // TODO: Implementar exportação
-                console.log('Exportar lista de empresas');
+                logger.info('Exportar lista de empresas');
               }
             }
           );
@@ -133,7 +134,7 @@ export const useQuickActions = () => {
               icon: UserPlus,
               action: () => {
                 // TODO: Implementar ativação em massa
-                console.log('Ativar funcionários pendentes');
+                logger.info('Ativar funcionários pendentes');
               }
             },
             {
@@ -142,7 +143,7 @@ export const useQuickActions = () => {
               icon: Download,
               action: () => {
                 // TODO: Implementar exportação
-                console.log('Exportar funcionários');
+                logger.info('Exportar funcionários');
               }
             }
           );
@@ -156,7 +157,7 @@ export const useQuickActions = () => {
               icon: FileText,
               action: () => {
                 // TODO: Implementar geração de relatório
-                console.log('Gerar relatório personalizado');
+                logger.info('Gerar relatório personalizado');
               }
             },
             {
@@ -165,7 +166,7 @@ export const useQuickActions = () => {
               icon: Download,
               action: () => {
                 // TODO: Implementar exportação de dados
-                console.log('Exportar dados do relatório');
+                logger.info('Exportar dados do relatório');
               }
             }
           );
@@ -213,7 +214,7 @@ export const useQuickActions = () => {
               icon: Download,
               action: () => {
                 // TODO: Implementar exportação
-                console.log('Exportar lista de funcionários');
+                logger.info('Exportar lista de funcionários');
               }
             }
           );
@@ -227,7 +228,7 @@ export const useQuickActions = () => {
               icon: FileText,
               action: () => {
                 // TODO: Implementar geração
-                console.log('Gerar relatório personalizado');
+                logger.info('Gerar relatório personalizado');
               }
             },
             {
@@ -236,7 +237,7 @@ export const useQuickActions = () => {
               icon: Download,
               action: () => {
                 // TODO: Implementar exportação
-                console.log('Exportar dados do relatório');
+                logger.info('Exportar dados do relatório');
               }
             }
           );
@@ -253,7 +254,7 @@ export const useQuickActions = () => {
           icon: Settings,
           action: () => {
             // TODO: Implementar salvamento
-            console.log('Salvar configurações');
+            logger.info('Salvar configurações');
           }
         }
       );

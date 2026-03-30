@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
+import { logger } from '@/lib/logger';
 
 interface RelatorioCustoEmpresaPaginado {
   cnpj_razao_social: string;
@@ -37,7 +38,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
     queryFn: async () => {
       if (!empresaId) throw new Error('Empresa ID não encontrado');
 
-      console.log('🔍 Buscando relatório de custos com filtros:', {
+      logger.info('🔍 Buscando relatório de custos com filtros:', {
         empresaId,
         pageSize,
         pageOffset: pageIndex * pageSize,
@@ -52,12 +53,12 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
       });
 
       if (allDataError) {
-        console.error('❌ Erro ao buscar todos os dados:', allDataError);
+        logger.error('❌ Erro ao buscar todos os dados:', allDataError);
         throw allDataError;
       }
 
       if (!allData || allData.length === 0) {
-        console.warn('⚠️ Nenhum dado retornado do relatório de custos');
+        logger.warn('⚠️ Nenhum dado retornado do relatório de custos');
         return {
           data: [],
           totalCount: 0,
@@ -71,7 +72,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
         };
       }
 
-      console.log('✅ Todos os dados carregados (raw):', allData.length, 'registros');
+      logger.info('✅ Todos os dados carregados (raw):', allData.length, 'registros');
 
       const rawResults = (allData || []) as RelatorioCustoEmpresaPaginado[];
 
@@ -189,7 +190,7 @@ export const useRelatorioCustosEmpresaPaginado = (params: UseRelatorioCustosEmpr
       const endIndex = startIndex + pageSize;
       const paginatedResults = filteredResults.slice(startIndex, endIndex);
 
-      console.log('📊 Resultados finais:', {
+      logger.info('📊 Resultados finais:', {
         total_original: rawResults.length,
         total_cleaned: cleanedResults.length,
         total_filtered: filteredResults.length,

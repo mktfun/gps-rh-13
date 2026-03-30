@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 
 export interface SmartActionsData {
   aprovacoes_rapidas: number;
@@ -23,7 +24,7 @@ export const useSmartActions = () => {
       const { data, error } = await supabase.rpc('get_smart_actions_corretor');
 
       if (error) {
-        console.error('Erro ao buscar smart actions:', error);
+        logger.error('Erro ao buscar smart actions:', error);
         throw error;
       }
 

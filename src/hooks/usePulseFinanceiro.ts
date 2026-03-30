@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 export interface PulseFinanceiroData {
   receita_mes: number;
@@ -26,12 +27,12 @@ export const usePulseFinanceiro = () => {
 
       // If safe function doesn't exist, try the original
       if (error && error.code === '42883') {
-        console.log('Safe function not found, trying original...');
+        logger.info('Safe function not found, trying original...');
         ({ data, error } = await supabase.rpc('get_pulse_financeiro_corretor'));
       }
 
       if (error) {
-        console.error('Erro ao buscar pulse financeiro:', error);
+        logger.error('Erro ao buscar pulse financeiro:', error);
         throw error;
       }
 

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 // Interface TypeScript PERFEITA - espelho exato do JSON do backend
 interface RelatorioMovimentacaoItem {
@@ -32,7 +33,7 @@ export const useRelatorioMovimentacao = (
         throw new Error('Datas de início e fim são obrigatórias');
       }
 
-      console.log('Chamando RPC get_relatorio_movimentacao_corretora com:', {
+      logger.info('Chamando RPC get_relatorio_movimentacao_corretora com:', {
         user_id: user.id,
         dataInicio,
         dataFim
@@ -46,7 +47,7 @@ export const useRelatorioMovimentacao = (
       });
 
       if (error) {
-        console.error('Erro na RPC get_relatorio_movimentacao_corretora:', error);
+        logger.error('Erro na RPC get_relatorio_movimentacao_corretora:', error);
         toast({
           title: 'Erro ao carregar relatório',
           description: 'Não foi possível carregar o relatório de movimentação.',
@@ -63,7 +64,7 @@ export const useRelatorioMovimentacao = (
         saldo: isNaN(Number(item.saldo)) ? 0 : Number(item.saldo)
       })) : [];
       
-      console.log('Dados movimentação recebidos:', dadosMovimentacao);
+      logger.info('Dados movimentação recebidos:', dadosMovimentacao);
 
       return dadosMovimentacao;
     },
