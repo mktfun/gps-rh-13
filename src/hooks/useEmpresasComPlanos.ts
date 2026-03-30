@@ -7,6 +7,7 @@ export interface EmpresaComPlano {
   id: string;
   nome: string;
   total_planos_ativos: number;
+  total_pendencias: number;
 }
 
 interface UseEmpresasComPlanosParams {
