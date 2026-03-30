@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, ChevronRight, Users, AlertTriangle, Stethoscope, Shield } from 'lucide-react';
+import { Building2, ChevronRight, AlertTriangle, Stethoscope, Shield } from 'lucide-react';
 import { EmpresaComPlano } from '@/hooks/useEmpresasComPlanos';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 
@@ -47,7 +47,6 @@ export const EmpresasCardView: React.FC<EmpresasCardViewProps> = ({
             {/* Plan type indicator based on current page context */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {/* Determine plan type from current URL or props */}
                 {window.location.pathname.includes('planos-de-saude') ? (
                   <div className="flex items-center gap-2">
                     <Stethoscope className="h-4 w-4 text-blue-600" />
@@ -64,6 +63,15 @@ export const EmpresasCardView: React.FC<EmpresasCardViewProps> = ({
                 {empresa.total_planos_ativos} plano(s)
               </Badge>
             </div>
+
+            {empresa.total_pendencias > 0 && (
+              <div className="flex items-center gap-2 p-2 rounded-md bg-destructive/10">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <span className="text-sm font-medium text-destructive">
+                  {empresa.total_pendencias} pendência(s)
+                </span>
+              </div>
+            )}
 
 
             <Button

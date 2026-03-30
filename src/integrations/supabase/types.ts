@@ -1160,6 +1160,7 @@ export type Database = {
         Returns: {
           id: string
           nome: string
+          total_pendencias: number
           total_planos_ativos: number
         }[]
       }

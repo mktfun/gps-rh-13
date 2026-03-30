@@ -8,6 +8,7 @@ export interface EmpresaComPlano {
   id: string;
   nome: string;
   total_planos_ativos: number;
+  total_pendencias: number;
 }
 
 interface UseEmpresasComPlanosParams {
@@ -42,12 +43,13 @@ export const useEmpresasComPlanos = ({ tipoSeguro, search }: UseEmpresasComPlano
         throw error;
       }
 
-      const rows = (data ?? []) as Array<{ id: string | number; nome: string; total_planos_ativos: string | number | null }>;
+      const rows = (data ?? []) as Array<{ id: string | number; nome: string; total_planos_ativos: string | number | null; total_pendencias: string | number | null }>;
 
       const normalized = rows.map((row) => ({
         id: String(row.id),
         nome: String(row.nome),
         total_planos_ativos: Number(row.total_planos_ativos ?? 0) || 0,
+        total_pendencias: Number(row.total_pendencias ?? 0) || 0,
       })) as EmpresaComPlano[];
 
       logger.info('✅ [useEmpresasComPlanos] RPC retornou empresas:', normalized.length);

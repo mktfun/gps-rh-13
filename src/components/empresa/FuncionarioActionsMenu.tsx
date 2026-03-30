@@ -106,6 +106,8 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
       queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
       queryClient.invalidateQueries({ queryKey: ['relatorioMovimentacao'] });
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-empresa'] });
     } catch (error: any) {
       console.error('Erro ao aprovar exclusão:', error);
       toast.error(error?.message || 'Erro ao aprovar exclusão');
@@ -163,6 +165,8 @@ export const FuncionarioActionsMenu: React.FC<FuncionarioActionsMenuProps> = ({
       queryClient.invalidateQueries({ queryKey: ['corretoraDashboardMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-empresa'] });
     } catch (error: any) {
       console.error('Erro ao excluir funcionário:', error);
       toast.error(error?.message || 'Erro ao excluir funcionário');

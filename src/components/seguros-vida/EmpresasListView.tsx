@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, ChevronRight, Users } from 'lucide-react';
+import { Building2, ChevronRight, Users, AlertTriangle } from 'lucide-react';
 import { EmpresaComPlano } from '@/hooks/useEmpresasComPlanos';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 
@@ -54,6 +54,12 @@ export const EmpresasListView: React.FC<EmpresasListViewProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
+            {empresa.total_pendencias > 0 && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                {empresa.total_pendencias} pendência(s)
+              </Badge>
+            )}
             <Badge variant="secondary">
               {empresa.total_planos_ativos} planos
             </Badge>
