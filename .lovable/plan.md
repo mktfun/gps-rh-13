@@ -1,45 +1,41 @@
 
 
-# Fix: Pendencias not showing on empresa side
+# Fix: Duplicate RPC causing PGRST203 + Add pendencia badges to sidebar
 
-## Problem
+## Problem 1: RPC overload conflict
+There are two versions of `get_empresas_com_planos_por_tipo` in the database — the old one returning 3 columns and the new one returning 4 columns (with `total_pendencias`). PostgREST can't disambiguate them, causing `PGRST203` error.
 
-The `usePendenciasEmpresa` hook calls a RPC `get_pendencias_empresa` that doesn't exist in the database. When the RPC fails, the hook silently returns `[]` (empty array), so pendencias never appear.
+**Fix**: Migration to drop the old function signature, keeping only the new one.
 
-The empresa user already has RLS SELECT access on the `pendencias` table (policy: "Empresas podem ver suas pendências"). So we don't need an RPC at all -- we can query `pendencias` directly with joins.
-
-## Fix
-
-### 1. Rewrite `usePendenciasEmpresa` to query directly (no RPC)
-
-Replace the RPC call with a direct query on the `pendencias` table, joining `funcionarios` and `cnpjs` to get names/CPFs. RLS will automatically filter to only the empresa's data.
-
-| File | Change |
-|------|--------|
-| `src/hooks/usePendenciasEmpresa.ts` | Replace RPC call with direct Supabase query on `pendencias` table with select + joins. Remove the `createMissingFunction` import and fallback logic. |
-
-```typescript
-// Query pendencias directly -- RLS handles filtering
-const { data, error } = await supabase
-  .from('pendencias')
-  .select(`
-    id, protocolo, tipo, descricao, status,
-    data_criacao, data_vencimento, comentarios_count,
-    corretora_id, tipo_plano, cnpj_id,
-    funcionarios!inner(nome, cpf),
-    cnpjs!inner(cnpj, razao_social)
-  `)
-  .eq('status', 'pendente')
-  .order('data_criacao', { ascending: false });
+```sql
+-- Drop the old function (returns TABLE with 3 columns, no total_pendencias)
+DROP FUNCTION IF EXISTS public.get_empresas_com_planos_por_tipo(text, uuid);
 ```
 
-Map the joined data to match the existing `PendenciaEmpresa` interface (funcionario_nome, funcionario_cpf, cnpj, razao_social, dias_em_aberto calculated from data_criacao).
+The new function `(uuid, text)` with `total_pendencias` remains.
 
-### 2. Add pendencia count to planos de saude cards (empresa side)
+## Problem 2: Sidebar needs pendencia badges
 
-The planos listing page (`EmpresaPlanosSaudePage.tsx`) shows no pendencia info. Add a small badge showing pending count per plan, queried from the same `pendencias` table.
+The user wants pendencia counts shown next to "Seguros de Vida" and "Planos de Saúde" in the sidebar, for both corretora and empresa roles.
 
-| File | Change |
-|------|--------|
-| `src/pages/empresa/EmpresaPlanosSaudePage.tsx` | Add a pendencias count badge on each plan card using data from `usePendenciasEmpresa` filtered by cnpj_id |
+**Corretora sidebar**: Use the existing `usePendenciasDaCorretora` hook (already loaded in Sidebar), filter by `tipo_plano` to split counts between `vida` and `saude`.
+
+**Empresa sidebar**: Use the existing `usePendenciasEmpresa` hook, filter similarly.
+
+| Item | Type | Description |
+|------|------|-------------|
+| Migration SQL | DB migration | Drop old function overload |
+| `src/components/layout/Sidebar.tsx` | Edit | Add pendencia count badges to Seguros de Vida and Planos de Saúde menu items for both corretora and empresa roles |
+
+### Sidebar changes detail
+
+For corretora, derive counts from existing `pendencias` data:
+- `vidaCount = pendencias.filter(p => p.tipo_plano === 'vida' && p.status_db === 'pendente').length`  
+- `saudeCount = pendencias.filter(p => p.tipo_plano === 'saude' && p.status_db === 'pendente').length`
+
+Note: `usePendenciasDaCorretora` doesn't filter by status='pendente' server-side currently — need to check. Actually looking at the query, it doesn't filter by status at all, so we filter client-side.
+
+For empresa, import `usePendenciasEmpresa` and do the same filtering by `tipo_plano`.
+
+Add badge property to the `corretoraPlanos` and `empresaPlanos` arrays dynamically.
 
