@@ -174,6 +174,8 @@ export const useFuncionarios = (params: UseFuncionariosParams = {}) => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios-empresa-completo'] });
       queryClient.invalidateQueries({ queryKey: ['planoFuncionarios'] });
       queryClient.invalidateQueries({ queryKey: ['planoFuncionariosStats'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-empresa'] });
+      queryClient.invalidateQueries({ queryKey: ['pendencias-corretora'] });
       toast({
         title: 'Sucesso',
         description: 'Solicitação de exclusão enviada com sucesso!',
