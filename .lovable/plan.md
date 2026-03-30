@@ -1,31 +1,30 @@
 
 
-# Manual do Usuário Empresa -- Arquivo Markdown
+# Two tasks: Build error fix + PDF manual for empresa
 
-Criar o arquivo `MANUAL_USUARIO_EMPRESA.md` na raiz do projeto, cobrindo todos os módulos acessíveis ao papel "empresa" no sistema GPS RH.
+## 1. Fix build error in Sidebar.tsx
 
-## Conteúdo do Manual
+**Problem**: Line 28 destructures `{ totalPendencias }` from `usePendenciasDaCorretora()`, but the hook returns a standard `useQuery` result (`{ data, isLoading, ... }`). There is no `totalPendencias` property.
 
-Baseado na análise das rotas e sidebar da empresa, o manual cobrirá:
+**Fix**: Change line 28 to destructure `data` and derive totalPendencias from it:
+```ts
+const { data: pendencias } = usePendenciasDaCorretora();
+const totalPendencias = pendencias?.length ?? 0;
+```
 
-### Estrutura (seções)
+| File | Change |
+|------|--------|
+| `src/components/layout/Sidebar.tsx` | Fix destructuring of `usePendenciasDaCorretora` |
 
-1. **Primeiro Acesso** -- Login, redefinição de senha, primeiro acesso
-2. **Dashboard** -- KPIs, gráficos, ações rápidas, filtros por CNPJ
-3. **CNPJs** -- Visualizar filiais/matrizes vinculadas
-4. **Funcionários** -- Cadastrar novo, solicitar exclusão, ver status (pendente/ativo/exclusão solicitada), filtros
-5. **Seguros de Vida** -- Ver planos vinculados, coberturas, lista de funcionários no plano, adicionar funcionários ao plano
-6. **Planos de Saúde** -- Ver planos, faixas de preço por idade, adicionar funcionários, solicitar alterações de coberturas
-7. **Relatórios** -- Funcionários, Custos e Pendências (filtros, exportação)
-8. **Chat** -- Abrir conversa com a corretora, protocolo automático, anexos
-9. **Perfil e Configurações** -- Alterar dados, logo da empresa, notificações
-10. **Fluxos Práticos** -- Passo a passo de cadastro, exclusão, ativação, consulta de pendências
+## 2. Generate PDF manual for empresa users
 
-Cada seção terá: o que é, como acessar (caminho no menu), passo a passo com instruções claras para leigos, e dicas.
+Create a professional PDF using ReportLab based on the content already in `MANUAL_USUARIO_EMPRESA.md`. The PDF will include:
 
-### Arquivo
+- Cover page with "GPS RH -- Manual do Usuario Empresa"
+- Table of contents
+- All 10 sections from the markdown manual, formatted with headings, tables, bullet lists, and tip/warning callout boxes
+- FAQ and support sections
+- Clean, professional formatting suitable for sending to HR staff
 
-| Arquivo | Tipo | Descrição |
-|---------|------|-----------|
-| `MANUAL_USUARIO_EMPRESA.md` | Criação | Manual completo para usuário empresa, ~400 linhas |
+Output: `/mnt/documents/Manual_Usuario_Empresa_GPS_RH.pdf`
 
