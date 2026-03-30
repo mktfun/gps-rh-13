@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEmpresaId } from '@/hooks/useEmpresaId';
-import { createGetPendenciasEmpresaFunction, testGetPendenciasEmpresaFunction } from '@/utils/createMissingFunction';
+import { differenceInDays } from 'date-fns';
 
 interface PendenciaEmpresa {
   id: string;
@@ -20,6 +20,8 @@ interface PendenciaEmpresa {
   comentarios_count: number;
   prioridade: number;
   corretora_id: string;
+  cnpj_id: string;
+  tipo_plano: string | null;
 }
 
 export const usePendenciasEmpresa = () => {
@@ -32,50 +34,49 @@ export const usePendenciasEmpresa = () => {
         throw new Error('Empresa ID não encontrado');
       }
 
-      console.log('🔍 Buscando pendências da empresa:', empresaId);
-
-      const { data, error } = await supabase.rpc('get_pendencias_empresa' as any, {
-        p_empresa_id: empresaId
-      });
+      const { data, error } = await supabase
+        .from('pendencias')
+        .select(`
+          id, protocolo, tipo, descricao, status,
+          data_criacao, data_vencimento, comentarios_count,
+          corretora_id, tipo_plano, cnpj_id,
+          funcionarios(nome, cpf),
+          cnpjs(cnpj, razao_social)
+        `)
+        .eq('status', 'pendente')
+        .order('data_criacao', { ascending: false });
 
       if (error) {
-        // Check if error is due to missing function (404 or function not found)
-        if (error.message.includes('404') || error.message.includes('function') || error.code === '42883') {
-          console.log('⚠️ Função get_pendencias_empresa não encontrada, tentando criar...');
-
-          const createResult = await createGetPendenciasEmpresaFunction();
-
-          if (createResult.success) {
-            console.log('✅ Função criada com sucesso, tentando novamente...');
-
-            // Try the query again after creating the function
-            const { data: retryData, error: retryError } = await supabase.rpc('get_pendencias_empresa' as any, {
-              p_empresa_id: empresaId
-            });
-
-            if (retryError) {
-              console.error('❌ Erro mesmo após criar a função:', retryError);
-              throw retryError;
-            }
-
-            console.log('✅ Pendências encontradas após criar função:', Array.isArray(retryData) ? retryData.length : 0);
-            return Array.isArray(retryData) ? retryData : [];
-          } else {
-            console.error('❌ Não foi possível criar a função:', createResult.message);
-            // Return empty array instead of throwing error to avoid breaking the UI
-            return [];
-          }
-        } else {
-          console.error('❌ Erro ao buscar pendências da empresa:', error);
-          throw error;
-        }
+        console.error('❌ Erro ao buscar pendências da empresa:', error);
+        throw error;
       }
 
-      console.log('✅ Pendências encontradas:', Array.isArray(data) ? data.length : 0);
-      return Array.isArray(data) ? data : [];
+      const now = new Date();
+      return (data || []).map((item: any) => {
+        const diasEmAberto = differenceInDays(now, new Date(item.data_criacao));
+        return {
+          id: item.id,
+          protocolo: item.protocolo,
+          tipo: item.tipo,
+          funcionario_nome: item.funcionarios?.nome || 'N/A',
+          funcionario_cpf: item.funcionarios?.cpf || '',
+          cnpj: item.cnpjs?.cnpj || '',
+          razao_social: item.cnpjs?.razao_social || '',
+          descricao: item.descricao,
+          data_criacao: item.data_criacao,
+          data_vencimento: item.data_vencimento,
+          status: item.status,
+          dias_em_aberto: diasEmAberto,
+          comentarios_count: item.comentarios_count || 0,
+          prioridade: diasEmAberto > 30 ? 3 : diasEmAberto > 14 ? 2 : 1,
+          corretora_id: item.corretora_id,
+          cnpj_id: item.cnpj_id,
+          tipo_plano: item.tipo_plano,
+        };
+      });
     },
     enabled: !!empresaId,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    gcTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 5,
   });
 };
