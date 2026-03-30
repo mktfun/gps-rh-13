@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendenciasDaCorretora } from '@/hooks/usePendenciasDaCorretora';
+import { usePendenciasEmpresa } from '@/hooks/usePendenciasEmpresa';
 import { getDashboardRoute } from '@/utils/routePaths';
 import { 
   LayoutDashboard, 
