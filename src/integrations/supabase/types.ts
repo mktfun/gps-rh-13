@@ -1139,7 +1139,13 @@ export type Database = {
         }[]
       }
       get_empresas_com_metricas: {
-        Args: never
+        Args: {
+          p_order_by?: string
+          p_order_dir?: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+        }
         Returns: {
           corretora_id: string
           created_at: string
@@ -1150,6 +1156,7 @@ export type Database = {
           responsavel: string
           status_geral: string
           telefone: string
+          total_count: number
           total_funcionarios: number
           total_pendencias: number
           updated_at: string
