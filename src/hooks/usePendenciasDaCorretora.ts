@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { differenceInCalendarDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 export type PendenciaPrioridade = 'critico' | 'urgente' | 'normal';
 export type FiltroTipoPendencia = 'documentacao' | 'ativacao' | 'alteracao' | 'cancelamento';
