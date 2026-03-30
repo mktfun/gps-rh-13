@@ -88,11 +88,15 @@ const EmpresaPlanosSaudePage = () => {
                       <Stethoscope className="h-5 w-5" />
                       {plano.seguradora}
                     </CardTitle>
-                    <Badge variant="outline">
-                      Plano de Saúde
-                    </Badge>
-                  </div>
-                </CardHeader>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">Plano de Saúde</Badge>
+                      {pendenciasPlano.length > 0 && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          {pendenciasPlano.length}
+                        </Badge>
+                      )}
+                    </div>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
