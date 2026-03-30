@@ -1,34 +1,66 @@
 
 
-# Fix: Pendencias not being created on exclusion requests
+# Fix Build Errors
 
-## Root Cause
+Two issues causing build failures:
 
-The exclusion trigger `trg_criar_pendencia_exclusao` fires on `funcionarios` table updates, but the actual exclusion flow updates `planos_funcionarios.status` to `exclusao_solicitada` instead (due to an RLS workaround -- empresa users can't update `funcionarios` directly). The `funcionarios` update is "best-effort" and silently fails for empresa users, so the trigger never fires and no pendencia is created.
+## 1. `src/hooks/useEmpresas.ts` — corrupted/truncated `useQuery` call
 
-## Database state
+Lines 36-46 are missing the `queryKey`, `queryFn`, and proper syntax. The destructuring opens but the query config is incomplete. Fix by reconstructing the full `useQuery` call using the `get_empresas_com_metricas` RPC (matches the interface and invalidation keys already in the file).
 
-All 7 pendencias in the database have `status = 'resolvida'`. Zero pending items exist, which is why nothing shows anywhere.
+```typescript
+const {
+  data: result,
+  isLoading,
+  error
+} = useQuery({
+  queryKey: ['empresas-com-metricas', search, page, pageSize, orderBy, orderDirection],
+  queryFn: async () => {
+    const { data, error } = await supabase.rpc('get_empresas_com_metricas');
+    if (error) throw error;
 
-## Fix
+    let filtered = data || [];
+    if (search) {
+      const s = search.toLowerCase();
+      filtered = filtered.filter(e => e.nome?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s) || e.responsavel?.toLowerCase().includes(s));
+    }
 
-### 1. New trigger on `planos_funcionarios` AFTER UPDATE
+    if (orderBy) {
+      filtered.sort((a: any, b: any) => {
+        const va = a[orderBy] ?? '';
+        const vb = b[orderBy] ?? '';
+        return orderDirection === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+      });
+    }
 
-Create `trg_criar_pendencia_exclusao_pf` on `planos_funcionarios` that fires when `status` changes to `exclusao_solicitada`. The trigger function will:
+    const totalCount = filtered.length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const start = (page - 1) * pageSize;
+    const empresas = filtered.slice(start, start + pageSize);
 
-- Look up the funcionario's `cnpj_id` and `nome` from `funcionarios`
-- Look up `corretora_id` via cnpjs -> empresas join
-- Look up `tipo_seguro` from `dados_planos` for the linked plan
-- Check for duplicate pendencias
-- Insert a `cancelamento` pendencia with `tipo_plano` set correctly
+    return { empresas, totalCount, totalPages };
+  },
+  enabled: !!user?.id,
+  staleTime: 1000 * 60 * 5,
+  gcTime: 1000 * 60 * 10,
+  refetchOnWindowFocus: false,
+});
+```
 
-This mirrors the logic in `fn_criar_pendencia_exclusao` but is triggered from `planos_funcionarios` where the actual status change happens.
+## 2. `supabase/functions/bulk-import-funcionarios-v2/index.ts` — `error` is `unknown`
 
-### 2. No frontend changes needed
+Lines 467, 477, 509, 510 access `.message` and `.stack` on a catch variable typed as `unknown`. Fix by adding `error instanceof Error` checks or casting.
 
-The `archiveFuncionario` mutation and `handleStatusChange` already update `planos_funcionarios` and invalidate pendencia queries. Once the trigger creates pendencias correctly, everything downstream (sidebar badges, empresa pendencias list, corretora views) will work automatically.
+Line ~467: `reason: (error instanceof Error ? error.message : 'Erro desconhecido')`
+Line ~477: `message: (error instanceof Error ? error.message : 'Erro desconhecido')`
+Lines 509-510:
+```typescript
+error: (error instanceof Error ? error.message : 'Erro interno do servidor'),
+details: (error instanceof Error ? error.stack : undefined)
+```
 
-| Item | Type | Description |
-|------|------|-------------|
-| Migration SQL | DB migration | Add trigger on `planos_funcionarios` AFTER UPDATE to create cancelamento pendencias when status changes to `exclusao_solicitada` |
+| File | Change |
+|------|--------|
+| `src/hooks/useEmpresas.ts` | Reconstruct full `useQuery` call (lines 36-46) |
+| `supabase/functions/bulk-import-funcionarios-v2/index.ts` | Add `instanceof Error` guards on 4 lines |
 
