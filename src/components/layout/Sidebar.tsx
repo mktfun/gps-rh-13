@@ -25,7 +25,8 @@ import {
 const Sidebar = () => {
   const location = useLocation();
   const { role } = useAuth();
-  const { totalPendencias } = usePendenciasDaCorretora();
+  const { data: pendencias } = usePendenciasDaCorretora();
+  const totalPendencias = pendencias?.length ?? 0;
 
   const isActive = (path: string) => location.pathname === path;
 
