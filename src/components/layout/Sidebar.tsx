@@ -89,11 +89,13 @@ const Sidebar = () => {
       name: 'Seguros de Vida',
       href: '/corretora/seguros-de-vida/empresas',
       icon: Activity,
+      badge: vidaCountCorretora > 0 ? vidaCountCorretora.toString() : undefined,
     },
     {
       name: 'Planos de Saúde',
       href: '/corretora/planos-de-saude/empresas',
       icon: Stethoscope,
+      badge: saudeCountCorretora > 0 ? saudeCountCorretora.toString() : undefined,
     },
   ];
 
