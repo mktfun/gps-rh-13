@@ -25,6 +25,7 @@ export interface PendenciaItem {
   cnpj_razao_social?: string;
   prioridade?: PendenciaPrioridade;
   dias_em_aberto?: number;
+  tipo_plano?: string | null;
 }
 
 export interface PendenciasCorretoraFilters {
