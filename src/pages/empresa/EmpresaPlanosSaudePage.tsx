@@ -20,7 +20,7 @@ import { AlertTriangle } from 'lucide-react';
 const EmpresaPlanosSaudePage = () => {
   console.log('🩺 EmpresaPlanosSaudePage: Componente carregado');
   const { data: planos, isLoading, error } = useEmpresaPlanosPorTipo('saude');
-  console.log('🩺 EmpresaPlanosSaudePage: Estado dos dados', { planos: planos?.length, isLoading, error });
+  const { data: pendencias } = usePendenciasEmpresa();
 
   const formatCurrency = (value: number, precise = false) => {
     return new Intl.NumberFormat('pt-BR', {
