@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, ChevronRight, Users } from 'lucide-react';
+import { Building2, ChevronRight, Users, AlertTriangle } from 'lucide-react';
 import { EmpresaComPlano } from '@/hooks/useEmpresasComPlanos';
 import { DashboardLoadingState } from '@/components/ui/loading-state';
 
