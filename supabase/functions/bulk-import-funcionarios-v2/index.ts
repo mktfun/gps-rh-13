@@ -474,7 +474,7 @@ serve(async (req) => {
               errors: [{ 
                 field: 'general', 
                 severity: 'error', 
-                message: error.message || 'Erro desconhecido' 
+                message: (error instanceof Error ? error.message : 'Erro desconhecido') 
               }]
             });
           }
